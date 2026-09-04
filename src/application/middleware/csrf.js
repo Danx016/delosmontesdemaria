@@ -5,55 +5,76 @@ const csrf = require('csurf');
 const csrfHTTP = csrf({
   cookie: {
     key: 'csrfToken',
-    httpOnly: false,  // Permitir que Javascript lo lea
-    sameSite: 'lax',  // 'lax' para compatibilidad con Cloudflare Tunnel
-    secure: false     // false para HTTP local
+    httpOnly: false,
+    sameSite: 'lax',
+    secure: false
   }
 });
 
 const csrfHTTPS = csrf({
   cookie: {
     key: 'csrfToken',
-    httpOnly: false,  // Permitir que Javascript lo lea
-    sameSite: 'lax',  // 'lax' para compatibilidad con Cloudflare Tunnel
-    secure: true      // true para conexiones HTTPS a través de Cloudflare
+    httpOnly: false,
+    sameSite: 'lax',
+    secure: true
   }
 });
 
 function csrfMiddleware(req, res, next) {
-  // Eximir las rutas de API REST (/api/*) que usan JWT y peticiones asíncronas
-  if (req.path.startsWith('/api')) {
+  // Eximir las rutas de API REST, Socket.io, estáticos y multimedia
+  if (
+    req.path.startsWith('/api') ||
+    req.path.startsWith('/socket.io') ||
+    req.path.startsWith('/uploads') ||
+    req.path.startsWith('/img') ||
+    req.path === '/favicon.ico'
+  ) {
     return next();
   }
 
   const isSecure = req.secure || req.headers['x-forwarded-proto'] === 'https';
-  
   const currentCsrf = isSecure ? csrfHTTPS : csrfHTTP;
-  
+
+  // En métodos seguros de lectura (GET, HEAD, OPTIONS), no se bloquea la navegación de la SPA
+  if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
+    currentCsrf(req, res, (err) => {
+      if (!err && typeof req.csrfToken === 'function') {
+        try {
+          const token = req.csrfToken();
+          res.cookie('XSRF-TOKEN', token, {
+            httpOnly: false,
+            sameSite: 'lax',
+            secure: isSecure
+          });
+        } catch (_) {}
+      }
+      return next();
+    });
+    return;
+  }
+
+  // En métodos mutativos (POST, PUT, DELETE, PATCH) fuera de /api, validar estrictamente
   currentCsrf(req, res, (err) => {
     if (err) {
-      console.warn('Bloqueo de seguridad CSRF:', err.message);
-      return res.status(403).json({ 
-        error: 'Acceso denegado: Token CSRF de csurf inválido o faltante en la petición.' 
+      console.warn(`[SECURITY] Bloqueo CSRF en ${req.method} ${req.originalUrl}:`, err.message);
+      return res.status(403).json({
+        error: 'Acceso denegado: Token CSRF inválido o faltante en la petición.'
       });
     }
-    
-    // Generar el token actual
-    const token = req.csrfToken();
-    
-    // Hacerlo disponible para las vistas EJS
-    res.locals.csrfToken = token;
-    
-    // Guardar el token real en una cookie no HTTPOnly para que el frontend pueda leerlo
-    res.cookie('XSRF-TOKEN', token, {
-      httpOnly: false,
-      sameSite: 'lax',   // 'lax' para compatibilidad con Cloudflare Tunnel
-      secure: isSecure   // Dinámico: true en HTTPS, false en HTTP
-    });
-    
+
+    if (typeof req.csrfToken === 'function') {
+      try {
+        const token = req.csrfToken();
+        res.cookie('XSRF-TOKEN', token, {
+          httpOnly: false,
+          sameSite: 'lax',
+          secure: isSecure
+        });
+      } catch (_) {}
+    }
+
     next();
   });
 }
 
 module.exports = csrfMiddleware;
-

@@ -30,11 +30,6 @@ export default function SoportePage() {
   const { user } = useAuth()
   const isAdminOrSupport = user?.id_rol === 1 || user?.id_rol === 4 || user?.username === 'admin'
 
-  // Redirigir de inmediato al Admin / Asesor a su panel de gestión
-  if (isAdminOrSupport) {
-    return <Navigate to="/admin/soporte" replace />
-  }
-
   const [activeTab, setActiveTab] = useState('nuevo') // 'nuevo' | 'buscar'
   const [activeTicket, setActiveTicket] = useState(null)
   const [messages, setMessages] = useState([])
@@ -194,6 +189,11 @@ export default function SoportePage() {
       chatFeedRef.current.scrollTop = chatFeedRef.current.scrollHeight
     }
   }, [messages])
+
+  // Redirigir al Admin / Asesor a su panel de gestión si corresponde
+  if (isAdminOrSupport) {
+    return <Navigate to="/admin/soporte" replace />
+  }
 
   const handleCreateTicket = async (e) => {
     e.preventDefault()
