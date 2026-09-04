@@ -155,11 +155,33 @@ export default function PaymentPage() {
     setOtpError('')
 
     try {
-      const userEmail = user?.correo || shippingInfo?.correo
+      const userEmail = (user?.correo || shippingInfo?.correo || '').trim().toLowerCase()
       await verificarOtp({ email: userEmail, code: otpCode.trim() })
 
       const userId = user?.id || user?.id_usuario || user?.idUser
-      const addressString = `${shippingInfo?.direccion || ''}, ${shippingInfo?.ciudad || ''} - ${shippingInfo?.departamento || ''}`
+
+      // Formatear dirección limpia sin '[object Object]'
+      let addressString = ''
+      if (typeof shippingInfo?.direccion === 'string' && !shippingInfo.direccion.includes('[object Object]')) {
+        addressString = shippingInfo.direccion.trim()
+      } else {
+        const addrObj = (typeof shippingInfo?.direccion === 'object' && shippingInfo?.direccion !== null)
+          ? shippingInfo.direccion
+          : (shippingInfo?.direccion_objeto || shippingInfo || {})
+        const dir = addrObj.direccion_principal || (typeof addrObj.direccion === 'string' ? addrObj.direccion : '') || addrObj.direccion_texto || ''
+        const barrio = addrObj.barrio ? `Barrio ${addrObj.barrio}` : ''
+        const ciudad = addrObj.ciudad || addrObj.municipio || shippingInfo?.ciudad || ''
+        const depto = addrObj.departamento || shippingInfo?.departamento || ''
+        const parts = [dir, barrio, ciudad, depto].filter(Boolean)
+        addressString = parts.join(', ') || 'Dirección de entrega'
+      }
+
+      const cleanShippingInfo = {
+        ...shippingInfo,
+        direccion: addressString,
+        correo: userEmail,
+        nombre_destinatario: shippingInfo?.nombre_destinatario || user?.nombre || 'Cliente',
+      }
 
       const resCompra = await crearCompra({
         idUser: userId,
@@ -167,10 +189,11 @@ export default function PaymentPage() {
         metodo_pago: 'Contra Entrega (Efectivo)',
         metodoPago: 'Contra Entrega (Efectivo)',
         direccion: addressString,
+        direccion_envio: addressString,
         total: totalConEnvio,
         codigo_cupon: appliedCoupon?.codigo || null,
         descuento: discountAmount,
-        shippingInfo,
+        shippingInfo: cleanShippingInfo,
       })
 
       const compraId = resCompra.data?.id_compra || resCompra.data?.id || 'MM-' + Math.floor(1000 + Math.random() * 9000)

@@ -154,12 +154,27 @@ export default function CheckoutPage() {
       return
     }
 
-    // Guardar selección de envío en sessionStorage
+    const addressText = currentAddress.direccion_principal || currentAddress.direccion || ''
+    const cityText = currentAddress.ciudad || currentAddress.municipio || ''
+    const deptText = currentAddress.departamento || ''
+    const barrioText = currentAddress.barrio ? `Barrio ${currentAddress.barrio}` : ''
+    const fullFormatted = [addressText, barrioText, cityText, deptText].filter(Boolean).join(', ')
+
+    // Guardar selección de envío en sessionStorage con formato plano y seguro
     sessionStorage.setItem(
       'checkout_shipping',
       JSON.stringify({
         id_direccion: selectedDir,
-        direccion: currentAddress,
+        direccion: fullFormatted || 'Dirección de entrega',
+        direccion_objeto: currentAddress,
+        direccion_principal: addressText,
+        ciudad: cityText,
+        municipio: cityText,
+        departamento: deptText,
+        barrio: currentAddress.barrio || '',
+        telefono: currentAddress.telefono || user?.telefono || '',
+        correo: user?.correo || '',
+        nombre_destinatario: user?.nombre || '',
       })
     )
     navigate('/pago')

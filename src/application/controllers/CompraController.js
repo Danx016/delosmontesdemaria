@@ -5,6 +5,24 @@
 const UpdateOrderStatus = require('../../domain/use-cases/purchase/UpdateOrderStatus');
 const GenerateWompiSignature = require('../../domain/use-cases/purchase/GenerateWompiSignature');
 
+function formatShippingAddress(addr, info) {
+  if (typeof addr === 'string' && addr.trim() && !addr.includes('[object Object]')) {
+    return addr.trim();
+  }
+  const obj = (typeof addr === 'object' && addr !== null) ? addr : ((typeof info === 'object' && info !== null) ? info : {});
+  const nestedDir = (typeof obj.direccion === 'object' && obj.direccion !== null) ? obj.direccion : null;
+  const target = nestedDir || obj;
+
+  const dir = target.direccion_principal || (typeof target.direccion === 'string' ? target.direccion : '') || target.direccion_texto || '';
+  const barrio = target.barrio ? `Barrio ${target.barrio}` : '';
+  const ciudad = target.ciudad || target.municipio || '';
+  const dep = target.departamento || '';
+  const tel = target.telefono ? `(Tel: ${target.telefono})` : '';
+
+  const parts = [dir, barrio, ciudad, dep, tel].filter(Boolean);
+  return parts.length > 0 ? parts.join(', ') : 'Dirección de entrega';
+}
+
 class CompraController {
   constructor({ compraRepository, productoRepository, usuarioRepository, tokenRepository, emailService, paymentService, couponRepository, telegramService }) {
     this.compraRepository = compraRepository;
@@ -51,11 +69,7 @@ class CompraController {
       }
 
       const paymentMethod = metodoPago || metodo_pago || 'Contra Entrega (Efectivo)';
-      let shippingAddress = direccion || direccion_envio;
-      if (!shippingAddress && shippingInfo) {
-        shippingAddress = `${shippingInfo.direccion || ''}, ${shippingInfo.ciudad || shippingInfo.municipio || ''} ${shippingInfo.departamento || ''} (Tel: ${shippingInfo.telefono || ''})`;
-      }
-      shippingAddress = shippingAddress || 'Dirección de entrega';
+      const shippingAddress = formatShippingAddress(direccion || direccion_envio, shippingInfo);
 
       if (paymentMethod === 'Agro-Créditos') {
         const user = await this.usuarioRepository.buscarPorId(userId);
@@ -83,19 +97,41 @@ class CompraController {
         }
       }
 
-      // Enviar factura por correo y notificar a Telegram en segundo plano (sin bloquear la respuesta al usuario)
+      // Enviar factura por correo y notificar a Telegram en segundo plano
       setImmediate(async () => {
         try {
           const recibo = await this.compraRepository.obtenerReciboCompleto(compraCreada.id_compra);
-          if (recibo && recibo.correo_cliente) {
-            await this.emailService.sendInvoiceEmail(recibo, recibo.correo_cliente);
+          const buyerEmail = (
+            recibo?.correo_cliente ||
+            req.body.shippingInfo?.correo ||
+            req.body.email ||
+            req.user?.correo ||
+            ''
+          ).trim().toLowerCase();
+
+          if (recibo) {
+            recibo.correo_cliente = buyerEmail || recibo.correo_cliente;
+            recibo.nombre_cliente = recibo.nombre_cliente || req.body.shippingInfo?.nombre_destinatario || req.user?.nombre || 'Cliente';
+            recibo.direccion_envio = recibo.direccion_envio || shippingAddress;
+
+            if (buyerEmail) {
+              console.log(`✉️ [Compra #${compraCreada.id_compra}] Despachando factura de venta a: ${buyerEmail}`);
+              const sent = await this.emailService.sendInvoiceEmail(recibo, buyerEmail);
+              if (sent) {
+                console.log(`✅ [Compra #${compraCreada.id_compra}] Factura enviada exitosamente por correo a: ${buyerEmail}`);
+              } else {
+                console.error(`❌ [Compra #${compraCreada.id_compra}] Falló el envío de factura por correo a: ${buyerEmail}`);
+              }
+            } else {
+              console.warn(`⚠️ [Compra #${compraCreada.id_compra}] No se encontró correo para despachar la factura.`);
+            }
           }
 
           if (this.telegramService) {
             const userBuyer = await this.usuarioRepository.buscarPorId(userId);
             await this.telegramService.notificarNuevaCompra({
               compra: compraCreada,
-              usuario: userBuyer || { nombre: 'Cliente Web', correo: recibo?.correo_cliente },
+              usuario: userBuyer || { nombre: 'Cliente Web', correo: buyerEmail },
               productos,
               total,
               metodoPago: paymentMethod,
@@ -179,7 +215,10 @@ class CompraController {
         return res.status(403).json({ error: 'No tienes permiso para enviar este recibo.' });
       }
 
-      await this.emailService.sendInvoiceEmail(recibo, email);
+      const sent = await this.emailService.sendInvoiceEmail(recibo, email);
+      if (!sent) {
+        return res.status(502).json({ error: 'No se pudo despachar la factura al correo especificado.' });
+      }
       res.json({ success: true, message: 'Factura enviada correctamente por correo electrónico.' });
     } catch (error) {
       res.status(500).json({ error: 'Error al enviar factura por correo' });
@@ -228,8 +267,16 @@ class CompraController {
       const code = Math.floor(100000 + Math.random() * 900000).toString();
       await this.tokenRepository.guardarOtp(targetEmail, code, 10);
 
-      await this.emailService.sendPurchaseOtpEmail(targetEmail, nombre || req.user?.nombre, code, total);
+      const sent = await this.emailService.sendPurchaseOtpEmail(targetEmail, nombre || req.user?.nombre, code, total);
+      if (!sent) {
+        console.error(`❌ [OTP Compra] No se pudo entregar código OTP a: ${targetEmail}`);
+        return res.status(502).json({ 
+          error: 'No fue posible entregar el código de seguridad a tu correo electrónico. Por favor verifica tu dirección de correo o intenta de nuevo en unos minutos.',
+          email: targetEmail
+        });
+      }
 
+      console.log(`✅ [OTP Compra] Código de seguridad enviado exitosamente a: ${targetEmail}`);
       res.json({ 
         success: true, 
         message: `Código de seguridad enviado a ${targetEmail}`

@@ -91,9 +91,9 @@ class MySQLCompraRepository extends CompraRepository {
   async obtenerReciboCompleto(idCompra) {
     return new Promise((resolve, reject) => {
       const sql = `SELECT c.id_compra, c.id_usuario, c.fecha, c.total, c.estado, c.metodo_pago, c.direccion_envio, c.reembolsado,
-                          u.nombre AS nombre_cliente, u.correo AS correo_cliente
+                          COALESCE(u.nombre, 'Cliente') AS nombre_cliente, u.correo AS correo_cliente
                    FROM compras c 
-                   JOIN usuarios u ON c.id_usuario = u.id_usuario 
+                   LEFT JOIN usuarios u ON c.id_usuario = u.id_usuario 
                    WHERE c.id_compra = ?`;
 
       db.query(sql, [idCompra], (err, headerRows) => {

@@ -15,76 +15,184 @@ if (dns.setDefaultResultOrder) {
 
 class EmailService {
   constructor() {
-    this.transporter = null;
-    this.inicializarTransporter();
+    this.transporter465 = null;
+    this.transporter587 = null;
+    this.inicializarTransporters();
   }
 
-  inicializarTransporter() {
+  inicializarTransporters() {
     const host = appConfig.smtp.host || 'smtp.gmail.com';
-    const port = parseInt(appConfig.smtp.port, 10) || 465;
     const user = appConfig.smtp.user || 'danilorodelo355@gmail.com';
     const rawPass = appConfig.smtp.pass || 'gszsvbqujjebrlgk';
     const pass = rawPass.replace(/\s+/g, '');
 
-    const isSecure = port === 465;
-
-    const transportOpts = {
-      host,
-      port,
-      secure: isSecure,
-      family: 4,
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 15000,
-      lookup: (hostname, options, callback) => {
-        dns.lookup(hostname, { family: 4, all: false }, callback);
-      },
-      tls: {
-        rejectUnauthorized: false,
-      },
+    const baseDns = (hostname, options, callback) => {
+      dns.lookup(hostname, { family: 4, all: false }, callback);
     };
 
-    if (user && pass) {
-      transportOpts.auth = { user, pass };
-    }
+    // Puerto 465 SSL (Conexión segura directa)
+    this.transporter465 = nodemailer.createTransport({
+      host,
+      port: 465,
+      secure: true,
+      family: 4,
+      connectionTimeout: 8000,
+      greetingTimeout: 8000,
+      socketTimeout: 12000,
+      lookup: baseDns,
+      tls: { rejectUnauthorized: false },
+      auth: (user && pass) ? { user, pass } : undefined
+    });
 
-    this.transporter = nodemailer.createTransport(transportOpts);
+    // Puerto 587 STARTTLS (Alternativa cuando el firewall de la nube bloquea 465)
+    this.transporter587 = nodemailer.createTransport({
+      host,
+      port: 587,
+      secure: false,
+      requireTLS: true,
+      family: 4,
+      connectionTimeout: 8000,
+      greetingTimeout: 8000,
+      socketTimeout: 12000,
+      lookup: baseDns,
+      tls: { rejectUnauthorized: false },
+      auth: (user && pass) ? { user, pass } : undefined
+    });
   }
 
-  async sendMailSafe({ to, subject, html, attachments, fallbackLog }) {
-    if (!this.transporter) {
-      this.inicializarTransporter();
-    }
+  /**
+   * Envío por HTTP REST API (Puerto 443 HTTPS - Sin bloqueo de puertos en entornos Cloud VPS)
+   */
+  async sendViaHttpApi({ to, subject, html, text }) {
+    const brevoKey = appConfig.brevoApiKey || process.env.BREVO_API_KEY;
+    const resendKey = appConfig.resendApiKey || process.env.RESEND_API_KEY;
 
-    if (this.transporter) {
+    if (brevoKey) {
       try {
-        const logoPath = path.resolve(__dirname, '../../../public/img/Logo.jpg');
-        const defaultAttachments = fs.existsSync(logoPath)
-          ? [{
-              filename: 'Logo.jpg',
-              path: logoPath,
-              cid: 'logo_montesdemaria'
-            }]
-          : [];
-
-        const finalAttachments = Array.isArray(attachments) && attachments.length > 0
-          ? [...defaultAttachments, ...attachments]
-          : defaultAttachments;
-
-        const info = await this.transporter.sendMail({
-          from: `"De los Montes de María" <${appConfig.smtp.user || 'danilorodelo355@gmail.com'}>`,
-          to,
+        const payload = {
+          sender: { name: 'De los Montes de María', email: appConfig.smtp.user || 'danilorodelo355@gmail.com' },
+          to: [{ email: to }],
+          replyTo: { email: appConfig.smtp.user || 'danilorodelo355@gmail.com', name: 'De los Montes de María' },
           subject,
-          html,
-          attachments: finalAttachments
+          htmlContent: html
+        };
+        if (text) payload.textContent = text;
+
+        const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+          method: 'POST',
+          headers: {
+            'accept': 'application/json',
+            'api-key': brevoKey,
+            'content-type': 'application/json'
+          },
+          body: JSON.stringify(payload)
         });
-        console.log(`✉️ [SMTP Servidor] Correo despachado exitosamente a: ${to} | Asunto: ${subject} | ID: ${info?.messageId || 'OK'}`);
-        return true;
-      } catch (err) {
-        console.error(`⚠️ [SMTP Servidor Error]: ${err.message}`);
+
+        if (response.ok) {
+          console.log(`✉️ [Brevo HTTPS :443] Correo entregado exitosamente a: ${to} | Asunto: ${subject}`);
+          return true;
+        } else {
+          const errBody = await response.text();
+          console.warn(`⚠️ [Brevo HTTPS :443 Status ${response.status}]:`, errBody);
+        }
+      } catch (e) {
+        console.warn('⚠️ [Brevo HTTPS Error]:', e.message);
       }
     }
 
+    if (resendKey) {
+      try {
+        const response = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${resendKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            from: 'De los Montes de María <onboarding@resend.dev>',
+            to: [to],
+            subject,
+            html
+          })
+        });
+
+        if (response.ok) {
+          console.log(`✉️ [Resend HTTPS :443] Correo entregado exitosamente a: ${to} | Asunto: ${subject}`);
+          return true;
+        } else {
+          const errBody = await response.text();
+          console.warn(`⚠️ [Resend HTTPS :443 Status ${response.status}]:`, errBody);
+        }
+      } catch (e) {
+        console.warn('⚠️ [Resend HTTPS Error]:', e.message);
+      }
+    }
+
+    return false;
+  }
+
+  async sendMailSafe({ to, subject, html, attachments, fallbackLog }) {
+    if (!to || !to.includes('@')) {
+      console.warn(`⚠️ [EmailService] Omitiendo envío: Dirección de correo inválida (${to})`);
+      return false;
+    }
+
+    // 1. Intentar primero por API REST HTTPS si hay clave configurada (Puerto 443)
+    const httpSuccess = await this.sendViaHttpApi({ to, subject, html });
+    if (httpSuccess) return true;
+
+    // 2. Preparar adjuntos para SMTP
+    const logoPath = path.resolve(__dirname, '../../../public/img/Logo.jpg');
+    const defaultAttachments = fs.existsSync(logoPath)
+      ? [{
+          filename: 'Logo.jpg',
+          path: logoPath,
+          cid: 'logo_montesdemaria'
+        }]
+      : [];
+
+    const finalAttachments = Array.isArray(attachments) && attachments.length > 0
+      ? [...defaultAttachments, ...attachments]
+      : defaultAttachments;
+
+    const mailOptions = {
+      from: `"De los Montes de María" <${appConfig.smtp.user || 'danilorodelo355@gmail.com'}>`,
+      to,
+      subject,
+      html,
+      attachments: finalAttachments
+    };
+
+    if (!this.transporter465 || !this.transporter587) {
+      this.inicializarTransporters();
+    }
+
+    // Determinar orden de puertos según configuración (por defecto 465 primero, luego 587)
+    const configuredPort = parseInt(appConfig.smtp.port, 10) || 465;
+    const primaryTransporter = configuredPort === 587 ? this.transporter587 : this.transporter465;
+    const fallbackTransporter = configuredPort === 587 ? this.transporter465 : this.transporter587;
+    const primaryPort = configuredPort === 587 ? 587 : 465;
+    const fallbackPort = configuredPort === 587 ? 465 : 587;
+
+    // 3. Intento por SMTP Primario
+    try {
+      const info = await primaryTransporter.sendMail(mailOptions);
+      console.log(`✉️ [SMTP :${primaryPort}] Correo entregado exitosamente a: ${to} | Asunto: ${subject} | ID: ${info?.messageId || 'OK'}`);
+      return true;
+    } catch (primaryErr) {
+      console.warn(`⚠️ [SMTP :${primaryPort} Error]: ${primaryErr.message}. Probando fallback puerto :${fallbackPort}...`);
+    }
+
+    // 4. Intento por SMTP Fallback (Puerto alternativo con STARTTLS)
+    try {
+      const infoFallback = await fallbackTransporter.sendMail(mailOptions);
+      console.log(`✉️ [SMTP :${fallbackPort} Fallback] Correo entregado exitosamente a: ${to} | Asunto: ${subject} | ID: ${infoFallback?.messageId || 'OK'}`);
+      return true;
+    } catch (fallbackErr) {
+      console.error(`❌ [SMTP :${fallbackPort} Fallback Error]: ${fallbackErr.message}`);
+    }
+
+    console.error(`❌ [EmailService] Falló el despacho de correo a: ${to} por todos los métodos.`);
     return false;
   }
 
