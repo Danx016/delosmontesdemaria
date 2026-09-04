@@ -114,7 +114,6 @@ export default function PaymentPage() {
       setOtpCode('')
       setOtpError('')
       setResendTimer(60)
-      toast.info(`Código de seguridad enviado a ${userEmail}`)
     } catch (err) {
       setError(
         err.response?.data?.error || 'No se pudo enviar el código de seguridad al correo. Inténtalo de nuevo.'
@@ -136,7 +135,6 @@ export default function PaymentPage() {
         total: totalConEnvio,
       })
       setResendTimer(60)
-      toast.info('Nuevo código de seguridad enviado a tu correo')
     } catch (err) {
       setOtpError('Error al reenviar el código. Inténtalo en un momento.')
     } finally {
@@ -567,11 +565,15 @@ export default function PaymentPage() {
               Código de Seguridad Requerido
             </h3>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem', lineHeight: '1.5' }}>
-              Hemos enviado un código de 6 dígitos a:
+              Por tu seguridad, hemos enviado el código de autorización a tu correo electrónico:
               <br />
               <strong style={{ color: 'var(--text-main)', fontSize: '0.95rem' }}>
                 {user?.correo || shippingInfo?.correo}
               </strong>
+              <br />
+              <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                (Revisa tu bandeja de entrada o carpeta de Spam / Promociones)
+              </span>
             </p>
 
             {otpError && (
@@ -591,7 +593,7 @@ export default function PaymentPage() {
             )}
 
             <form onSubmit={handleVerifyAndConfirmOrder}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.5rem' }}>
                 <input
                   type="text"
                   maxLength={6}
@@ -600,7 +602,7 @@ export default function PaymentPage() {
                   placeholder="000000"
                   autoFocus
                   style={{
-                    width: '200px',
+                    width: '220px',
                     height: '56px',
                     fontSize: '1.8rem',
                     textAlign: 'center',
@@ -614,34 +616,6 @@ export default function PaymentPage() {
                     boxShadow: '0 4px 12px rgba(46, 125, 50, 0.15)',
                   }}
                 />
-                <button
-                  type="button"
-                  title="Pegar código del portapapeles"
-                  onClick={async () => {
-                    try {
-                      const text = await navigator.clipboard.readText()
-                      const clean = text.replace(/\D/g, '').slice(0, 6)
-                      if (clean) setOtpCode(clean)
-                    } catch (e) {}
-                  }}
-                  className="btn"
-                  style={{
-                    height: '56px',
-                    padding: '0 14px',
-                    borderRadius: '12px',
-                    background: '#f0fdf4',
-                    border: '1.5px solid #86efac',
-                    color: '#166534',
-                    fontWeight: 700,
-                    fontSize: '0.85rem',
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <i className="fa fa-paste" /> Pegar
-                </button>
               </div>
 
               <button
