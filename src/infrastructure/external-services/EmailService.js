@@ -95,35 +95,35 @@ class EmailService {
     const cleanCode = String(code || '').trim();
     return `
       <!-- OTP Security Card -->
-      <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 460px; margin: 24px auto; background: #f0fdf4; border: 2px dashed #16a34a; border-radius: 18px; padding: 24px 16px; text-align: center;">
+      <table align="center" border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 480px; margin: 26px auto; background-color: #eaf5eb; border: 2px dashed #438E44; border-radius: 20px; padding: 26px 18px; text-align: center;">
         <tr>
           <td align="center">
-            <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: #166534; margin-bottom: 12px;">
+            <div style="font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: #2e6930; margin-bottom: 12px; font-family: 'Montserrat', Arial, sans-serif;">
               🛡️ ${label}
             </div>
             
-            <div style="background: #ffffff; border: 2px solid #86efac; border-radius: 14px; padding: 14px 28px; display: inline-block; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(22,163,74,0.08);">
-              <span style="font-size: 36px; font-weight: 900; letter-spacing: 6px; color: #14532d; font-family: Consolas, 'Courier New', Monaco, monospace; line-height: 1; user-select: all; -webkit-user-select: all; -moz-user-select: all; display: inline-block;" title="Doble clic o mantén presionado para copiar">
+            <div style="background: #ffffff; border: 2.5px solid #81c784; border-radius: 16px; padding: 14px 32px; display: inline-block; margin-bottom: 12px; box-shadow: 0 6px 16px rgba(67,142,68,0.14);">
+              <span style="font-size: 38px; font-weight: 900; letter-spacing: 8px; color: #1e4a21; font-family: Consolas, 'Courier New', Monaco, monospace; line-height: 1; user-select: all; -webkit-user-select: all; -moz-user-select: all; display: inline-block;" title="Doble clic o mantén presionado para copiar">
                 ${cleanCode}
               </span>
             </div>
 
             <div style="margin-top: 4px; margin-bottom: 6px;">
-              <span style="display: inline-block; background: #e0f2fe; border: 1px solid #bae6fd; color: #0369a1; font-size: 11.5px; font-weight: 700; padding: 6px 16px; border-radius: 999px; letter-spacing: 0.2px;">
-                💡 Doble clic o mantén presionado el número para copiar
+              <span style="display: inline-block; background: #fff8f0; border: 1px solid #fed7aa; color: #c97a22; font-size: 11.5px; font-weight: 700; padding: 5px 16px; border-radius: 999px; letter-spacing: 0.2px; font-family: 'Open Sans', sans-serif;">
+                💡 Doble clic o mantén presionado el número para copiarlo
               </span>
             </div>
 
             ${actionUrl && actionText ? `
-              <div style="margin-top: 16px;">
-                <a href="${actionUrl}" target="_blank" style="background: linear-gradient(135deg, #15803d 0%, #166534 100%); color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 999px; font-size: 14px; font-weight: 800; display: inline-block; box-shadow: 0 4px 14px rgba(21,128,61,0.3);">
+              <div style="margin-top: 18px;">
+                <a href="${actionUrl}" target="_blank" style="background: #438E44; background: linear-gradient(135deg, #438E44 0%, #2e6930 100%); color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 50px; font-size: 14px; font-weight: 700; display: inline-block; box-shadow: 0 4px 14px rgba(67,142,68,0.3); font-family: 'Montserrat', sans-serif;">
                   ${actionText} →
                 </a>
               </div>
             ` : ''}
 
             ${note ? `
-              <div style="margin-top: 12px; font-size: 12px; color: #475569; font-weight: 600; line-height: 1.4;">
+              <div style="margin-top: 14px; font-size: 12px; color: #666666; font-weight: 600; line-height: 1.4; font-family: 'Open Sans', sans-serif;">
                 ⏱️ ${note}
               </div>
             ` : ''}
@@ -134,12 +134,12 @@ class EmailService {
   }
 
   /**
-   * Layout maestro HTML con la identidad gráfica de De los Montes de María
+   * Layout maestro HTML con la identidad gráfica oficial de De los Montes de María
    */
-  buildEmailLayout({ badge, title, subtitle, contentHtml, ctaText, ctaLink, footerNote, bannerColor = '#1b5e20' }) {
-    const baseUrl = appConfig.baseUrl || 'https://delosmontesdemaria.duckdns.org';
+  buildEmailLayout({ badge, title, subtitle, contentHtml, ctaText, ctaLink, footerNote }) {
+    const baseUrl = (appConfig.baseUrl || 'https://delosmontesdemaria.duckdns.org').replace(/\/+$/, '');
     const link = ctaLink ? (ctaLink.startsWith('http') ? ctaLink : `${baseUrl}${ctaLink}`) : null;
-    const logoUrl = `${baseUrl}/img/Logo.jpg`;
+    const logoFallback = `${baseUrl}/img/Logo.jpg`;
 
     return `
 <!DOCTYPE html>
@@ -148,39 +148,50 @@ class EmailService {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title || 'De los Montes de María'}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body style="margin: 0; padding: 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #1e293b; -webkit-font-smoothing: antialiased;">
-  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #f1f5f9; padding: 36px 12px;">
+<body style="margin: 0; padding: 0; background-color: #f4f6f8; font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #242424; -webkit-font-smoothing: antialiased;">
+  <table width="100%" border="0" cellpadding="0" cellspacing="0" style="background-color: #f4f6f8; padding: 32px 12px;">
     <tr>
       <td align="center">
         <!-- Main Email Container Card -->
-        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="max-width: 620px; width: 100%; background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 16px 40px rgba(0,0,0,0.08); border: 1px solid #e2e8f0;">
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" style="max-width: 640px; width: 100%; background-color: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 16px 44px rgba(0,0,0,0.08); border: 1px solid #e5e7eb;">
           
+          <!-- Top Promotional Ribbon -->
+          <tr>
+            <td style="background-color: #E28C2B; padding: 9px 18px; text-align: center; color: #ffffff; font-family: 'Montserrat', Arial, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase;">
+              🌱 MERCADO CAMPESINO DIRECTO • DE LOS MONTES DE MARÍA 🌾
+            </td>
+          </tr>
+
           <!-- Header Banner -->
           <tr>
-            <td style="background: linear-gradient(135deg, #064e3b 0%, #166534 60%, #15803d 100%); padding: 38px 24px 32px; text-align: center; color: #ffffff;">
+            <td style="background: linear-gradient(135deg, #1e4a21 0%, #2e6930 40%, #438E44 100%); padding: 36px 24px 30px; text-align: center; color: #ffffff;">
               <table width="100%" border="0" cellpadding="0" cellspacing="0">
                 <tr>
                   <td align="center">
-                    <!-- Project Logo (Circular Frame with Gold/Emerald Border) -->
-                    <table border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto 16px auto;">
+                    
+                    <!-- Circular Official Logo with Gold Accent Ring -->
+                    <table border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto 14px auto;">
                       <tr>
-                        <td align="center" style="background: #ffffff; width: 82px; height: 82px; border-radius: 50%; box-shadow: 0 10px 25px rgba(0,0,0,0.25); border: 3px solid #86efac; vertical-align: middle; overflow: hidden;">
-                          <img src="${logoUrl}" alt="🌱 De los Montes de María" width="82" height="82" style="display: block; width: 82px; height: 82px; border-radius: 50%; object-fit: cover; border: 0; font-size: 11px; font-weight: bold; color: #166534;" />
+                        <td align="center" style="background: #ffffff; width: 88px; height: 88px; border-radius: 50%; box-shadow: 0 8px 24px rgba(0,0,0,0.22); border: 3.5px solid #E28C2B; padding: 2px; vertical-align: middle; text-align: center;">
+                          <img src="cid:logo_montesdemaria" onerror="this.onerror=null;this.src='${logoFallback}';" alt="🌱 De los Montes de María" width="80" height="80" style="display: block; width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin: 0 auto; border: 0;" />
                         </td>
                       </tr>
                     </table>
 
-                    <!-- Brand Top Pill Badge -->
-                    <div style="display: inline-block; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.35); border-radius: 999px; padding: 5px 16px; font-size: 11px; font-weight: 800; letter-spacing: 1.8px; text-transform: uppercase; color: #bbf7d0; margin-bottom: 12px;">
-                      🌾 DE LOS MONTES DE MARÍA
+                    <!-- Brand Top Tag -->
+                    <div style="display: inline-block; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.32); border-radius: 999px; padding: 5px 18px; font-size: 11px; font-weight: 800; letter-spacing: 1.8px; text-transform: uppercase; color: #fde68a; margin-bottom: 12px; font-family: 'Montserrat', Arial, sans-serif;">
+                      🌾 DE LOS MONTES DE MARÍA S.A.S.
                     </div>
 
                     <!-- Email Title -->
-                    <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 900; color: #ffffff; letter-spacing: -0.4px; line-height: 1.3;">
+                    <h1 style="margin: 0 0 8px 0; font-size: 24px; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; line-height: 1.3; font-family: 'Montserrat', -apple-system, sans-serif;">
                       ${title}
                     </h1>
-                    ${subtitle ? `<p style="margin: 0; font-size: 14px; color: #dcfce7; font-weight: 500; line-height: 1.4;">${subtitle}</p>` : ''}
+                    ${subtitle ? `<p style="margin: 0; font-size: 14.5px; color: #eaf5eb; font-weight: 500; line-height: 1.4; font-family: 'Open Sans', sans-serif;">${subtitle}</p>` : ''}
                   </td>
                 </tr>
               </table>
@@ -192,47 +203,48 @@ class EmailService {
             <td style="padding: 36px 32px 28px; background-color: #ffffff;">
               ${badge ? `
                 <div style="margin-bottom: 22px;">
-                  <span style="background-color: #f0fdf4; border: 1.5px solid #bbf7d0; color: #166534; font-size: 12px; font-weight: 800; padding: 6px 16px; border-radius: 999px; display: inline-block; letter-spacing: 0.3px;">
+                  <span style="background-color: #eaf5eb; border: 1.5px solid #c8e6c9; color: #2e6930; font-size: 12px; font-weight: 800; padding: 6px 16px; border-radius: 999px; display: inline-block; letter-spacing: 0.3px; font-family: 'Montserrat', sans-serif;">
                     ${badge}
                   </span>
                 </div>
               ` : ''}
               
-              <div style="color: #334155; font-size: 15.5px; line-height: 1.7;">
+              <div style="color: #242424; font-size: 15.5px; line-height: 1.7; font-family: 'Open Sans', sans-serif;">
                 ${contentHtml}
               </div>
 
               ${ctaText && link ? `
                 <div style="text-align: center; margin: 34px 0 18px;">
-                  <a href="${link}" target="_blank" style="background: linear-gradient(135deg, #166534 0%, #15803d 100%); color: #ffffff; text-decoration: none; padding: 15px 36px; border-radius: 999px; font-size: 15.5px; font-weight: 800; display: inline-block; box-shadow: 0 8px 20px rgba(22,101,52,0.28); letter-spacing: 0.3px;">
+                  <a href="${link}" target="_blank" style="background: #438E44; background: linear-gradient(135deg, #438E44 0%, #2e6930 100%); color: #ffffff; text-decoration: none; padding: 15px 38px; border-radius: 50px; font-size: 15.5px; font-weight: 700; display: inline-block; box-shadow: 0 6px 18px rgba(67,142,68,0.32); letter-spacing: 0.3px; font-family: 'Montserrat', sans-serif;">
                     ${ctaText} →
                   </a>
                 </div>
               ` : ''}
 
               ${footerNote ? `
-                <div style="margin-top: 28px; padding-top: 20px; border-top: 1px solid #f1f5f9; font-size: 12.5px; color: #64748b; text-align: center; line-height: 1.55;">
+                <div style="margin-top: 28px; padding-top: 20px; border-top: 1px solid #f1f5f9; font-size: 12.5px; color: #666666; text-align: center; line-height: 1.55; font-family: 'Open Sans', sans-serif;">
                   ${footerNote}
                 </div>
               ` : ''}
             </td>
           </tr>
 
-          <!-- Footer Area -->
+          <!-- Official Institutional Footer -->
           <tr>
-            <td style="background-color: #f8fafc; border-top: 1px solid #e2e8f0; padding: 28px 30px; text-align: center; color: #64748b; font-size: 12px; line-height: 1.6;">
-              <p style="margin: 0 0 6px 0; font-weight: 900; color: #0f172a; font-size: 14.5px; letter-spacing: 0.3px;">
+            <td style="background-color: #f9fafb; border-top: 1px solid #e5e7eb; padding: 28px 28px; text-align: center; color: #666666; font-size: 12px; line-height: 1.6; font-family: 'Open Sans', sans-serif;">
+              <p style="margin: 0 0 6px 0; font-weight: 800; color: #242424; font-size: 15px; font-family: 'Montserrat', sans-serif; letter-spacing: 0.3px;">
                 🌱 DE LOS MONTES DE MARÍA S.A.S.
               </p>
-              <p style="margin: 0 0 6px 0; color: #334155; font-size: 12.5px; font-weight: 700;">
-                NIT: 1050277880 • Tel / WhatsApp: +57 300 872 3989
+              <p style="margin: 0 0 6px 0; color: #438E44; font-size: 12.5px; font-weight: 700; font-family: 'Montserrat', sans-serif;">
+                NIT: 1050277880 • Régimen Simple de Tributación • Mercado Campesino Directo
               </p>
-              <p style="margin: 0 0 10px 0; color: #64748b; font-size: 12px;">
+              <p style="margin: 0 0 12px 0; color: #666666; font-size: 12px;">
                 Del campo colombiano directo a tu hogar • Cosechas, Lácteos, Semillas y Tradición
               </p>
-              <div style="border-top: 1px dashed #cbd5e1; padding-top: 10px; font-size: 11px; color: #94a3b8; line-height: 1.55;">
-                San Jacinto • Carmen de Bolívar • María La Baja • Ovejas • San Juan Nepomuceno<br/>
-                Soporte y Atención: <strong>+57 300 872 3989</strong> | danilorodelo355@gmail.com
+              <div style="border-top: 1px dashed #d1d5db; padding-top: 12px; font-size: 11.5px; color: #8c8c8c; line-height: 1.6;">
+                El Carmen de Bolívar • San Jacinto • María La Baja • Ovejas • San Juan Nepomuceno<br/>
+                📞 Soporte y WhatsApp: <strong style="color: #242424;">+57 300 872 3989</strong> &nbsp;|&nbsp; ✉️ <strong style="color: #242424;">danilorodelo355@gmail.com</strong><br/>
+                🌐 <a href="${baseUrl}" style="color: #438E44; text-decoration: none; font-weight: 600;">delosmontesdemaria.duckdns.org</a>
               </div>
             </td>
           </tr>
