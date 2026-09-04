@@ -214,8 +214,8 @@ El bot oficial de Telegram está profundamente conectado con el backend mediante
 `EmailService.js` gestiona el despacho de notificaciones transaccionales con diseño corporativo institucional.
 
 ### Características de Entrega:
-1. **Canal Primario (HTTPS REST API):** Utiliza la API v3 de **Brevo** (`https://api.brevo.com/v3/smtp/email`) a través del puerto 443 HTTPS para garantizar 100% de compatibilidad en entornos de servidor Linux / VPS.
-2. **Canal Secundario (SMTP con App Password):** Conexión directa con Google Gmail SMTP (`smtp.gmail.com:465`) para entornos de desarrollo local.
+1. **Canal Directo de Servidor (SMTP Nativo):** Despacho directo desde el propio servidor a través del protocolo SMTP seguro (TLS/SSL), sin intermediación de aplicaciones externas SaaS como Brevo o Resend.
+2. **Cifrado y Seguridad de Transporte:** Conexión cifrada TLS/SSL de alta velocidad en puertos 465/587 con autenticación segura.
 3. **Plantillas HTML Profesionales:**
    * Diseño responsivo con cabecera verde esmeralda y logotipo oficial enmarcado.
    * Tarjetas interactivas de código OTP con formato monoespaciado y selección táctil de un toque.

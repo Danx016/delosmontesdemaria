@@ -37,9 +37,6 @@ module.exports = {
     port: parseInt(process.env.SMTP_PORT, 10) || 465,
     user: sanitize(process.env.SMTP_USER) || 'danilorodelo355@gmail.com',
     pass: sanitize(process.env.SMTP_PASS ? process.env.SMTP_PASS.replace(/\s+/g, '') : '') || 'gszsvbqujjebrlgk'
-  },
-
-  brevoApiKey: sanitize(process.env.BREVO_API_KEY) || _d(['eGtleXNpYi0y', 'ZTJlMjI1ZGJj', 'NGI0NDAwODBl', 'YWQ3NzZlOTIw', 'MTQ1ODE2MmIx', 'OTE3ZjVkNzdh', 'Mjc4NGE1YzA2', 'N2FhZDI4MjNh', 'LWRyaGRZR3ZI', 'SlpQOERpdmI='].join('')),
-  resendApiKey: sanitize(process.env.RESEND_API_KEY)
+  }
 };
 

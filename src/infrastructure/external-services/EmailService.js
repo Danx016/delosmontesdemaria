@@ -20,107 +20,38 @@ class EmailService {
   }
 
   inicializarTransporter() {
+    const host = appConfig.smtp.host || 'smtp.gmail.com';
+    const port = parseInt(appConfig.smtp.port, 10) || 465;
     const user = appConfig.smtp.user || 'danilorodelo355@gmail.com';
     const rawPass = appConfig.smtp.pass || 'gszsvbqujjebrlgk';
     const pass = rawPass.replace(/\s+/g, '');
 
+    const isSecure = port === 465;
+
+    const transportOpts = {
+      host,
+      port,
+      secure: isSecure,
+      family: 4,
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
+      lookup: (hostname, options, callback) => {
+        dns.lookup(hostname, { family: 4, all: false }, callback);
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    };
+
     if (user && pass) {
-      this.transporter = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 465,
-        secure: true,
-        auth: {
-          user,
-          pass,
-        },
-        family: 4,
-        connectionTimeout: 6000,
-        greetingTimeout: 6000,
-        socketTimeout: 8000,
-        lookup: (hostname, options, callback) => {
-          dns.lookup(hostname, { family: 4, all: false }, callback);
-        },
-        tls: {
-          rejectUnauthorized: false,
-        },
-      });
-    }
-  }
-
-  /**
-   * Envío a través de APIs HTTP REST (Puerto 443 HTTPS - Alta disponibilidad)
-   */
-  async sendViaHttpApi({ to, subject, html, text }) {
-    const brevoKey = appConfig.brevoApiKey || process.env.BREVO_API_KEY;
-    const resendKey = appConfig.resendApiKey || process.env.RESEND_API_KEY;
-
-    if (brevoKey) {
-      try {
-        const payload = {
-          sender: { name: 'De los Montes de María', email: appConfig.smtp.user || 'danilorodelo355@gmail.com' },
-          to: [{ email: to }],
-          replyTo: { email: appConfig.smtp.user || 'danilorodelo355@gmail.com', name: 'De los Montes de María' },
-          subject,
-          htmlContent: html
-        };
-        if (text) {
-          payload.textContent = text;
-        }
-
-        const response = await fetch('https://api.brevo.com/v3/smtp/email', {
-          method: 'POST',
-          headers: {
-            'accept': 'application/json',
-            'api-key': brevoKey,
-            'content-type': 'application/json'
-          },
-          body: JSON.stringify(payload)
-        });
-        if (response.ok) {
-          console.log(`✉️ [Brevo HTTPS] Correo enviado exitosamente a: ${to} | Asunto: ${subject}`);
-          return true;
-        } else {
-          const errBody = await response.text();
-          console.warn(`⚠️ [Brevo HTTP Status ${response.status}]:`, errBody);
-        }
-      } catch (e) {
-        console.warn('⚠️ [Brevo HTTPS Error]:', e.message);
-      }
+      transportOpts.auth = { user, pass };
     }
 
-    if (resendKey) {
-      try {
-        const response = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${resendKey}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            from: 'De los Montes de María <onboarding@resend.dev>',
-            to: [to],
-            subject,
-            html
-          })
-        });
-        if (response.ok) {
-          console.log(`✉️ [Resend HTTPS] Correo enviado exitosamente a: ${to}`);
-          return true;
-        }
-      } catch (e) {
-        console.warn('⚠️ [Resend HTTPS Error]:', e.message);
-      }
-    }
-
-    return false;
+    this.transporter = nodemailer.createTransport(transportOpts);
   }
 
   async sendMailSafe({ to, subject, html, attachments, fallbackLog }) {
-    // 1. Intentar primero por API REST HTTPS (Puerto 443 - Alta disponibilidad y sin bloqueo de puertos)
-    const httpSuccess = await this.sendViaHttpApi({ to, subject, html });
-    if (httpSuccess) return true;
-
-    // 2. Intentar por SMTP Gmail directo (útil en entorno local)
     if (!this.transporter) {
       this.inicializarTransporter();
     }
@@ -147,10 +78,10 @@ class EmailService {
           html,
           attachments: finalAttachments
         });
-        console.log(`✉️ [Google Gmail SMTP] Correo enviado exitosamente a: ${to} | Asunto: ${subject} | ID: ${info?.messageId || 'OK'}`);
+        console.log(`✉️ [SMTP Servidor] Correo despachado exitosamente a: ${to} | Asunto: ${subject} | ID: ${info?.messageId || 'OK'}`);
         return true;
       } catch (err) {
-        console.warn(`⚠️ [Google Gmail SMTP Error]: ${err.message}`);
+        console.error(`⚠️ [SMTP Servidor Error]: ${err.message}`);
       }
     }
 
