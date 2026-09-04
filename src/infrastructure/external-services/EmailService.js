@@ -48,7 +48,7 @@ class EmailService {
   }
 
   /**
-   * Envío a través de APIs HTTP REST (Puerto 443 HTTPS - 100% compatible con Render)
+   * Envío a través de APIs HTTP REST (Puerto 443 HTTPS - Alta disponibilidad)
    */
   async sendViaHttpApi({ to, subject, html, text }) {
     const brevoKey = appConfig.brevoApiKey || process.env.BREVO_API_KEY;
@@ -116,7 +116,7 @@ class EmailService {
   }
 
   async sendMailSafe({ to, subject, html, attachments, fallbackLog }) {
-    // 1. Intentar primero por API REST HTTPS (Puerto 443 - 100% compatible con Render)
+    // 1. Intentar primero por API REST HTTPS (Puerto 443 - Alta disponibilidad y sin bloqueo de puertos)
     const httpSuccess = await this.sendViaHttpApi({ to, subject, html });
     if (httpSuccess) return true;
 
@@ -206,7 +206,7 @@ class EmailService {
    * Layout maestro HTML con la identidad gráfica de De los Montes de María
    */
   buildEmailLayout({ badge, title, subtitle, contentHtml, ctaText, ctaLink, footerNote, bannerColor = '#1b5e20' }) {
-    const baseUrl = appConfig.baseUrl || 'https://delosmontesdemaria.onrender.com';
+    const baseUrl = appConfig.baseUrl || 'https://delosmontesdemaria.duckdns.org';
     const link = ctaLink ? (ctaLink.startsWith('http') ? ctaLink : `${baseUrl}${ctaLink}`) : null;
     const logoUrl = `${baseUrl}/img/Logo.jpg`;
 
@@ -374,7 +374,7 @@ class EmailService {
     const otpCard = this.buildOtpCodeCard({
       code,
       label: 'Código para Restablecer Contraseña',
-      actionUrl: `${appConfig.baseUrl || 'https://delosmontesdemaria.onrender.com'}/recuperar-contrasena`,
+      actionUrl: `${appConfig.baseUrl || 'https://delosmontesdemaria.duckdns.org'}/recuperar-contrasena`,
       actionText: 'Ir a Restablecer Contraseña',
       note: 'Este código vence en 10 minutos. Por tu seguridad, nunca lo compartas.'
     });

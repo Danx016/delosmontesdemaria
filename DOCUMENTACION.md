@@ -214,7 +214,7 @@ El bot oficial de Telegram está profundamente conectado con el backend mediante
 `EmailService.js` gestiona el despacho de notificaciones transaccionales con diseño corporativo institucional.
 
 ### Características de Entrega:
-1. **Canal Primario (HTTPS REST API):** Utiliza la API v3 de **Brevo** (`https://api.brevo.com/v3/smtp/email`) a través del puerto 443 HTTPS para garantizar 100% de compatibilidad en entornos PaaS en la nube como Render.
+1. **Canal Primario (HTTPS REST API):** Utiliza la API v3 de **Brevo** (`https://api.brevo.com/v3/smtp/email`) a través del puerto 443 HTTPS para garantizar 100% de compatibilidad en entornos de servidor Linux / VPS.
 2. **Canal Secundario (SMTP con App Password):** Conexión directa con Google Gmail SMTP (`smtp.gmail.com:465`) para entornos de desarrollo local.
 3. **Plantillas HTML Profesionales:**
    * Diseño responsivo con cabecera verde esmeralda y logotipo oficial enmarcado.
@@ -318,13 +318,13 @@ El frontend está desarrollado como una Single Page Application (SPA) ultra ráp
 
 ## 13. Variables de Entorno y Configuración
 
-Ejemplo de configuración en `.env` o en el panel de variables de Render:
+Ejemplo de configuración en `.env` o en el entorno del servidor o VPS:
 
 ```env
 # Servidor
 PORT=3000
 NODE_ENV=production
-BASE_URL=https://delosmontesdemaria.onrender.com
+BASE_URL=https://delosmontesdemaria.duckdns.org
 JWT_SECRET=tu_clave_secreta_jwt_muy_segura
 
 # Base de Datos MySQL (Aiven Cloud)

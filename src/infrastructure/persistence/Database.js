@@ -56,7 +56,7 @@ const initConn = mysql.createConnection({
 initConn.connect((err) => {
   if (err) {
     console.error(`⚠️  No se pudo conectar al servidor MySQL (${dbHost}:${dbPort}):`, err.code || err.message || err);
-    console.error('ℹ️  Verifica que las variables DB_* en el panel Environment de Render sean correctas.');
+    console.error('ℹ️  Verifica que las variables DB_* en tu archivo .env o configuración del servidor sean correctas.');
   } else {
     console.log(`✅ Base de datos MySQL '${dbConfig.database}' conectada con éxito en ${dbConfig.host}:${dbConfig.port}`);
     initConn.end();

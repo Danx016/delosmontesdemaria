@@ -27,6 +27,7 @@ cert/
 
 # Archivos de prueba y temporales
 *.sql
+!backup_dbmontesdm.sql
 *.log
 test-out.html
 temp_pass.js

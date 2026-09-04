@@ -39,6 +39,7 @@ class TelegramService {
     this.compraRepository = compraRepository;
     this.emailService = emailService;
     this.socketHandler = null;
+    this.baseUrl = (process.env.BASE_URL || 'https://delosmontesdemaria.duckdns.org').replace(/\/+$/, '');
 
     // Memoria de sesiones conversacionales por chatId
     // { state: 'IDLE' | 'FORM_NOMBRE' | 'FORM_CORREO' | 'FORM_TELEFONO' | 'FORM_CATEGORIA' | 'FORM_MENSAJE' | 'CHAT_ACTIVO' | 'LOGIN_WAIT_EMAIL' | 'LOGIN_WAIT_AUTH' | 'WAITING_TICKET_REPLY', data: {}, activeTicket: null, replyTicketCode: null }
@@ -371,7 +372,7 @@ ${productsList}
       }
 
       buttons.push([
-        { text: '🌐 Panel Web Administrativo', url: 'https://delosmontesdemaria.onrender.com/admin' }
+        { text: '🌐 Panel Web Administrativo', url: `${this.baseUrl}/admin` }
       ]);
 
       const keyboard = {
@@ -407,7 +408,7 @@ ${productsList}
           inline_keyboard: [
             [
               { text: '⚠️ Ver Todo el Stock Bajo', callback_data: 'cmd_stock' },
-              { text: '🌐 Actualizar en Web', url: 'https://delosmontesdemaria.onrender.com/admin' }
+              { text: '🌐 Actualizar en Web', url: `${this.baseUrl}/admin` }
             ]
           ]
         }
@@ -564,7 +565,7 @@ Asunto: <b>${ticket.asunto}</b>
       }
 
       buttons.push([
-        { text: `🌐 Abrir en Panel Web`, url: 'https://delosmontesdemaria.onrender.com/admin/soporte' }
+        { text: `🌐 Abrir en Panel Web`, url: `${this.baseUrl}/admin/soporte` }
       ]);
 
       const keyboard = {
@@ -647,7 +648,7 @@ Toca el botón <b>🔐 Iniciar Sesión</b> abajo o escribe <code>/login</code>.
               { text: '💬 Soporte & Ayuda', callback_data: 'cmd_soporte' }
             ],
             [
-              { text: '🛒 Ver Catálogo Web', url: 'https://delosmontesdemaria.onrender.com/catalogo' }
+              { text: '🛒 Ver Catálogo Web', url: `${this.baseUrl}/catalogo` }
             ]
           ]
         }
@@ -688,7 +689,7 @@ Toca el botón <b>🔐 Iniciar Sesión</b> abajo o escribe <code>/login</code>.
               { text: '🚪 Cerrar Sesión', callback_data: 'cmd_logout' }
             ],
             [
-              { text: '🌐 Panel Web Administrativo', url: 'https://delosmontesdemaria.onrender.com/admin' }
+              { text: '🌐 Panel Web Administrativo', url: `${this.baseUrl}/admin` }
             ]
           ]
         }
@@ -741,7 +742,7 @@ Toca el botón <b>🔐 Iniciar Sesión</b> abajo o escribe <code>/login</code>.
             { text: '💬 Crear Consulta Soporte', callback_data: 'cmd_soporte' }
           ],
           [
-            { text: '🛒 Ver Catálogo Web', url: 'https://delosmontesdemaria.onrender.com/catalogo' },
+            { text: '🛒 Ver Catálogo Web', url: `${this.baseUrl}/catalogo` },
             { text: '👤 Mi Perfil', callback_data: 'cmd_perfil' }
           ],
           [
@@ -1876,7 +1877,7 @@ Toca el botón <b>🔐 Iniciar Sesión</b> abajo o escribe <code>/login</code>.
         const kb = {
           reply_markup: {
             inline_keyboard: [
-              [{ text: '🛒 Abrir Catálogo Web', url: 'https://delosmontesdemaria.onrender.com/catalogo' }]
+              [{ text: '🛒 Abrir Catálogo Web', url: `${this.baseUrl}/catalogo` }]
             ]
           }
         };
@@ -2198,7 +2199,7 @@ ${aiReply}
       } else if (text.startsWith('/id') || text === '🆔 Mi ID') {
         await this.sendMessage(chatId, `Tu Chat ID de Telegram es: <code>${chatId}</code>`);
       } else if (text.startsWith('/tienda') || text.startsWith('/catalogo') || text === '🛒 Ver Catálogo' || text === '🌾 Catálogo') {
-        await this.sendMessage(chatId, `🛒 Explora cosechas frescas y productos del campo en nuestra web oficial:\n👉 https://delosmontesdemaria.onrender.com/catalogo`);
+        await this.sendMessage(chatId, `🛒 Explora cosechas frescas y productos del campo en nuestra web oficial:\n👉 ${this.baseUrl}/catalogo`);
       } else if (text.startsWith('/pedidos')) {
         await this.sendMessage(chatId, `📦 Realizamos envíos directos desde los Montes de María hasta tu hogar con frescura garantizada.`);
       } else {
@@ -2276,7 +2277,7 @@ ${aiReply}
       if (!user) {
         await this.sendMessage(
           chatId,
-          `❌ No encontramos ninguna cuenta registrada con el identificador <b>${cleanTerm}</b>.\n\nPor favor verifica tu usuario o regístrate en nuestra plataforma web:\n👉 https://delosmontesdemaria.onrender.com/registro`
+          `❌ No encontramos ninguna cuenta registrada con el identificador <b>${cleanTerm}</b>.\n\nPor favor verifica tu usuario o regístrate en nuestra plataforma web:\n👉 ${this.baseUrl}/registro`
         );
         session.state = 'IDLE';
         return;
@@ -2471,7 +2472,7 @@ Hemos enviado un nuevo código de 6 dígitos a:
             ],
             [
               { text: `⚠️ Stock Bajo (${stockCriticoCount})`, callback_data: 'cmd_stock' },
-              { text: '🌐 Panel Web', url: 'https://delosmontesdemaria.onrender.com/admin' }
+              { text: '🌐 Panel Web', url: `${this.baseUrl}/admin` }
             ]
           ]
         }
@@ -2733,7 +2734,7 @@ ${topList}
             ],
             [
               { text: '⚠️ Ver Stock Bajo', callback_data: 'cmd_stock' },
-              { text: '🌐 Panel Web', url: 'https://delosmontesdemaria.onrender.com/admin' }
+              { text: '🌐 Panel Web', url: `${this.baseUrl}/admin` }
             ]
           ]
         }
@@ -3701,7 +3702,7 @@ ${broadcastMsg}
         reply_markup: {
           inline_keyboard: [
             [{ text: '🎫 Ver Tickets Pendientes', callback_data: 'cmd_tickets' }],
-            [{ text: '🌐 Panel Web de Soporte', url: 'https://delosmontesdemaria.onrender.com/admin/soporte' }]
+            [{ text: '🌐 Panel Web de Soporte', url: `${this.baseUrl}/admin/soporte` }]
           ]
         }
       };
@@ -3776,7 +3777,7 @@ ${broadcastMsg}
       const keyboard = {
         reply_markup: {
           inline_keyboard: [
-            [{ text: '🌐 Actualizar Stock en Web', url: 'https://delosmontesdemaria.onrender.com/admin' }]
+            [{ text: '🌐 Actualizar Stock en Web', url: `${this.baseUrl}/admin` }]
           ]
         }
       };
@@ -3815,7 +3816,7 @@ ${broadcastMsg}
   }
 
   async mostrarVentasCampesino(chatId, authUser) {
-    await this.sendMessage(chatId, `🌾 <b>Mis Ventas como Productor</b>\nPuedes consultar el balance y liquidaciones detalladas en tu panel web:\n👉 https://delosmontesdemaria.onrender.com/perfil`);
+    await this.sendMessage(chatId, `🌾 <b>Mis Ventas como Productor</b>\nPuedes consultar el balance y liquidaciones detalladas en tu panel web:\n👉 ${this.baseUrl}/perfil`);
   }
 
   async mostrarPedidosComprador(chatId, authUser) {
@@ -3828,7 +3829,7 @@ ${broadcastMsg}
         const kb = {
           reply_markup: {
             inline_keyboard: [
-              [{ text: '🛒 Explorar Catálogo', url: 'https://delosmontesdemaria.onrender.com/catalogo' }]
+              [{ text: '🛒 Explorar Catálogo', url: `${this.baseUrl}/catalogo` }]
             ]
           }
         };
