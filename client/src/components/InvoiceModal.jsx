@@ -403,32 +403,34 @@ export default function InvoiceModal({ idCompra, onClose, userEmail }) {
                 </div>
 
                 {/* Items table */}
-                <table className="inv-table">
-                  <thead>
-                    <tr>
-                      <th>#</th>
-                      <th>Producto</th>
-                      <th>Presentación</th>
-                      <th className="text-right">Cantidad</th>
-                      <th className="text-right">Precio Unit.</th>
-                      <th className="text-right">Subtotal</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(recibo.detalles || []).map((item, i) => (
-                      <tr key={item.id_detalle || i}>
-                        <td className="inv-idx">{i + 1}</td>
-                        <td className="inv-product-name">{item.nombre_producto || item.nombre || 'Producto Campesino'}</td>
-                        <td>{item.presentacion || 'Unidad'}</td>
-                        <td className="text-right">{item.cantidad}</td>
-                        <td className="text-right">{formatCOP(item.precio_unitario)}</td>
-                        <td className="text-right inv-subtotal">
-                          {formatCOP((item.precio_unitario || 0) * (item.cantidad || 1))}
-                        </td>
+                <div className="inv-table-responsive">
+                  <table className="inv-table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Producto</th>
+                        <th>Presentación</th>
+                        <th className="text-right">Cantidad</th>
+                        <th className="text-right">Precio Unit.</th>
+                        <th className="text-right">Subtotal</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {(recibo.detalles || []).map((item, i) => (
+                        <tr key={item.id_detalle || i}>
+                          <td className="inv-idx">{i + 1}</td>
+                          <td className="inv-product-name">{item.nombre_producto || item.nombre || 'Producto Campesino'}</td>
+                          <td>{item.presentacion || 'Unidad'}</td>
+                          <td className="text-right">{item.cantidad}</td>
+                          <td className="text-right">{formatCOP(item.precio_unitario)}</td>
+                          <td className="text-right inv-subtotal">
+                            {formatCOP((item.precio_unitario || 0) * (item.cantidad || 1))}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
                 {/* Totals */}
                 <div className="inv-totals-wrap">

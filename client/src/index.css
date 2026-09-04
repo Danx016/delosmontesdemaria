@@ -7275,6 +7275,52 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 1rem !important;
 }
 
+/* ── Product Detail Modal Responsive Base ── */
+.product-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 0;
+  width: 100%;
+}
+
+.product-modal-image-col {
+  background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-right: 1px solid #e2e8f0;
+}
+
+.product-modal-img-container {
+  width: 100%;
+  max-height: 340px;
+  aspect-ratio: 1/1;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-modal-info-col {
+  padding: 2rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Invoice Responsive Base ── */
+.inv-table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1.25rem;
+}
+
 /* ==========================================================================
    📱 COMPREHENSIVE MOBILE RESPONSIVE SYSTEM (De los Montes de María)
    ========================================================================== */
@@ -7670,12 +7716,58 @@ h1, h2, h3, h4, h5, h6 {
   /* ── 8. Modals on Mobile ── */
   .modal-content,
   .modal-dialog {
-    max-width: 95% !important;
-    width: 95% !important;
+    max-width: 96% !important;
+    width: 96% !important;
     max-height: 88vh !important;
     padding: 1.15rem !important;
-    border-radius: 14px !important;
+    border-radius: 16px !important;
     margin: auto !important;
+  }
+
+  .product-modal-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .product-modal-image-col {
+    padding: 1.25rem 1rem !important;
+    border-right: none !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+  }
+
+  .product-modal-img-container {
+    max-height: 220px !important;
+    max-width: 220px !important;
+    margin: 0 auto !important;
+  }
+
+  .product-modal-info-col {
+    padding: 1.25rem 1rem !important;
+  }
+
+  /* Invoice Modal on Mobile */
+  .invoice-modal-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.5rem !important;
+    padding: 0.65rem 0.85rem !important;
+  }
+
+  .invoice-modal-bar-actions {
+    justify-content: space-between !important;
+    width: 100% !important;
+    flex-wrap: wrap !important;
+    gap: 0.35rem !important;
+  }
+
+  .inv-action-btn {
+    flex: 1 !important;
+    font-size: 0.76rem !important;
+    padding: 0.4rem 0.55rem !important;
+    justify-content: center !important;
+  }
+
+  .inv-table {
+    min-width: 500px !important;
   }
 
   .banner-admin-preview-sticky {
@@ -7687,9 +7779,40 @@ h1, h2, h3, h4, h5, h6 {
   .checkout-container,
   .cart-page-grid,
   .cart-grid,
+  .cart-layout-grid,
   .profile-layout-grid {
     grid-template-columns: 1fr !important;
     gap: 1rem !important;
+  }
+
+  .cart-item-row {
+    flex-wrap: wrap !important;
+    gap: 0.75rem !important;
+    padding: 0.85rem !important;
+  }
+
+  .cart-item-image {
+    width: 60px !important;
+    height: 60px !important;
+  }
+
+  .cart-item-info {
+    min-width: 130px !important;
+    flex: 1 1 50% !important;
+  }
+
+  .cart-item-qty-controls {
+    order: 3 !important;
+  }
+
+  .cart-item-subtotal {
+    order: 4 !important;
+    margin-left: auto !important;
+    font-size: 1.05rem !important;
+  }
+
+  .cart-remove-btn {
+    order: 5 !important;
   }
 
   .cart-summary-card,
@@ -7711,23 +7834,78 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   /* ── 11. Header & Top Navbar Compact Mobile ── */
+  .header-container,
   .main-navbar-inner {
-    padding: 0.5rem 0.75rem !important;
-    gap: 0.4rem !important;
+    padding: 0.55rem 0.75rem !important;
+    gap: 0.45rem !important;
+    flex-wrap: wrap !important;
+  }
+
+  .header-brand-wrap {
+    order: 1 !important;
+    flex: 1 !important;
+  }
+
+  .mobile-menu-btn {
+    order: 2 !important;
+    display: flex !important;
+  }
+
+  .header-search-wrapper,
+  .nav-search-bar {
+    order: 3 !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    flex: 1 1 100% !important;
+    margin-top: 0.35rem !important;
+  }
+
+  .header-search-form {
+    width: 100% !important;
   }
 
   .nav-brand-logo {
-    height: 30px !important;
+    height: 32px !important;
   }
 
   .nav-brand-name {
-    font-size: 0.9rem !important;
+    font-size: 0.92rem !important;
   }
 
-  .nav-search-bar {
-    order: 3 !important;
-    width: 100% !important;
-    margin-top: 0.35rem !important;
+  /* ── 11b. Vendedores & Categorías Mobile Optimization ── */
+  .vendors-rich-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+  }
+
+  .vendors-filter-pills {
+    justify-content: flex-start !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+    padding-bottom: 0.35rem !important;
+  }
+
+  .vendors-filter-pills::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .vendor-pill-btn {
+    flex-shrink: 0 !important;
+    white-space: nowrap !important;
+    font-size: 0.82rem !important;
+    padding: 0.35rem 0.85rem !important;
+  }
+
+  .catalog-main-layout {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+  }
+
+  .catalog-sidebar-card {
+    position: static !important;
   }
 }
 

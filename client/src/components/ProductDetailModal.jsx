@@ -135,34 +135,10 @@ export default function ProductDetailModal({ producto, isOpen, onClose }) {
           <i className="fa fa-times" />
         </button>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 0 }}>
+        <div className="product-modal-grid">
           {/* Left Column: Image & Badges */}
-          <div
-            style={{
-              background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)',
-              padding: '2rem',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              position: 'relative',
-              borderRight: '1px solid #e2e8f0',
-            }}
-          >
-            <div
-              style={{
-                width: '100%',
-                maxHeight: '340px',
-                aspectRatio: '1/1',
-                borderRadius: '18px',
-                overflow: 'hidden',
-                boxShadow: '0 12px 30px rgba(0,0,0,0.08)',
-                background: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
+          <div className="product-modal-image-col">
+            <div className="product-modal-img-container">
               <img
                 src={imageUrl}
                 alt={prodTitle}
@@ -212,7 +188,7 @@ export default function ProductDetailModal({ producto, isOpen, onClose }) {
           </div>
 
           {/* Right Column: Detailed Product Info */}
-          <div style={{ padding: '2rem 1.75rem', display: 'flex', flexDirection: 'column' }}>
+          <div className="product-modal-info-col">
             {/* Farmer / Producer Header Banner */}
             {vendorId && (
               <div
