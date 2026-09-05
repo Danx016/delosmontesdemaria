@@ -38,18 +38,20 @@ class RegisterUser {
     // Crear usuario en el repositorio
     const usuarioCreado = await this.usuarioRepository.crear(usuario);
 
-    // Enviar correo de bienvenida (si el servicio está disponible)
+    // Enviar correo de bienvenida en segundo plano
     if (this.emailService) {
-      try {
-        await this.emailService.sendWelcomeEmail(
-          usuario.nombre,
-          usuario.correo,
-          usuario.apodo
-        );
-      } catch (error) {
-        console.error('Error al enviar correo de bienvenida:', error.message);
-        // No fallar el registro si el correo falla
-      }
+      setImmediate(async () => {
+        try {
+          await this.emailService.sendWelcomeEmail(
+            usuario.nombre,
+            usuario.correo,
+            usuario.apodo
+          );
+          console.log(`✉️ [Registro] Correo de bienvenida enviado a: ${usuario.correo}`);
+        } catch (error) {
+          console.error('⚠️ [Registro] Error al enviar correo de bienvenida:', error.message);
+        }
+      });
     }
 
     return usuarioCreado;

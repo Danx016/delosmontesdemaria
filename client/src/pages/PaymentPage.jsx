@@ -97,7 +97,7 @@ export default function PaymentPage() {
 
   const handleInitiatePayment = async () => {
     setError('')
-    const userEmail = user?.correo || shippingInfo?.correo
+    const userEmail = (user?.correo || shippingInfo?.correo || '').trim().toLowerCase()
     if (!userEmail) {
       setError('No se encontró un correo electrónico válido para enviar el código de seguridad.')
       return
@@ -125,7 +125,7 @@ export default function PaymentPage() {
 
   const handleResendOtp = async () => {
     if (resendTimer > 0) return
-    const userEmail = user?.correo || shippingInfo?.correo
+    const userEmail = (user?.correo || shippingInfo?.correo || '').trim().toLowerCase()
     setSendingOtp(true)
     setOtpError('')
     try {

@@ -12,6 +12,99 @@ class IAService {
     this.pendingInput = new Map();
   }
 
+  /**
+   * Ejecuta llamadas seguras a OpenRouter con tolerancia a fallos, soporte de herramientas y recuperación de modelos
+   */
+  async callChatCompletion({ messages, tools = null, tool_choice = null, temperature = 0.7, max_tokens = 600, appTitle = 'De los Montes de Maria AI' }) {
+    const apiKey = appConfig.openRouterApiKey;
+    if (!apiKey || apiKey.startsWith('tu_clave')) {
+      throw new Error('API Key de OpenRouter no configurada');
+    }
+
+    const preferredModel = (appConfig.openRouterModel && appConfig.openRouterModel !== 'openrouter/free')
+      ? appConfig.openRouterModel
+      : 'minimax/minimax-m3:free';
+
+    const candidateModels = [
+      preferredModel,
+      'minimax/minimax-m3:free',
+      'openrouter/free',
+      'nvidia/nemotron-3.5-lightning:free'
+    ];
+    const modelsToTry = [...new Set(candidateModels)];
+
+    let lastError = null;
+
+    for (const model of modelsToTry) {
+      try {
+        const bodyPayload = {
+          model,
+          messages,
+          temperature,
+          max_tokens: Math.min(max_tokens, 600)
+        };
+        if (tools && Array.isArray(tools) && tools.length > 0) {
+          bodyPayload.tools = tools;
+          if (tool_choice) bodyPayload.tool_choice = tool_choice;
+        }
+
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+            'HTTP-Referer': appConfig.baseUrl || 'https://delosmontesdemaria.duckdns.org',
+            'X-Title': appTitle
+          },
+          body: JSON.stringify(bodyPayload)
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          console.warn(`⚠️ [OpenRouter ${model} Status ${response.status}]:`, errText.slice(0, 150));
+          lastError = new Error(`Status ${response.status}: ${errText.slice(0, 100)}`);
+          continue;
+        }
+
+        const data = await response.json();
+        if (data.error) {
+          console.warn(`⚠️ [OpenRouter ${model} Error]:`, data.error);
+          lastError = new Error(data.error.message || 'Error en OpenRouter');
+          continue;
+        }
+
+        const choice = data?.choices?.[0];
+        if (!choice) continue;
+
+        const message = choice.message || {};
+        let content = message.content;
+
+        if (!content && message.reasoning) {
+          content = message.reasoning;
+        }
+
+        if (typeof content === 'string') {
+          content = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+        }
+
+        return {
+          modelUsed: model,
+          choice,
+          message: {
+            ...message,
+            content
+          },
+          tool_calls: message.tool_calls || []
+        };
+      } catch (err) {
+        console.warn(`⚠️ [OpenRouter Exception con ${model}]:`, err.message);
+        lastError = err;
+      }
+    }
+
+    throw lastError || new Error('No se pudo obtener respuesta de ningún modelo de IA disponible.');
+  }
+
   // ==========================================
   // 1. ASISTENTE PÚBLICO DE LA TIENDA (AgroAsistente)
   // ==========================================
@@ -56,19 +149,13 @@ REGLAS DE FORMATO:
     messages.push({ role: 'user', content: message });
 
     try {
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-          'HTTP-Referer': appConfig.baseUrl,
-          'X-Title': 'De los Montes de Maria Store AI'
-        },
-        body: JSON.stringify({ model, messages, temperature: 0.7, max_tokens: 600 })
+      const completion = await this.callChatCompletion({
+        messages,
+        temperature: 0.7,
+        max_tokens: 600,
+        appTitle: 'De los Montes de Maria Store AI'
       });
-
-      const data = await response.json();
-      return data?.choices?.[0]?.message?.content || 'Entendido.';
+      return completion.message?.content || 'Entendido.';
     } catch (err) {
       console.error('Error en procesarChatPublico:', err);
       return `❌ Error al conectar con el Asistente de IA: ${err.message}`;
@@ -226,22 +313,16 @@ Cuando te soliciten crear, listar, modificar o eliminar productos, usuarios o pe
     const messages = [systemMessage, ...history, { role: 'user', content: prompt }];
 
     try {
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-          'HTTP-Referer': appConfig.baseUrl,
-          'X-Title': 'De los Montes de Maria Admin IA'
-        },
-        body: JSON.stringify({ model: 'openai/gpt-4o-mini', messages, tools: ADMIN_TOOLS, tool_choice: 'auto' })
+      const completion = await this.callChatCompletion({
+        messages,
+        tools: ADMIN_TOOLS,
+        tool_choice: 'auto',
+        temperature: 0.7,
+        max_tokens: 600,
+        appTitle: 'De los Montes de Maria Admin IA'
       });
 
-      const data = await response.json();
-      const choice = data?.choices?.[0];
-      if (!choice) return { respuesta: 'No se recibió respuesta del modelo.' };
-
-      const message = choice.message;
+      const message = completion.message;
       if (message.tool_calls && message.tool_calls.length > 0) {
         messages.push(message);
         for (const toolCall of message.tool_calls) {
@@ -256,17 +337,14 @@ Cuando te soliciten crear, listar, modificar o eliminar productos, usuarios o pe
           });
         }
 
-        const secondRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`,
-            'HTTP-Referer': appConfig.baseUrl
-          },
-          body: JSON.stringify({ model: 'openai/gpt-4o-mini', messages })
+        const secondCompletion = await this.callChatCompletion({
+          messages,
+          temperature: 0.7,
+          max_tokens: 600,
+          appTitle: 'De los Montes de Maria Admin IA'
         });
-        const secondData = await secondRes.json();
-        return { respuesta: secondData?.choices?.[0]?.message?.content || 'Acción ejecutada con éxito.', reloadData: true };
+
+        return { respuesta: secondCompletion.message?.content || 'Acción ejecutada con éxito.', reloadData: true };
       }
 
       return { respuesta: message.content || 'Entendido.' };
@@ -388,21 +466,16 @@ Responde con amabilidad, precisión y concisión. Usa las herramientas cuando se
     const messages = [{ role: 'system', content: systemPrompt }, { role: 'user', content: mensaje }];
 
     try {
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-          'HTTP-Referer': appConfig.baseUrl
-        },
-        body: JSON.stringify({ model: 'openai/gpt-4o-mini', messages, tools: SUPPORT_TOOLS, tool_choice: 'auto' })
+      const completion = await this.callChatCompletion({
+        messages,
+        tools: SUPPORT_TOOLS,
+        tool_choice: 'auto',
+        temperature: 0.7,
+        max_tokens: 500,
+        appTitle: 'De los Montes de Maria Support IA'
       });
 
-      const data = await response.json();
-      const choice = data?.choices?.[0];
-      if (!choice) return 'No pude procesar tu solicitud. Escribe **"hablar con soporte"** para hablar con un asesor humano.';
-
-      const aiMsg = choice.message;
+      const aiMsg = completion.message;
       if (aiMsg.tool_calls && aiMsg.tool_calls.length > 0) {
         const toolCall = aiMsg.tool_calls[0];
         let toolArgs = {};
@@ -417,17 +490,14 @@ Responde con amabilidad, precisión y concisión. Usa las herramientas cuando se
           content: JSON.stringify(toolResult)
         });
 
-        const res2 = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`,
-            'HTTP-Referer': appConfig.baseUrl
-          },
-          body: JSON.stringify({ model: 'openai/gpt-4o-mini', messages })
+        const secondCompletion = await this.callChatCompletion({
+          messages,
+          temperature: 0.7,
+          max_tokens: 500,
+          appTitle: 'De los Montes de Maria Support IA'
         });
-        const data2 = await res2.json();
-        return data2?.choices?.[0]?.message?.content || 'Solicitud procesada.';
+
+        return secondCompletion.message?.content || 'Solicitud procesada.';
       }
 
       return aiMsg.content || 'Entendido.';
@@ -457,18 +527,13 @@ Contexto: ${contexto}`
     ];
 
     try {
-      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-          'HTTP-Referer': appConfig.baseUrl
-        },
-        body: JSON.stringify({ model: 'openai/gpt-4o-mini', messages, temperature: 0.7, max_tokens: 300 })
+      const completion = await this.callChatCompletion({
+        messages,
+        temperature: 0.7,
+        max_tokens: 300,
+        appTitle: 'De los Montes de Maria Quick Support Reply'
       });
-
-      const data = await response.json();
-      return data?.choices?.[0]?.message?.content || null;
+      return completion.message?.content || null;
     } catch (err) {
       console.error('[IAService generarRespuestaSoporte Error]:', err);
       return null;

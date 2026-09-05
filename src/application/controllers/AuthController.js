@@ -15,7 +15,7 @@ class AuthController {
     this.emailService = emailService;
     this.registerUser = new RegisterUser(usuarioRepository, emailService);
     this.loginUser = new LoginUser(usuarioRepository);
-    this.googleAuthUser = new GoogleAuthUser(usuarioRepository, googleAuthService);
+    this.googleAuthUser = new GoogleAuthUser(usuarioRepository, googleAuthService, appConfig.jwtSecret, emailService);
     this.requestPasswordReset = new RequestPasswordReset(usuarioRepository, emailService);
     this.resetPassword = new ResetPassword(usuarioRepository);
   }
@@ -103,7 +103,24 @@ class AuthController {
 
   async registrar(req, res) {
     try {
-      const { name, apodo, email, password, confirmPassword } = req.body;
+      const name = (req.body.name || req.body.nombre || '').trim();
+      const apodo = (req.body.apodo || req.body.username || '').trim();
+      const email = (req.body.email || req.body.correo || '').trim().toLowerCase();
+      const password = req.body.password || req.body.contrasena || '';
+      const confirmPassword = req.body.confirmPassword || req.body.confirmarContrasena || password;
+
+      if (!name) {
+        return res.status(400).json({ message: 'El nombre completo es requerido.' });
+      }
+      if (!apodo) {
+        return res.status(400).json({ message: 'El nombre de usuario es requerido.' });
+      }
+      if (!email) {
+        return res.status(400).json({ message: 'El correo electrónico es requerido.' });
+      }
+      if (!password || password.length < 6) {
+        return res.status(400).json({ message: 'La contraseña debe tener al menos 6 caracteres.' });
+      }
       if (password !== confirmPassword) {
         return res.status(400).json({ message: 'Las contraseñas no coinciden.' });
       }
@@ -112,12 +129,51 @@ class AuthController {
         nombre: name,
         apodo,
         correo: email,
-        contrasena: password
+        contrasena: password,
+        telefono: req.body.telefono || null
+      });
+
+      const userJson = typeof usuarioCreado.toJSON === 'function' ? usuarioCreado.toJSON() : usuarioCreado;
+      const rolId = userJson.id_rol !== null && userJson.id_rol !== undefined ? parseInt(userJson.id_rol, 10) : 3;
+
+      const jwt = require('jsonwebtoken');
+      const token = jwt.sign(
+        {
+          id: userJson.id_usuario,
+          id_usuario: userJson.id_usuario,
+          correo: userJson.correo,
+          rol: rolId,
+          username: userJson.apodo,
+          avatar: userJson.avatar || null
+        },
+        appConfig.jwtSecret,
+        { expiresIn: '365d', algorithm: 'HS256' }
+      );
+
+      const isHttps = req.secure || req.headers['x-forwarded-proto'] === 'https' || req.protocol === 'https';
+      res.cookie('jwt', token, {
+        httpOnly: true,
+        secure: isHttps,
+        sameSite: isHttps ? 'none' : 'lax',
+        path: '/',
+        maxAge: 365 * 24 * 60 * 60 * 1000
       });
 
       res.status(201).json({
         message: 'Usuario registrado exitosamente',
-        usuario: usuarioCreado.toJSON()
+        token,
+        idUser: userJson.id_usuario,
+        nombreUser: userJson.nombre,
+        emailUser: userJson.correo,
+        username: userJson.apodo,
+        id_rol: rolId,
+        rolUser: rolId,
+        avatar: userJson.avatar || null,
+        usuario: {
+          ...userJson,
+          id_rol: rolId,
+          rol: rolId
+        }
       });
     } catch (error) {
       console.error('Error en registrar:', error);

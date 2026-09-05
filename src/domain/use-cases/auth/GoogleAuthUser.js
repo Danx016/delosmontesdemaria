@@ -6,10 +6,11 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
 class GoogleAuthUser {
-  constructor(usuarioRepository, googleAuthService, jwtSecret = process.env.JWT_SECRET || 'dev_change_this_secret') {
+  constructor(usuarioRepository, googleAuthService, jwtSecret = process.env.JWT_SECRET || 'dev_change_this_secret', emailService = null) {
     this.usuarioRepository = usuarioRepository;
     this.googleAuthService = googleAuthService;
     this.jwtSecret = jwtSecret;
+    this.emailService = emailService;
   }
 
   async execute(credential) {
@@ -32,12 +33,18 @@ class GoogleAuthUser {
     } else {
       // Registrar nuevo usuario desde Google
       let baseApodo = (email || '').split('@')[0].replace(/[^a-zA-Z0-9_.-]/g, '');
+      if (!baseApodo) baseApodo = 'usuario';
       if (!/[0-9_.-]/.test(baseApodo)) baseApodo += '_g';
 
       let apodo = baseApodo;
-      const isAvailable = await this.usuarioRepository.verificarApodoDisponible(apodo);
-      if (!isAvailable) {
-        apodo = `${baseApodo}${Math.floor(Math.random() * 1000)}`;
+      let counter = 0;
+      while (!(await this.usuarioRepository.verificarApodoDisponible(apodo))) {
+        counter++;
+        apodo = `${baseApodo}_${Math.floor(100 + Math.random() * 900)}`;
+        if (counter > 6) {
+          apodo = `user_${Date.now()}`;
+          break;
+        }
       }
 
       const randomPass = crypto.randomBytes(16).toString('hex');
@@ -51,6 +58,17 @@ class GoogleAuthUser {
         google_id: googleId,
         estado: 'activo'
       });
+
+      if (this.emailService && email) {
+        setImmediate(async () => {
+          try {
+            await this.emailService.sendWelcomeEmail(user.nombre || name || 'Usuario', email, user.apodo || apodo);
+            console.log(`✉️ [Google Register] Correo de bienvenida enviado a: ${email}`);
+          } catch (e) {
+            console.warn('⚠️ [Google Register Email Warning]:', e.message);
+          }
+        });
+      }
     }
 
     const rol = user.id_rol !== null && user.id_rol !== undefined ? parseInt(user.id_rol, 10) : 3;

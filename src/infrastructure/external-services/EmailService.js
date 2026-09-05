@@ -26,35 +26,29 @@ class EmailService {
     const rawPass = appConfig.smtp.pass || 'gszsvbqujjebrlgk';
     const pass = rawPass.replace(/\s+/g, '');
 
-    const baseDns = (hostname, options, callback) => {
-      dns.lookup(hostname, { family: 4, all: false }, callback);
-    };
-
     // Puerto 465 SSL (Conexión segura directa)
     this.transporter465 = nodemailer.createTransport({
       host,
       port: 465,
       secure: true,
       family: 4,
-      connectionTimeout: 8000,
-      greetingTimeout: 8000,
-      socketTimeout: 12000,
-      lookup: baseDns,
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 20000,
       tls: { rejectUnauthorized: false },
       auth: (user && pass) ? { user, pass } : undefined
     });
 
-    // Puerto 587 STARTTLS (Alternativa cuando el firewall de la nube bloquea 465)
+    // Puerto 587 STARTTLS (Alternativa de respaldo)
     this.transporter587 = nodemailer.createTransport({
       host,
       port: 587,
       secure: false,
       requireTLS: true,
       family: 4,
-      connectionTimeout: 8000,
-      greetingTimeout: 8000,
-      socketTimeout: 12000,
-      lookup: baseDns,
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 20000,
       tls: { rejectUnauthorized: false },
       auth: (user && pass) ? { user, pass } : undefined
     });

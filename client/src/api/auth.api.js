@@ -12,11 +12,16 @@ export const loginGoogle = (tokenOrCredential) => {
 
 export const register = (data) =>
   api.post('/auth/register', {
-    name: data.nombre,
-    apodo: data.apodo,
-    email: data.correo,
-    password: data.contrasena,
-    confirmPassword: data.confirmarContrasena || data.contrasena,
+    name: data.nombre || data.name,
+    nombre: data.nombre || data.name,
+    apodo: data.apodo || data.username,
+    email: data.correo || data.email,
+    correo: data.correo || data.email,
+    password: data.password || data.contrasena,
+    contrasena: data.password || data.contrasena,
+    confirmPassword: data.confirmPassword || data.confirmarContrasena || data.password || data.contrasena,
+    telefono: data.telefono,
+    id_rol: data.id_rol || 3,
     terms: true,
   })
 
