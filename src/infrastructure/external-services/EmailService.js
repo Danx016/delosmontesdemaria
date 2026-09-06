@@ -49,18 +49,27 @@ class EmailService {
     const rawPass = appConfig.smtp.pass || 'gszsvbqujjebrlgk';
     const pass = rawPass.replace(/\s+/g, '');
 
+    const isGmail = host.includes('gmail.com');
+
     // Puerto 465 SSL (Conexión segura directa)
-    this.transporter465 = nodemailer.createTransport({
-      host,
-      port: 465,
-      secure: true,
-      family: 4,
-      connectionTimeout: 15000,
-      greetingTimeout: 15000,
-      socketTimeout: 20000,
-      tls: { rejectUnauthorized: false },
-      auth: (user && pass) ? { user, pass } : undefined
-    });
+    this.transporter465 = nodemailer.createTransport(
+      isGmail
+        ? {
+            service: 'gmail',
+            auth: (user && pass) ? { user, pass } : undefined
+          }
+        : {
+            host,
+            port: 465,
+            secure: true,
+            family: 4,
+            connectionTimeout: 15000,
+            greetingTimeout: 15000,
+            socketTimeout: 20000,
+            tls: { rejectUnauthorized: false },
+            auth: (user && pass) ? { user, pass } : undefined
+          }
+    );
 
     // Puerto 587 STARTTLS (Alternativa de respaldo)
     this.transporter587 = nodemailer.createTransport({
@@ -436,7 +445,7 @@ class EmailService {
 
     return this.sendMailSafe({
       to: email,
-      subject: `🌱 ¡Bienvenido a De los Montes de María, ${name}!`,
+      subject: `Bienvenido a De los Montes de Maria, ${name}`,
       html
     });
   }
@@ -475,7 +484,7 @@ class EmailService {
 
     return this.sendMailSafe({
       to: email,
-      subject: `🔒 Código de Seguridad: ${code} - De los Montes de María`,
+      subject: `Codigo de seguridad: ${code} - De los Montes de Maria`,
       html
     });
   }
@@ -506,7 +515,7 @@ class EmailService {
 
     return this.sendMailSafe({
       to: email,
-      subject: `Código de Seguridad: ${accion} - De los Montes de María`,
+      subject: `Codigo de autorizacion: ${accion} - De los Montes de Maria`,
       html
     });
   }
@@ -679,7 +688,7 @@ class EmailService {
 
     return this.sendMailSafe({
       to: email,
-      subject: `🧾 Factura Electrónica #${recibo.id_compra} - DE LOS MONTES DE MARÍA S.A.S`,
+      subject: `Factura Electronica #${recibo.id_compra} - De los Montes de Maria`,
       html
     });
   }
