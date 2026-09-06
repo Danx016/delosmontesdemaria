@@ -231,17 +231,49 @@ export default function HomePage() {
   }, [dbBanners, DEFAULT_SLIDES])
 
   const [isHovered, setIsHovered] = useState(false)
-  const SLIDE_DURATION = 7500 // 7.5 segundos completos por slide
+  const [carouselConfig, setCarouselConfig] = useState(() => {
+    try {
+      const saved = localStorage.getItem('carrusel_global_settings')
+      if (saved) return JSON.parse(saved)
+    } catch {}
+    return {
+      autoplayEnabled: true,
+      autoplaySpeed: 7500,
+      pauseOnHover: true,
+      showProgressBar: true,
+      showArrows: true,
+      showDots: true,
+    }
+  })
 
   useEffect(() => {
-    if (isHovered || slides.length <= 1) return
+    const handleSettingsUpdate = () => {
+      try {
+        const saved = localStorage.getItem('carrusel_global_settings')
+        if (saved) setCarouselConfig(JSON.parse(saved))
+      } catch {}
+    }
+    window.addEventListener('carrusel_settings_updated', handleSettingsUpdate)
+    window.addEventListener('storage', handleSettingsUpdate)
+    return () => {
+      window.removeEventListener('carrusel_settings_updated', handleSettingsUpdate)
+      window.removeEventListener('storage', handleSettingsUpdate)
+    }
+  }, [])
+
+  const SLIDE_DURATION = carouselConfig.autoplaySpeed || 7500
+
+  useEffect(() => {
+    if (!carouselConfig.autoplayEnabled) return
+    if (carouselConfig.pauseOnHover && isHovered) return
+    if (slides.length <= 1) return
 
     const timer = setTimeout(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length)
     }, SLIDE_DURATION)
 
     return () => clearTimeout(timer)
-  }, [currentSlide, isHovered, slides.length])
+  }, [currentSlide, isHovered, slides.length, carouselConfig.autoplayEnabled, carouselConfig.pauseOnHover, SLIDE_DURATION])
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % slides.length)
@@ -275,28 +307,30 @@ export default function HomePage() {
           onMouseLeave={() => setIsHovered(false)}
         >
           {/* Top Progress Timer Bar */}
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: '3px',
-              backgroundColor: 'rgba(255, 255, 255, 0.15)',
-              zIndex: 20,
-              overflow: 'hidden',
-            }}
-          >
+          {carouselConfig.showProgressBar && carouselConfig.autoplayEnabled && (
             <div
-              key={currentSlide}
               style={{
-                height: '100%',
-                backgroundColor: slides[currentSlide]?.accentColor || '#22c55e',
-                animation: isHovered ? 'none' : `slideTimerProgress ${SLIDE_DURATION}ms linear forwards`,
-                boxShadow: '0 0 10px rgba(34, 197, 94, 0.8)',
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: '3px',
+                backgroundColor: 'rgba(255, 255, 255, 0.15)',
+                zIndex: 20,
+                overflow: 'hidden',
               }}
-            />
-          </div>
+            >
+              <div
+                key={`${currentSlide}-${SLIDE_DURATION}`}
+                style={{
+                  height: '100%',
+                  backgroundColor: slides[currentSlide]?.accentColor || '#22c55e',
+                  animation: (carouselConfig.pauseOnHover && isHovered) ? 'none' : `slideTimerProgress ${SLIDE_DURATION}ms linear forwards`,
+                  boxShadow: '0 0 10px rgba(34, 197, 94, 0.8)',
+                }}
+              />
+            </div>
+          )}
 
           {slides.map((slide, idx) => {
             const isActive = idx === currentSlide
@@ -313,35 +347,41 @@ export default function HomePage() {
           })}
 
           {/* Slider Prev / Next Arrows */}
-          <button
-            type="button"
-            className="ofercampo-slider-btn ofercampo-slider-prev"
-            onClick={prevSlide}
-            aria-label="Diapositiva anterior"
-          >
-            <i className="fa fa-chevron-left" />
-          </button>
-          <button
-            type="button"
-            className="ofercampo-slider-btn ofercampo-slider-next"
-            onClick={nextSlide}
-            aria-label="Siguiente diapositiva"
-          >
-            <i className="fa fa-chevron-right" />
-          </button>
+          {carouselConfig.showArrows && slides.length > 1 && (
+            <>
+              <button
+                type="button"
+                className="ofercampo-slider-btn ofercampo-slider-prev"
+                onClick={prevSlide}
+                aria-label="Diapositiva anterior"
+              >
+                <i className="fa fa-chevron-left" />
+              </button>
+              <button
+                type="button"
+                className="ofercampo-slider-btn ofercampo-slider-next"
+                onClick={nextSlide}
+                aria-label="Siguiente diapositiva"
+              >
+                <i className="fa fa-chevron-right" />
+              </button>
+            </>
+          )}
 
           {/* Dots Indicator */}
-          <div className="ofercampo-dots-container">
-            {slides.map((_, dotIdx) => (
-              <button
-                key={dotIdx}
-                type="button"
-                className={`ofercampo-dot ${dotIdx === currentSlide ? 'active' : ''}`}
-                onClick={() => goToSlide(dotIdx)}
-                aria-label={`Ir a diapositiva ${dotIdx + 1}`}
-              />
-            ))}
-          </div>
+          {carouselConfig.showDots && slides.length > 1 && (
+            <div className="ofercampo-dots-container">
+              {slides.map((_, dotIdx) => (
+                <button
+                  key={dotIdx}
+                  type="button"
+                  className={`ofercampo-dot ${dotIdx === currentSlide ? 'active' : ''}`}
+                  onClick={() => goToSlide(dotIdx)}
+                  aria-label={`Ir a diapositiva ${dotIdx + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </section>
 
         {/* Categories Grid Section */}

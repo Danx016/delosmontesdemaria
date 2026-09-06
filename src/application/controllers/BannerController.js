@@ -93,7 +93,12 @@ class BannerController {
   actualizarBanner = async (req, res) => {
     try {
       const { id } = req.params;
-      const data = { ...req.body };
+      const existing = await this.bannerRepository.obtenerPorId(id);
+      if (!existing) {
+        return res.status(404).json({ success: false, message: 'Banner no encontrado' });
+      }
+
+      const data = { ...existing, ...req.body };
 
       if (!data.titulo || !data.titulo.trim()) {
         return res.status(400).json({ success: false, message: 'El título del banner es obligatorio' });
