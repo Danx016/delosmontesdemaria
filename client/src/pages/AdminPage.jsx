@@ -1555,11 +1555,17 @@ export default function AdminPage() {
                             </td>
                             <td>
                               {prod.id_vendedor && prod.id_vendedor !== 1 && !prod.vendedor_nombre?.toLowerCase().includes('sin asignar') && !prod.vendedor_nombre?.toLowerCase().includes('administrador') ? (
-                                <span className="badge" style={{ background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', fontWeight: 700, padding: '0.35rem 0.65rem', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                                  <i className="fa fa-user-check text-primary" /> {prod.vendedor_nombre || `Campesino #${prod.id_vendedor}`}
+                                <span className="badge" style={{ background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', fontWeight: 700, padding: '0.3rem 0.6rem', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}>
+                                  <img
+                                    src={getAvatarUrl(prod.vendedor_avatar || prod.avatar, prod.vendedor_nombre)}
+                                    alt=""
+                                    style={{ width: '18px', height: '18px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+                                    onError={(e) => handleAvatarError(e, prod.vendedor_nombre)}
+                                  />
+                                  <span>{prod.vendedor_nombre || `Campesino #${prod.id_vendedor}`}</span>
                                 </span>
                               ) : (
-                                <span className="badge" style={{ background: '#f1f5f9', color: '#64748b', border: '1px solid #cbd5e1', fontWeight: 600, padding: '0.35rem 0.65rem', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                                <span className="badge" style={{ background: '#f1f5f9', color: '#64748b', border: '1px solid #cbd5e1', fontWeight: 600, padding: '0.3rem 0.6rem', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}>
                                   <i className="fa fa-user" /> {prod.vendedor_nombre || 'Tienda Oficial / Admin'}
                                 </span>
                               )}
@@ -1764,7 +1770,17 @@ export default function AdminPage() {
                       return (
                         <tr key={uId}>
                           <td>
-                            <strong>{u.nombre}</strong>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                              <img
+                                src={getAvatarUrl(u)}
+                                alt={u.nombre}
+                                style={{ width: '32px', height: '32px', borderRadius: '50%', objectFit: 'cover', border: '1.5px solid var(--border-color)', flexShrink: 0 }}
+                                onError={(e) => handleAvatarError(e, u.nombre || u.apodo)}
+                              />
+                              <div>
+                                <strong>{u.nombre}</strong>
+                              </div>
+                            </div>
                           </td>
                           <td>{u.correo}</td>
                           <td><code>@{u.apodo || 'sin_apodo'}</code></td>

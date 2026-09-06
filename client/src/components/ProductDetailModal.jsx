@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { getProductImageUrl, handleProductImageError } from '../utils/productImage'
+import { getAvatarUrl, handleAvatarError } from '../utils/avatar'
 
 export default function ProductDetailModal({ producto, isOpen, onClose }) {
   const { addItem } = useCart()
@@ -206,23 +207,12 @@ export default function ProductDetailModal({ producto, isOpen, onClose }) {
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                  {producto.vendedor_avatar ? (
-                    <img
-                      src={
-                        producto.vendedor_avatar.startsWith('http')
-                          ? producto.vendedor_avatar
-                          : producto.vendedor_avatar.startsWith('/')
-                          ? producto.vendedor_avatar
-                          : `/uploads/avatars/${producto.vendedor_avatar}`
-                      }
-                      alt={producto.vendedor_nombre || 'Productor'}
-                      style={{ width: '34px', height: '34px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #22c55e' }}
-                    />
-                  ) : (
-                    <div style={{ width: '34px', height: '34px', borderRadius: '50%', background: '#dcfce7', color: '#15803d', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
-                      👨‍🌾
-                    </div>
-                  )}
+                  <img
+                    src={getAvatarUrl(producto.vendedor_avatar || producto.vendedor_foto || producto.avatar, producto.vendedor_nombre || 'Campesino')}
+                    alt={producto.vendedor_nombre || 'Productor'}
+                    onError={(e) => handleAvatarError(e, producto.vendedor_nombre || 'Campesino')}
+                    style={{ width: '36px', height: '36px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #22c55e', flexShrink: 0 }}
+                  />
                   <div>
                     <span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block', fontWeight: 600 }}>Cultivado por</span>
                     <strong style={{ fontSize: '0.88rem', color: '#0f172a' }}>

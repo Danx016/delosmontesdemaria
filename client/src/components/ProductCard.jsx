@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import ProductDetailModal from './ProductDetailModal'
 import { getProductImageUrl, handleProductImageError } from '../utils/productImage'
+import { getAvatarUrl, handleAvatarError } from '../utils/avatar'
 
 export default function ProductCard({ producto }) {
   const { addItem } = useCart()
@@ -30,6 +31,8 @@ export default function ProductCard({ producto }) {
   const imageUrl = getProductImageUrl(producto)
 
   const vendorId = producto.id_vendedor || producto.id_proveedor
+  const vendorName = producto.vendedor_nombre || 'Productor Campesino'
+  const vendorAvatar = getAvatarUrl(producto.vendedor_avatar || producto.vendedor_foto || producto.avatar, vendorName)
   const prodTitle = producto.nombre || producto.nombre_producto || 'Producto Campesino'
   const isOutOfStock = Number(producto.stock || 0) === 0
 
@@ -73,50 +76,38 @@ export default function ProductCard({ producto }) {
               to={`/vendedor/${vendorId}`}
               onClick={(e) => e.stopPropagation()}
               className="product-card-vendor"
-              title={`Ver perfil de ${producto.vendedor_nombre || 'Productor Campesino'}`}
+              title={`Ver perfil de ${vendorName}`}
               style={{
                 textDecoration: 'none',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '0.35rem',
+                justifyContent: 'flex-start',
+                gap: '0.45rem',
                 marginBottom: '0.35rem',
                 color: 'var(--primary-color, #2e7d32)',
                 fontSize: '0.8rem',
                 fontWeight: '600',
                 lineHeight: 1.2,
+                width: 'fit-content',
                 maxWidth: '100%',
               }}
             >
-              {producto.vendedor_avatar ? (
-                <img
-                  src={
-                    producto.vendedor_avatar.startsWith('http')
-                      ? producto.vendedor_avatar
-                      : producto.vendedor_avatar.startsWith('/')
-                      ? producto.vendedor_avatar
-                      : `/uploads/avatars/${producto.vendedor_avatar}`
-                  }
-                  alt=""
-                  style={{
-                    width: '18px',
-                    height: '18px',
-                    borderRadius: '50%',
-                    objectFit: 'cover',
-                    flexShrink: 0,
-                    display: 'inline-block',
-                  }}
-                />
-              ) : (
-                <i
-                  className="fa fa-user-check"
-                  style={{
-                    fontSize: '0.8rem',
-                    flexShrink: 0,
-                  }}
-                />
-              )}
+              <img
+                src={vendorAvatar}
+                alt={vendorName}
+                onError={(e) => handleAvatarError(e, vendorName)}
+                style={{
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  flexShrink: 0,
+                  border: '1.5px solid #22c55e',
+                  display: 'inline-block',
+                }}
+              />
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {producto.vendedor_nombre || 'Productor Campesino'}
+                {vendorName}
               </span>
             </Link>
           )}
