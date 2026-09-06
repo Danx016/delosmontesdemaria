@@ -202,6 +202,7 @@ REGLAS DE FORMATO:
   }
 
   // ==========================================
+  // ==========================================
   // 2. ASISTENTE DE ADMINISTRACIÓN (AdminIA)
   // ==========================================
   async procesarChatAdmin(prompt, history = [], adminUserId = 1, repositories = {}) {
@@ -210,16 +211,26 @@ REGLAS DE FORMATO:
       return { respuesta: '⚠️ La API Key de OpenRouter no está configurada en las variables de entorno.' };
     }
 
-    const { usuarioRepository, productoRepository, compraRepository, categoriaRepository } = repositories;
+    const {
+      usuarioRepository,
+      productoRepository,
+      compraRepository,
+      categoriaRepository,
+      bannerRepository,
+      couponRepository,
+      soporteRepository
+    } = repositories;
 
     // 1. Obtener métricas e inventario en tiempo real para contexto gerencial
     let liveStatsText = '';
     try {
-      const [prods, usrs, ords, cats] = await Promise.all([
+      const [prods, usrs, ords, cats, cupons, banners] = await Promise.all([
         productoRepository ? productoRepository.listarTodos() : [],
         usuarioRepository ? usuarioRepository.listarTodos() : [],
         compraRepository ? compraRepository.listarTodas() : [],
-        categoriaRepository ? categoriaRepository.listar() : []
+        categoriaRepository ? categoriaRepository.listar() : [],
+        couponRepository ? couponRepository.obtenerTodos() : [],
+        bannerRepository ? bannerRepository.obtenerTodos() : []
       ]);
 
       const totalProds = Array.isArray(prods) ? prods.length : 0;
@@ -230,6 +241,9 @@ REGLAS DE FORMATO:
       const campesinos = Array.isArray(usrs)
         ? usrs.filter(u => u.rolNombre === 'Campesino' || u.id_rol === 3 || u.rol === 'campesino' || (u.municipio && u.municipio.trim() !== '')).length
         : 0;
+      const admins = Array.isArray(usrs)
+        ? usrs.filter(u => u.rolNombre === 'Administrador' || u.id_rol === 1 || u.rol === 'admin').length
+        : 0;
       const totalOrders = Array.isArray(ords) ? ords.length : 0;
       const pendingOrders = Array.isArray(ords) ? ords.filter(o => o.estado === 'pendiente' || !o.estado || o.estado === 'Pedido recibido').length : 0;
       const deliveredOrders = Array.isArray(ords) ? ords.filter(o => o.estado === 'entregado').length : 0;
@@ -237,27 +251,32 @@ REGLAS DE FORMATO:
         ? ords.filter(o => o.estado !== 'cancelado').reduce((sum, o) => sum + Number(o.total || 0), 0)
         : 0;
       const catNames = Array.isArray(cats) ? cats.map(c => c.nombre_categoria || c.nombre || c.slug).filter(Boolean).join(', ') : '';
+      const totalCupons = Array.isArray(cupons) ? cupons.length : 0;
+      const totalBanners = Array.isArray(banners) ? banners.length : 0;
 
       liveStatsText = `
-MÉTRICAS DEL SISTEMA EN TIEMPO REAL:
-- Catálogo de Productos Activos: ${totalProds} productos
+MÉTRICAS Y ESTADO DEL SISTEMA EN TIEMPO REAL:
+- Catálogo: ${totalProds} productos activos
 - Productos con Stock Crítico (<= 5 unidades): ${lowStockProds.length > 0 ? lowStockProds.slice(0, 10).join(', ') : 'Ninguno, inventario abastecido'}
-- Usuarios Registrados: ${totalUsrs} usuarios (${campesinos} identificados como campesinos/productores)
-- Pedidos Registrados: ${totalOrders} pedidos (${pendingOrders} pendientes por procesar/entregar, ${deliveredOrders} entregados)
+- Usuarios Registrados: ${totalUsrs} usuarios (${campesinos} campesinos/productores, ${admins} administradores)
+- Pedidos: ${totalOrders} compras registradas (${pendingOrders} pendientes, ${deliveredOrders} entregados)
 - Volumen Total de Ventas: $${totalSales.toLocaleString('es-CO')} COP
-- Categorías Disponibles: ${catNames || 'Cosechas, Transformados, Insumos, Artesanías, Lácteos'}
+- Categorías Activas: ${catNames || 'Cosechas, Transformados, Insumos, Artesanías, Lácteos'}
+- Cupones de Descuento: ${totalCupons} cupones
+- Banners del Carrusel: ${totalBanners} diapositivas
 `;
     } catch (metricErr) {
       console.warn('⚠️ [AdminIA] Advertencia cargando métricas en tiempo real:', metricErr.message);
     }
 
     const ADMIN_TOOLS = [
+      // 1. PRODUCTOS
       {
         type: 'function',
         function: {
           name: 'list_products',
-          description: 'Obtiene la lista de productos del catálogo con su stock y precio.',
-          parameters: { type: 'object', properties: { search: { type: 'string' } } }
+          description: 'Obtiene la lista de productos del catálogo con su stock, precio y vendedor asignado.',
+          parameters: { type: 'object', properties: { search: { type: 'string', description: 'Término de búsqueda opcional' } } }
         }
       },
       {
@@ -270,9 +289,13 @@ MÉTRICAS DEL SISTEMA EN TIEMPO REAL:
             properties: {
               nombre: { type: 'string' },
               precio: { type: 'number' },
+              stock: { type: 'number', description: 'Cantidad en inventario inicial' },
               descripcion: { type: 'string' },
               categoria: { type: 'string' },
-              imagen: { type: 'string' }
+              presentacion: { type: 'string' },
+              origen: { type: 'string' },
+              cuidado: { type: 'string' },
+              id_vendedor: { type: 'integer' }
             },
             required: ['nombre', 'precio']
           }
@@ -281,8 +304,30 @@ MÉTRICAS DEL SISTEMA EN TIEMPO REAL:
       {
         type: 'function',
         function: {
+          name: 'update_product',
+          description: 'Modifica o actualiza el precio, stock, descripción, categoría u origen de un producto existente.',
+          parameters: {
+            type: 'object',
+            properties: {
+              id_producto: { type: 'integer' },
+              nombre_busqueda: { type: 'string' },
+              precio: { type: 'number' },
+              stock: { type: 'number' },
+              descripcion: { type: 'string' },
+              categoria: { type: 'string' },
+              presentacion: { type: 'string' },
+              origen: { type: 'string' },
+              cuidado: { type: 'string' },
+              id_vendedor: { type: 'integer' }
+            }
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
           name: 'delete_product',
-          description: 'Elimina un producto por ID o nombre.',
+          description: 'Elimina un producto por ID o nombre del catálogo.',
           parameters: {
             type: 'object',
             properties: {
@@ -292,19 +337,92 @@ MÉTRICAS DEL SISTEMA EN TIEMPO REAL:
           }
         }
       },
+
+      // 2. CATEGORÍAS
+      {
+        type: 'function',
+        function: {
+          name: 'list_categories',
+          description: 'Lista todas las categorías de productos disponibles.',
+          parameters: { type: 'object', properties: {} }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'create_category',
+          description: 'Crea una nueva categoría de productos.',
+          parameters: {
+            type: 'object',
+            properties: {
+              nombre_categoria: { type: 'string' },
+              descripcion: { type: 'string' },
+              icono: { type: 'string' }
+            },
+            required: ['nombre_categoria']
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'delete_category',
+          description: 'Elimina una categoría por su ID.',
+          parameters: {
+            type: 'object',
+            properties: { id_categoria: { type: 'integer' } },
+            required: ['id_categoria']
+          }
+        }
+      },
+
+      // 3. USUARIOS Y CAMPESINOS
       {
         type: 'function',
         function: {
           name: 'list_users',
-          description: 'Lista los usuarios registrados en la plataforma.',
+          description: 'Lista y busca usuarios registrados (campesinos, administradores, clientes).',
           parameters: { type: 'object', properties: { search: { type: 'string' } } }
         }
       },
       {
         type: 'function',
         function: {
+          name: 'update_user',
+          description: 'Actualiza datos de un usuario, como su rol, estado (activo/suspendido), teléfono o municipio.',
+          parameters: {
+            type: 'object',
+            properties: {
+              id_usuario: { type: 'integer' },
+              correo_busqueda: { type: 'string' },
+              id_rol: { type: 'integer', description: '1: Admin, 2: Cliente, 3: Campesino/Vendedor' },
+              estado: { type: 'string', description: 'activo o suspendido' },
+              nombre: { type: 'string' },
+              municipio: { type: 'string' },
+              telefono: { type: 'string' }
+            }
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'delete_user',
+          description: 'Elimina permanentemente una cuenta de usuario.',
+          parameters: {
+            type: 'object',
+            properties: { id_usuario: { type: 'integer' } },
+            required: ['id_usuario']
+          }
+        }
+      },
+
+      // 4. PEDIDOS Y COMPRAS
+      {
+        type: 'function',
+        function: {
           name: 'list_orders',
-          description: 'Lista los pedidos y compras registradas.',
+          description: 'Lista los pedidos y compras registradas en el sistema.',
           parameters: { type: 'object', properties: { search: { type: 'string' }, id_compra: { type: 'integer' } } }
         }
       },
@@ -312,12 +430,12 @@ MÉTRICAS DEL SISTEMA EN TIEMPO REAL:
         type: 'function',
         function: {
           name: 'update_order',
-          description: 'Actualiza el estado de una compra.',
+          description: 'Actualiza el estado de entrega de una compra (ej: En camino, entregado, cancelado).',
           parameters: {
             type: 'object',
             properties: {
               id_compra: { type: 'integer' },
-              estado: { type: 'string' }
+              estado: { type: 'string', description: 'Pedido recibido | En preparación | En camino | entregado | cancelado' }
             },
             required: ['id_compra', 'estado']
           }
@@ -327,72 +445,291 @@ MÉTRICAS DEL SISTEMA EN TIEMPO REAL:
         type: 'function',
         function: {
           name: 'delete_order',
-          description: 'Elimina una compra permanentemente.',
+          description: 'Elimina una orden de compra permanentemente.',
           parameters: {
             type: 'object',
             properties: { id_compra: { type: 'integer' } },
             required: ['id_compra']
           }
         }
+      },
+
+      // 5. CUPONES DE DESCUENTO
+      {
+        type: 'function',
+        function: {
+          name: 'list_coupons',
+          description: 'Lista todos los cupones de descuento activos e inactivos.',
+          parameters: { type: 'object', properties: {} }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'create_coupon',
+          description: 'Crea un nuevo cupón de descuento promocional.',
+          parameters: {
+            type: 'object',
+            properties: {
+              codigo: { type: 'string' },
+              descuento_porcentaje: { type: 'number' },
+              descuento_fijo: { type: 'number' },
+              monto_minimo: { type: 'number' },
+              uso_limite: { type: 'number' },
+              descripcion: { type: 'string' },
+              fecha_expiracion: { type: 'string' }
+            },
+            required: ['codigo']
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'toggle_coupon',
+          description: 'Activa o desactiva un cupón de descuento.',
+          parameters: {
+            type: 'object',
+            properties: { id_cupon: { type: 'integer' } },
+            required: ['id_cupon']
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'delete_coupon',
+          description: 'Elimina un cupón de descuento.',
+          parameters: {
+            type: 'object',
+            properties: { id_cupon: { type: 'integer' } },
+            required: ['id_cupon']
+          }
+        }
+      },
+
+      // 6. BANNERS Y CARRUSEL HERO
+      {
+        type: 'function',
+        function: {
+          name: 'list_banners',
+          description: 'Lista las diapositivas y banners configurados en la página principal.',
+          parameters: { type: 'object', properties: {} }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'create_banner',
+          description: 'Registra una nueva diapositiva o banner en el carrusel de inicio.',
+          parameters: {
+            type: 'object',
+            properties: {
+              titulo: { type: 'string' },
+              subtitulo: { type: 'string' },
+              boton_principal_texto: { type: 'string' },
+              boton_principal_link: { type: 'string' },
+              etiqueta: { type: 'string' },
+              color_acento: { type: 'string' }
+            },
+            required: ['titulo']
+          }
+        }
+      },
+      {
+        type: 'function',
+        function: {
+          name: 'delete_banner',
+          description: 'Elimina un banner del carrusel por su ID.',
+          parameters: {
+            type: 'object',
+            properties: { id_banner: { type: 'integer' } },
+            required: ['id_banner']
+          }
+        }
       }
     ];
 
     const executeTool = async (name, args) => {
-      if (name === 'list_products' && productoRepository) {
-        const rows = args.search ? await productoRepository.buscar(args.search) : await productoRepository.listarTodos();
-        return { success: true, count: rows.length, productos: rows.slice(0, 15) };
-      }
-      if (name === 'create_product' && productoRepository) {
-        const prod = await productoRepository.crear({
-          nombre_producto: args.nombre,
-          precio: args.precio,
-          descripcion: args.descripcion || '',
-          categoria: args.categoria || 'cosechas',
-          imagen: args.imagen || '/img/Logo.jpg'
-        });
-        return { success: true, message: `Producto "${args.nombre}" creado exitosamente`, producto: prod };
-      }
-      if (name === 'delete_product' && productoRepository) {
-        let targetId = args.id_producto;
-        if (!targetId && args.nombre) {
-          const found = await productoRepository.buscar(args.nombre);
-          if (found && found.length > 0) targetId = found[0].id_producto;
+      try {
+        // PRODUCTOS
+        if (name === 'list_products' && productoRepository) {
+          const rows = args.search ? await productoRepository.buscar(args.search) : await productoRepository.listarTodos();
+          return { success: true, count: rows.length, productos: rows.slice(0, 15) };
         }
-        if (!targetId) return { success: false, error: 'Producto no encontrado' };
-        await productoRepository.eliminar(targetId);
-        return { success: true, message: `Producto #${targetId} eliminado correctamente.` };
+        if (name === 'create_product' && productoRepository) {
+          const prod = await productoRepository.crear({
+            nombre_producto: args.nombre,
+            precio: args.precio,
+            stock: args.stock !== undefined ? args.stock : 10,
+            descripcion: args.descripcion || '',
+            categoria: args.categoria || 'cosechas',
+            presentacion: args.presentacion || 'Por Kilo',
+            origen: args.origen || 'Montes de María',
+            cuidado: args.cuidado || 'Lugar fresco y seco',
+            id_vendedor: args.id_vendedor || null,
+            imagen: '/img/Logo.jpg'
+          });
+          return { success: true, message: `Producto "${args.nombre}" creado exitosamente`, producto: prod };
+        }
+        if (name === 'update_product' && productoRepository) {
+          let targetId = args.id_producto;
+          if (!targetId && args.nombre_busqueda) {
+            const found = await productoRepository.buscar(args.nombre_busqueda);
+            if (found && found.length > 0) targetId = found[0].id_producto;
+          }
+          if (!targetId) return { success: false, error: 'Producto no encontrado' };
+
+          const updateData = {};
+          if (args.precio !== undefined) updateData.precio = args.precio;
+          if (args.stock !== undefined) updateData.stock = args.stock;
+          if (args.descripcion !== undefined) updateData.descripcion = args.descripcion;
+          if (args.categoria !== undefined) updateData.categoria = args.categoria;
+          if (args.presentacion !== undefined) updateData.presentacion = args.presentacion;
+          if (args.origen !== undefined) updateData.origen = args.origen;
+          if (args.cuidado !== undefined) updateData.cuidado = args.cuidado;
+          if (args.id_vendedor !== undefined) updateData.id_vendedor = args.id_vendedor;
+
+          await productoRepository.actualizar(targetId, updateData);
+          return { success: true, message: `Producto #${targetId} actualizado con éxito.`, camposModificados: Object.keys(updateData) };
+        }
+        if (name === 'delete_product' && productoRepository) {
+          let targetId = args.id_producto;
+          if (!targetId && args.nombre) {
+            const found = await productoRepository.buscar(args.nombre);
+            if (found && found.length > 0) targetId = found[0].id_producto;
+          }
+          if (!targetId) return { success: false, error: 'Producto no encontrado' };
+          await productoRepository.eliminar(targetId);
+          return { success: true, message: `Producto #${targetId} eliminado correctamente.` };
+        }
+
+        // CATEGORÍAS
+        if (name === 'list_categories' && categoriaRepository) {
+          const rows = await categoriaRepository.listar();
+          return { success: true, count: rows.length, categorias: rows };
+        }
+        if (name === 'create_category' && categoriaRepository) {
+          const cat = await categoriaRepository.crear({
+            nombre_categoria: args.nombre_categoria,
+            descripcion: args.descripcion,
+            icono: args.icono || 'fa-box'
+          });
+          return { success: true, message: `Categoría "${args.nombre_categoria}" creada exitosamente.`, categoria: cat };
+        }
+        if (name === 'delete_category' && categoriaRepository) {
+          await categoriaRepository.eliminar(args.id_categoria);
+          return { success: true, message: `Categoría #${args.id_categoria} eliminada exitosamente.` };
+        }
+
+        // USUARIOS
+        if (name === 'list_users' && usuarioRepository) {
+          const rows = await usuarioRepository.listarTodos(args.search);
+          return { success: true, count: rows.length, usuarios: rows.slice(0, 15) };
+        }
+        if (name === 'update_user' && usuarioRepository) {
+          let targetId = args.id_usuario;
+          if (!targetId && args.correo_busqueda) {
+            const found = await usuarioRepository.buscarPorCorreo(args.correo_busqueda);
+            if (found) targetId = found.id_usuario || found.id;
+          }
+          if (!targetId) return { success: false, error: 'Usuario no encontrado' };
+
+          const updateData = {};
+          if (args.id_rol !== undefined) updateData.id_rol = args.id_rol;
+          if (args.estado !== undefined) updateData.estado = args.estado;
+          if (args.nombre !== undefined) updateData.nombre = args.nombre;
+          if (args.municipio !== undefined) updateData.municipio = args.municipio;
+          if (args.telefono !== undefined) updateData.telefono = args.telefono;
+
+          await usuarioRepository.actualizar(targetId, updateData);
+          return { success: true, message: `Usuario #${targetId} actualizado con éxito (${JSON.stringify(updateData)}).` };
+        }
+        if (name === 'delete_user' && usuarioRepository) {
+          await usuarioRepository.eliminar(args.id_usuario);
+          return { success: true, message: `Usuario #${args.id_usuario} eliminado exitosamente.` };
+        }
+
+        // COMPRAS / PEDIDOS
+        if (name === 'list_orders' && compraRepository) {
+          const rows = await compraRepository.listarTodas(args.search);
+          return { success: true, count: rows.length, compras: rows.slice(0, 15) };
+        }
+        if (name === 'update_order' && compraRepository) {
+          await compraRepository.actualizarEstado(args.id_compra, args.estado);
+          return { success: true, message: `Compra #${args.id_compra} actualizada a estado: ${args.estado}` };
+        }
+        if (name === 'delete_order' && compraRepository) {
+          await compraRepository.eliminar(args.id_compra);
+          return { success: true, message: `Compra #${args.id_compra} eliminada exitosamente.` };
+        }
+
+        // CUPONES
+        if (name === 'list_coupons' && couponRepository) {
+          const rows = await couponRepository.obtenerTodos();
+          return { success: true, count: rows.length, cupones: rows };
+        }
+        if (name === 'create_coupon' && couponRepository) {
+          const c = await couponRepository.crear({
+            codigo: args.codigo,
+            descuento_porcentaje: args.descuento_porcentaje || 0,
+            descuento_fijo: args.descuento_fijo || 0,
+            monto_minimo: args.monto_minimo || 0,
+            uso_limite: args.uso_limite || null,
+            descripcion: args.descripcion || '',
+            fecha_expiracion: args.fecha_expiracion || null,
+            activo: 1
+          });
+          return { success: true, message: `Cupón "${args.codigo}" creado exitosamente.`, cupon: c };
+        }
+        if (name === 'toggle_coupon' && couponRepository) {
+          await couponRepository.toggleActivo(args.id_cupon);
+          return { success: true, message: `Estado del cupón #${args.id_cupon} modificado.` };
+        }
+        if (name === 'delete_coupon' && couponRepository) {
+          await couponRepository.eliminar(args.id_cupon);
+          return { success: true, message: `Cupón #${args.id_cupon} eliminado.` };
+        }
+
+        // BANNERS
+        if (name === 'list_banners' && bannerRepository) {
+          const rows = await bannerRepository.obtenerTodos();
+          return { success: true, count: rows.length, banners: rows };
+        }
+        if (name === 'create_banner' && bannerRepository) {
+          const b = await bannerRepository.crear({
+            titulo: args.titulo,
+            subtitulo: args.subtitulo || '',
+            boton_principal_texto: args.boton_principal_texto || 'Ver Catálogo',
+            boton_principal_link: args.boton_principal_link || '/catalogo',
+            color_acento: args.color_acento || '#22c55e',
+            activo: 1
+          });
+          return { success: true, message: `Banner "${args.titulo}" registrado exitosamente.`, banner: b };
+        }
+        if (name === 'delete_banner' && bannerRepository) {
+          await bannerRepository.eliminar(args.id_banner);
+          return { success: true, message: `Banner #${args.id_banner} eliminado.` };
+        }
+
+        return { success: false, error: 'Herramienta no reconocida' };
+      } catch (toolExecErr) {
+        return { success: false, error: toolExecErr.message };
       }
-      if (name === 'list_users' && usuarioRepository) {
-        const rows = await usuarioRepository.listarTodos(args.search);
-        return { success: true, count: rows.length, usuarios: rows.slice(0, 15) };
-      }
-      if (name === 'list_orders' && compraRepository) {
-        const rows = await compraRepository.listarTodas(args.search);
-        return { success: true, count: rows.length, compras: rows.slice(0, 15) };
-      }
-      if (name === 'update_order' && compraRepository) {
-        await compraRepository.actualizarEstado(args.id_compra, args.estado);
-        return { success: true, message: `Compra #${args.id_compra} actualizada a estado: ${args.estado}` };
-      }
-      if (name === 'delete_order' && compraRepository) {
-        await compraRepository.eliminar(args.id_compra);
-        return { success: true, message: `Compra #${args.id_compra} eliminada exitosamente.` };
-      }
-      return { success: false, error: 'Herramienta no reconocida' };
     };
 
     const systemMessage = {
       role: 'system',
-      content: `Eres el "Asistente IA Gerencial y Estratégico" de la plataforma agropecuaria "De los Montes de María S.A.S" (El Carmen de Bolívar, Montes de María, Colombia).
-Tu labor es brindar soporte de alto nivel a la Dirección y Administración General en toma de decisiones, análisis comercial, inventario, precios justos y apoyo al campesinado.
+      content: `Eres el "Asistente IA Gerencial y Operativo Integral" de "De los Montes de María S.A.S" (El Carmen de Bolívar, Montes de María, Colombia).
+Tienes facultades plenas otorgadas por la Gerencia General para:
+1. GESTIÓN OPERATIVA COMPLETA: Crear, actualizar y eliminar productos, modificar stock, ajustar precios, gestionar categorías, administrar usuarios (roles, suspensión o activación), actualizar estados de compras/pedidos, crear y controlar cupones de descuento, y administrar banners del carrusel.
+2. CONSULTORÍA Y ESTRATEGIA COMERCIAL: Analizar métricas reales, proyecciones de ventas, vocación agrícola (ñame, yuca, cacao, aguacate, plátano, miel, tabaco), precios justos, logística hacia el Caribe colombiano y apoyo solidario al campesinado.
 
 ${liveStatsText}
 
-PAUTAS DE COMPORTAMIENTO Y FORMATO:
-1. Responde de forma ejecutiva, estructurada, profesional y empática, usando formato Markdown (títulos, negritas, listas y emojis representativos).
-2. Para consultas sobre ventas, métricas o inventario, usa las cifras en tiempo real indicadas arriba.
-3. Para estrategias de mercado o producción agropecuaria, toma en cuenta la vocación agrícola de la subregión Montes de María (ñame diamante/espino, yuca, cacao, aguacate, plátano, maíz, miel de abejas, tabaco, palma, frutas y artesanías).
-4. Si el administrador solicita expresamente crear, modificar o eliminar registros operativos (productos, usuarios, pedidos), utiliza las herramientas integradas cuando sea necesario.`
+PAUTAS CRÍTICAS:
+- Cuando el usuario te pida realizar una acción administrativa (ej: "crea un producto", "aumenta el stock de X a 50", "suspende a tal usuario", "cambia el estado del pedido 3 a En camino", "crea un cupón de 15%"), INVOCA LA HERRAMIENTA CORRESPONDIENTE INMEDIATAMENTE.
+- Responde siempre con formato profesional, claro y enriquecido (Markdown, tablas, emojis y viñetas).`
     };
 
     // Normalizar historial
@@ -411,7 +748,7 @@ PAUTAS DE COMPORTAMIENTO Y FORMATO:
         tools: ADMIN_TOOLS,
         tool_choice: 'auto',
         temperature: 0.7,
-        max_tokens: 700,
+        max_tokens: 800,
         appTitle: 'De los Montes de Maria Admin IA'
       });
 
@@ -433,7 +770,7 @@ PAUTAS DE COMPORTAMIENTO Y FORMATO:
         const secondCompletion = await this.callChatCompletion({
           messages,
           temperature: 0.7,
-          max_tokens: 700,
+          max_tokens: 800,
           appTitle: 'De los Montes de Maria Admin IA'
         });
 

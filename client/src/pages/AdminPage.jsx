@@ -2887,16 +2887,18 @@ export default function AdminPage() {
                 )}
               </div>
 
-              {/* Quick Questions Chips */}
+              {/* Quick Actions & Questions Chips */}
               <div style={{ marginBottom: '1rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
                 <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)' }}>
-                  Consultas rápidas:
+                  Acciones & Consultas rápidas:
                 </span>
                 {[
-                  { label: '📊 Resumen de ventas y pedidos', prompt: 'Dame un resumen ejecutivo de las ventas, compras registradas y pedidos pendientes.' },
+                  { label: '📊 Resumen ejecutivo', prompt: 'Dame un resumen ejecutivo de las ventas, compras registradas y pedidos pendientes.' },
                   { label: '🚨 Diagnóstico de stock crítico', prompt: '¿Qué productos tienen stock crítico o bajo y qué acciones recomiendas?' },
-                  { label: '🌾 Estrategias para campesinos', prompt: '¿Qué recomendaciones y estrategias sugieres para apoyar a los campesinos de Montes de María y aumentar sus ventas?' },
-                  { label: '👥 Reporte de usuarios y productores', prompt: '¿Cuántos usuarios y campesinos tenemos registrados y qué análisis haces de la comunidad?' },
+                  { label: '🎟️ Crear cupón promocional', prompt: 'Crea un nuevo cupón promocional llamado VERANO15 con 15% de descuento.' },
+                  { label: '📦 Registrar nuevo producto', prompt: 'Crea un nuevo producto en el catálogo: Yuca Fresca de San Jacinto a $2.500 COP el kilo con stock inicial de 50.' },
+                  { label: '🌾 Estrategias campesinas', prompt: '¿Qué recomendaciones y estrategias sugieres para apoyar a los campesinos de Montes de María y aumentar sus ventas?' },
+                  { label: '👥 Reporte de usuarios y roles', prompt: '¿Cuántos usuarios y campesinos tenemos registrados y qué análisis haces de la comunidad?' },
                 ].map((chip, idx) => (
                   <button
                     key={idx}
@@ -2949,10 +2951,28 @@ export default function AdminPage() {
                     <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: 'rgba(34,197,94,0.15)', color: 'var(--primary-color)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.75rem', marginBottom: '1rem' }}>
                       <i className="fa fa-robot" />
                     </div>
-                    <h4 style={{ margin: '0 0 0.5rem 0' }}>¿En qué puedo apoyar la gestión gerencial hoy?</h4>
-                    <p className="text-muted" style={{ maxWidth: '480px', margin: '0 auto', fontSize: '0.88rem' }}>
-                      Haz una pregunta o selecciona una de las consultas sugeridas arriba para analizar datos en tiempo real de la plataforma.
+                    <h4 style={{ margin: '0 0 0.5rem 0' }}>¿En qué puedo apoyar la gestión operativa y gerencial hoy?</h4>
+                    <p className="text-muted" style={{ maxWidth: '580px', margin: '0 auto 1.25rem auto', fontSize: '0.88rem' }}>
+                      Ahora puedo <strong>ejecutar acciones reales</strong> de administración (crear/modificar productos, ajustar stock, crear cupones, actualizar pedidos, cambiar roles de usuarios) y brindarte análisis comercial y asesoría agrícola en tiempo real.
                     </p>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', maxWidth: '650px', margin: '0 auto', textAlign: 'left' }}>
+                      <div style={{ padding: '0.75rem', borderRadius: '8px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', fontSize: '0.8rem' }}>
+                        <strong>📦 Productos & Stock</strong>
+                        <div className="text-muted" style={{ marginTop: '0.2rem' }}>Crear productos, ajustar precios, reabastecer inventario.</div>
+                      </div>
+                      <div style={{ padding: '0.75rem', borderRadius: '8px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', fontSize: '0.8rem' }}>
+                        <strong>🎟️ Cupones & Descuentos</strong>
+                        <div className="text-muted" style={{ marginTop: '0.2rem' }}>Generar promociones, activar/desactivar códigos de rebaja.</div>
+                      </div>
+                      <div style={{ padding: '0.75rem', borderRadius: '8px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', fontSize: '0.8rem' }}>
+                        <strong>👥 Usuarios & Roles</strong>
+                        <div className="text-muted" style={{ marginTop: '0.2rem' }}>Gestionar campesinos, suspender o reactivar cuentas.</div>
+                      </div>
+                      <div style={{ padding: '0.75rem', borderRadius: '8px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', fontSize: '0.8rem' }}>
+                        <strong>📊 Análisis Gerencial</strong>
+                        <div className="text-muted" style={{ marginTop: '0.2rem' }}>Estrategias de cultivo, precios justos y métricas en vivo.</div>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   iaResponses.map((msg, index) => (

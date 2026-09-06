@@ -131,6 +131,9 @@ const adminController = new AdminController({
   productoRepository,
   compraRepository,
   categoriaRepository,
+  bannerRepository,
+  couponRepository,
+  soporteRepository,
   emailService,
   iaService
 });

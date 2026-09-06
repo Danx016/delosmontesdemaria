@@ -10,11 +10,14 @@ const Producto = require('../../domain/entities/Producto');
 const Usuario = require('../../domain/entities/Usuario');
 
 class AdminController {
-  constructor({ usuarioRepository, productoRepository, compraRepository, categoriaRepository, emailService, iaService }) {
+  constructor({ usuarioRepository, productoRepository, compraRepository, categoriaRepository, bannerRepository, couponRepository, soporteRepository, emailService, iaService }) {
     this.usuarioRepository = usuarioRepository;
     this.productoRepository = productoRepository;
     this.compraRepository = compraRepository;
     this.categoriaRepository = categoriaRepository;
+    this.bannerRepository = bannerRepository;
+    this.couponRepository = couponRepository;
+    this.soporteRepository = soporteRepository;
     this.emailService = emailService;
     this.iaService = iaService;
     this.getAdminStats = new GetAdminStats(compraRepository);
@@ -23,7 +26,11 @@ class AdminController {
       usuarioRepository,
       productoRepository,
       compraRepository,
-      categoriaRepository
+      categoriaRepository,
+      bannerRepository,
+      couponRepository,
+      soporteRepository,
+      emailService
     });
   }
 
