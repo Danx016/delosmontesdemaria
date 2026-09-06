@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { getProductImageUrl, handleProductImageError } from '../utils/productImage'
@@ -39,7 +40,6 @@ export default function ProductDetailModal({ producto, isOpen, onClose }) {
   }
 
   const imageUrl = getProductImageUrl(producto)
-
   const vendorId = producto.id_vendedor || producto.id_proveedor
   const prodTitle = producto.nombre || producto.nombre_producto || 'Cosecha Campesina'
   const isOutOfStock = Number(producto.stock || 0) <= 0
@@ -65,9 +65,9 @@ export default function ProductDetailModal({ producto, isOpen, onClose }) {
   const cuidadoText = producto.cuidado || 'Conservar en un lugar fresco, seco y protegido de la luz directa.'
   const unidadText = producto.unidad_medida || 'Unidad / Pieza'
 
-  return (
+  return createPortal(
     <div
-      className="modal-overlay fade-in"
+      className="modal-overlay"
       onClick={onClose}
       style={{
         position: 'fixed',
@@ -75,28 +75,31 @@ export default function ProductDetailModal({ producto, isOpen, onClose }) {
         left: 0,
         right: 0,
         bottom: 0,
-        backgroundColor: 'rgba(15, 23, 42, 0.72)',
-        backdropFilter: 'blur(6px)',
-        zIndex: 9999,
+        backgroundColor: 'rgba(15, 23, 42, 0.75)',
+        backdropFilter: 'blur(8px)',
+        WebkitBackdropFilter: 'blur(8px)',
+        zIndex: 999999,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '1rem',
+        padding: '1.5rem 1rem',
+        overflowY: 'auto',
       }}
     >
       <div
-        className="card scale-in"
+        className="card"
         onClick={(e) => e.stopPropagation()}
         style={{
-          maxWidth: '780px',
+          maxWidth: '820px',
           width: '100%',
-          maxHeight: '92vh',
+          maxHeight: '90vh',
           overflowY: 'auto',
+          margin: 'auto',
           padding: 0,
           borderRadius: '24px',
-          background: '#ffffff',
-          boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.3)',
-          border: '1px solid #e2e8f0',
+          background: 'var(--card-bg, #ffffff)',
+          boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.35)',
+          border: '1px solid var(--border-color, #e2e8f0)',
           position: 'relative',
         }}
       >
@@ -112,25 +115,25 @@ export default function ProductDetailModal({ producto, isOpen, onClose }) {
             width: '38px',
             height: '38px',
             borderRadius: '50%',
-            background: 'rgba(255, 255, 255, 0.92)',
-            border: '1px solid #e2e8f0',
+            background: 'var(--card-bg, #ffffff)',
+            border: '1px solid var(--border-color, #e2e8f0)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             fontSize: '1.1rem',
-            color: '#475569',
+            color: 'var(--text-muted, #475569)',
             cursor: 'pointer',
-            zIndex: 10,
-            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+            zIndex: 20,
+            boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
             transition: 'all 0.2s ease',
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = 'scale(1.1)'
-            e.currentTarget.style.color = '#0f172a'
+            e.currentTarget.style.color = '#dc2626'
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.transform = 'scale(1)'
-            e.currentTarget.style.color = '#475569'
+            e.currentTarget.style.color = 'var(--text-muted, #475569)'
           }}
         >
           <i className="fa fa-times" />
@@ -189,7 +192,7 @@ export default function ProductDetailModal({ producto, isOpen, onClose }) {
           </div>
 
           {/* Right Column: Detailed Product Info */}
-          <div className="product-modal-info-col">
+          <div className="product-modal-info-col" style={{ paddingRight: '2.5rem' }}>
             {/* Farmer / Producer Header Banner */}
             {vendorId && String(vendorId) !== '0' ? (
               <div
@@ -204,6 +207,7 @@ export default function ProductDetailModal({ producto, isOpen, onClose }) {
                   marginBottom: '1rem',
                   flexWrap: 'wrap',
                   gap: '0.5rem',
+                  paddingRight: '1.5rem',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
@@ -241,6 +245,7 @@ export default function ProductDetailModal({ producto, isOpen, onClose }) {
                   padding: '0.65rem 0.85rem',
                   borderRadius: '14px',
                   marginBottom: '1rem',
+                  paddingRight: '1.5rem',
                 }}
               >
                 <img
@@ -423,6 +428,7 @@ export default function ProductDetailModal({ producto, isOpen, onClose }) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
