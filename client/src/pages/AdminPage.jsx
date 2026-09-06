@@ -1255,21 +1255,29 @@ export default function AdminPage() {
   }
 
   // IA Chat
-  const handleSendIAChat = async (e) => {
-    e.preventDefault()
-    if (!iaPrompt.trim() || iaLoading) return
-    const p = iaPrompt.trim()
+  const handleSendIAChat = async (e, directPrompt = null) => {
+    if (e && e.preventDefault) e.preventDefault()
+    const p = (directPrompt || iaPrompt).trim()
+    if (!p || iaLoading) return
     setIaPrompt('')
     setIaResponses((prev) => [...prev, { role: 'user', text: p }])
     setIaLoading(true)
 
     try {
-      const res = await chatIA({ prompt: p })
-      setIaResponses((prev) => [...prev, { role: 'assistant', text: res.data?.respuesta || 'Sin respuesta generada.' }])
+      const historyPayload = iaResponses.slice(-6).map((msg) => ({
+        role: msg.role === 'user' ? 'user' : 'assistant',
+        content: msg.text
+      }))
+      const res = await chatIA({ prompt: p, history: historyPayload })
+      const answer = res.data?.respuesta || 'Sin respuesta generada.'
+      setIaResponses((prev) => [...prev, { role: 'assistant', text: answer }])
+      if (res.data?.reloadData) {
+        fetchData()
+      }
     } catch (err) {
       setIaResponses((prev) => [
         ...prev,
-        { role: 'assistant', text: 'Error al consultar con el asistente IA.' },
+        { role: 'assistant', text: '⚠️ Ocurrió un inconveniente al consultar con el asistente IA. Por favor intenta nuevamente.' },
       ])
     } finally {
       setIaLoading(false)
@@ -2853,40 +2861,161 @@ export default function AdminPage() {
 
           {/* Tab 6: IA Chat */}
           {activeTab === 'ia' && (
-            <div className="card fade-in" style={{ marginTop: '1.5rem' }}>
-              <h3>Asistente IA Gerencial</h3>
-              <p className="text-muted" style={{ marginBottom: '1.25rem' }}>
-                Consulta métricas, proyecciones comerciales y recomendaciones para los productores de los Montes de María.
-              </p>
-
-              <div className="admin-ai-chat-box" style={{ minHeight: '320px', maxHeight: '450px', overflowY: 'auto', padding: '1rem', border: '1px solid var(--border-color)', borderRadius: '8px', marginBottom: '1rem', background: 'var(--bg-alt)' }}>
-                {iaResponses.length === 0 ? (
-                  <p className="text-muted" style={{ textAlign: 'center', marginTop: '3rem' }}>
-                    <i className="fa fa-robot fa-2x" /><br />
-                    Escribe una pregunta para consultar al Asistente Gerencial.
+            <div className="card fade-in" style={{ marginTop: '1.5rem', padding: '1.75rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
+                <div>
+                  <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', margin: 0 }}>
+                    <i className="fa fa-brain" style={{ color: 'var(--primary-color)' }} />
+                    Asistente IA Gerencial & Estratégico
+                    <span className="badge badge-primary" style={{ fontSize: '0.75rem', fontWeight: 600 }}>
+                      ⚡ Conectado en Tiempo Real
+                    </span>
+                  </h3>
+                  <p className="text-muted" style={{ margin: '4px 0 0 0', fontSize: '0.88rem' }}>
+                    Consulta métricas operativas, proyecciones comerciales, diagnóstico de stock y recomendaciones para los productores de los Montes de María.
                   </p>
+                </div>
+                {iaResponses.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setIaResponses([])}
+                    className="btn btn-secondary btn-sm"
+                    title="Limpiar historial de la conversación"
+                  >
+                    <i className="fa fa-trash-alt" /> Limpiar Conversación
+                  </button>
+                )}
+              </div>
+
+              {/* Quick Questions Chips */}
+              <div style={{ marginBottom: '1rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
+                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+                  Consultas rápidas:
+                </span>
+                {[
+                  { label: '📊 Resumen de ventas y pedidos', prompt: 'Dame un resumen ejecutivo de las ventas, compras registradas y pedidos pendientes.' },
+                  { label: '🚨 Diagnóstico de stock crítico', prompt: '¿Qué productos tienen stock crítico o bajo y qué acciones recomiendas?' },
+                  { label: '🌾 Estrategias para campesinos', prompt: '¿Qué recomendaciones y estrategias sugieres para apoyar a los campesinos de Montes de María y aumentar sus ventas?' },
+                  { label: '👥 Reporte de usuarios y productores', prompt: '¿Cuántos usuarios y campesinos tenemos registrados y qué análisis haces de la comunidad?' },
+                ].map((chip, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    disabled={iaLoading}
+                    onClick={() => handleSendIAChat(null, chip.prompt)}
+                    style={{
+                      fontSize: '0.78rem',
+                      padding: '0.35rem 0.75rem',
+                      borderRadius: '999px',
+                      border: '1px solid var(--border-color)',
+                      background: 'var(--bg-alt)',
+                      color: 'var(--text-color)',
+                      cursor: 'pointer',
+                      fontWeight: 600,
+                      transition: 'all 0.15s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--primary-color)'
+                      e.currentTarget.style.background = 'rgba(34,197,94,0.1)'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--border-color)'
+                      e.currentTarget.style.background = 'var(--bg-alt)'
+                    }}
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
+
+              <div
+                className="admin-ai-chat-box"
+                style={{
+                  minHeight: '340px',
+                  maxHeight: '520px',
+                  overflowY: 'auto',
+                  padding: '1.25rem',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '12px',
+                  marginBottom: '1.25rem',
+                  background: 'var(--bg-alt)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '1rem'
+                }}
+              >
+                {iaResponses.length === 0 ? (
+                  <div style={{ textAlign: 'center', margin: 'auto', padding: '2rem 1rem' }}>
+                    <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: 'rgba(34,197,94,0.15)', color: 'var(--primary-color)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.75rem', marginBottom: '1rem' }}>
+                      <i className="fa fa-robot" />
+                    </div>
+                    <h4 style={{ margin: '0 0 0.5rem 0' }}>¿En qué puedo apoyar la gestión gerencial hoy?</h4>
+                    <p className="text-muted" style={{ maxWidth: '480px', margin: '0 auto', fontSize: '0.88rem' }}>
+                      Haz una pregunta o selecciona una de las consultas sugeridas arriba para analizar datos en tiempo real de la plataforma.
+                    </p>
+                  </div>
                 ) : (
                   iaResponses.map((msg, index) => (
-                    <div key={index} style={{ marginBottom: '1rem', textAlign: msg.role === 'user' ? 'right' : 'left' }}>
-                      <div style={{ display: 'inline-block', padding: '0.75rem 1rem', borderRadius: '8px', maxWidth: '80%', background: msg.role === 'user' ? 'var(--primary-color)' : 'var(--card-bg)', color: msg.role === 'user' ? '#fff' : 'inherit', boxShadow: 'var(--shadow-sm)' }}>
-                        <strong>{msg.role === 'user' ? 'Tú: ' : '🤖 Asistente IA: '}</strong>
-                        <p style={{ margin: '0.25rem 0 0 0', whiteSpace: 'pre-wrap' }}>{msg.text}</p>
+                    <div
+                      key={index}
+                      style={{
+                        display: 'flex',
+                        justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
+                        gap: '0.6rem',
+                        alignItems: 'flex-start'
+                      }}
+                    >
+                      {msg.role !== 'user' && (
+                        <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--primary-color)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem', flexShrink: 0, marginTop: '2px' }}>
+                          <i className="fa fa-robot" />
+                        </div>
+                      )}
+                      <div
+                        style={{
+                          display: 'inline-block',
+                          padding: '0.85rem 1.15rem',
+                          borderRadius: msg.role === 'user' ? '14px 14px 2px 14px' : '14px 14px 14px 2px',
+                          maxWidth: '85%',
+                          background: msg.role === 'user' ? 'var(--primary-color)' : 'var(--card-bg)',
+                          color: msg.role === 'user' ? '#fff' : 'inherit',
+                          boxShadow: 'var(--shadow-sm)',
+                          border: msg.role === 'user' ? 'none' : '1px solid var(--border-color)',
+                          lineHeight: 1.55
+                        }}
+                      >
+                        <div style={{ fontSize: '0.78rem', fontWeight: 700, opacity: 0.85, marginBottom: '0.35rem' }}>
+                          {msg.role === 'user' ? '👤 Consulta Gerencial' : '🤖 Asistente IA Gerencial'}
+                        </div>
+                        <div style={{ whiteSpace: 'pre-wrap', fontSize: '0.9rem' }}>
+                          {msg.text}
+                        </div>
                       </div>
                     </div>
                   ))
                 )}
+                {iaLoading && (
+                  <div style={{ display: 'flex', gap: '0.6rem', alignItems: 'center' }}>
+                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: 'var(--primary-color)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.85rem', flexShrink: 0 }}>
+                      <i className="fa fa-spinner fa-spin" />
+                    </div>
+                    <div style={{ padding: '0.75rem 1rem', borderRadius: '12px', background: 'var(--card-bg)', border: '1px solid var(--border-color)', fontSize: '0.88rem', color: 'var(--text-muted)' }}>
+                      Analizando datos del sistema y generando respuesta...
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <form onSubmit={handleSendIAChat} style={{ display: 'flex', gap: '0.5rem' }}>
+              <form onSubmit={handleSendIAChat} style={{ display: 'flex', gap: '0.75rem' }}>
                 <input
                   type="text"
-                  placeholder="Pregunta sobre las ventas, stock o recomendaciones agrícolas..."
+                  placeholder="Escribe tu consulta gerencial (ej: ¿Cuáles son las ventas del mes?, recomendaciones agrícolas...)"
                   value={iaPrompt}
                   onChange={(e) => setIaPrompt(e.target.value)}
                   className="form-input"
-                  style={{ flex: 1 }}
+                  style={{ flex: 1, padding: '0.75rem 1rem', borderRadius: '10px' }}
+                  disabled={iaLoading}
                 />
-                <button type="submit" disabled={iaLoading} className="btn btn-primary">
+                <button type="submit" disabled={iaLoading || !iaPrompt.trim()} className="btn btn-primary" style={{ padding: '0 1.5rem', borderRadius: '10px' }}>
                   {iaLoading ? <i className="fa fa-spinner fa-spin" /> : <><i className="fa fa-paper-plane" /> Consultar</>}
                 </button>
               </form>

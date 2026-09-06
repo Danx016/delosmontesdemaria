@@ -22,7 +22,8 @@ class AdminController {
     this.processAdminAIChat = new ProcessAdminAIChat(iaService, {
       usuarioRepository,
       productoRepository,
-      compraRepository
+      compraRepository,
+      categoriaRepository
     });
   }
 

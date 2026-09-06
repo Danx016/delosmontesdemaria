@@ -15,7 +15,7 @@ class IAService {
   /**
    * Ejecuta llamadas seguras a OpenRouter con tolerancia a fallos, soporte de herramientas y recuperación de modelos
    */
-  async callChatCompletion({ messages, tools = null, tool_choice = null, temperature = 0.7, max_tokens = 600, appTitle = 'De los Montes de Maria AI' }) {
+  async callChatCompletion({ messages, tools = null, tool_choice = null, temperature = 0.7, max_tokens = 700, appTitle = 'De los Montes de Maria AI' }) {
     const apiKey = appConfig.openRouterApiKey;
     if (!apiKey || apiKey.startsWith('tu_clave')) {
       throw new Error('API Key de OpenRouter no configurada');
@@ -28,9 +28,12 @@ class IAService {
     const candidateModels = [
       preferredModel,
       'minimax/minimax-m3:free',
-      'openrouter/free',
-      'nvidia/nemotron-3.5-lightning:free'
-    ];
+      'nvidia/nemotron-3.5-lightning:free',
+      'google/gemma-4-31b-it:free',
+      'google/gemma-4-26b-a4b-it:free',
+      'minimax/minimax-m2.7:free',
+      'openrouter/free'
+    ].filter(Boolean);
     const modelsToTry = [...new Set(candidateModels)];
 
     let lastError = null;
@@ -41,7 +44,7 @@ class IAService {
           model,
           messages,
           temperature,
-          max_tokens: Math.min(max_tokens, 600)
+          max_tokens: Math.min(max_tokens, 800)
         };
         if (tools && Array.isArray(tools) && tools.length > 0) {
           bodyPayload.tools = tools;
@@ -63,6 +66,42 @@ class IAService {
           const errText = await response.text();
           console.warn(`⚠️ [OpenRouter ${model} Status ${response.status}]:`, errText.slice(0, 150));
           lastError = new Error(`Status ${response.status}: ${errText.slice(0, 100)}`);
+
+          // Si falla con herramientas (ej: 400 Bad Request), reintentar el mismo modelo sin tools
+          if (response.status === 400 && tools && tools.length > 0) {
+            try {
+              const fallbackPayload = {
+                model,
+                messages,
+                temperature,
+                max_tokens: Math.min(max_tokens, 800)
+              };
+              const resNoTools = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${apiKey}`,
+                  'HTTP-Referer': appConfig.baseUrl || 'https://delosmontesdemaria.duckdns.org',
+                  'X-Title': appTitle
+                },
+                body: JSON.stringify(fallbackPayload)
+              });
+              if (resNoTools.ok) {
+                const dataNoTools = await resNoTools.json();
+                const choiceNoTools = dataNoTools?.choices?.[0];
+                if (choiceNoTools?.message) {
+                  let content = choiceNoTools.message.content || choiceNoTools.message.reasoning || '';
+                  if (typeof content === 'string') content = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+                  return {
+                    modelUsed: model,
+                    choice: choiceNoTools,
+                    message: { ...choiceNoTools.message, content },
+                    tool_calls: []
+                  };
+                }
+              }
+            } catch (_) {}
+          }
           continue;
         }
 
@@ -165,20 +204,59 @@ REGLAS DE FORMATO:
   // ==========================================
   // 2. ASISTENTE DE ADMINISTRACIÓN (AdminIA)
   // ==========================================
-  async procesarChatAdmin(prompt, history = [], adminUserId = 1, repositories) {
+  async procesarChatAdmin(prompt, history = [], adminUserId = 1, repositories = {}) {
     const apiKey = appConfig.openRouterApiKey;
     if (!apiKey || apiKey.startsWith('tu_clave')) {
       return { respuesta: '⚠️ La API Key de OpenRouter no está configurada en las variables de entorno.' };
     }
 
-    const { usuarioRepository, productoRepository, compraRepository } = repositories;
+    const { usuarioRepository, productoRepository, compraRepository, categoriaRepository } = repositories;
+
+    // 1. Obtener métricas e inventario en tiempo real para contexto gerencial
+    let liveStatsText = '';
+    try {
+      const [prods, usrs, ords, cats] = await Promise.all([
+        productoRepository ? productoRepository.listarTodos() : [],
+        usuarioRepository ? usuarioRepository.listarTodos() : [],
+        compraRepository ? compraRepository.listarTodas() : [],
+        categoriaRepository ? categoriaRepository.listar() : []
+      ]);
+
+      const totalProds = Array.isArray(prods) ? prods.length : 0;
+      const lowStockProds = Array.isArray(prods)
+        ? prods.filter(p => Number(p.stock) <= 5).map(p => `${p.nombre_producto || 'Sin nombre'} (Stock: ${p.stock ?? 0})`)
+        : [];
+      const totalUsrs = Array.isArray(usrs) ? usrs.length : 0;
+      const campesinos = Array.isArray(usrs)
+        ? usrs.filter(u => u.rolNombre === 'Campesino' || u.id_rol === 3 || u.rol === 'campesino' || (u.municipio && u.municipio.trim() !== '')).length
+        : 0;
+      const totalOrders = Array.isArray(ords) ? ords.length : 0;
+      const pendingOrders = Array.isArray(ords) ? ords.filter(o => o.estado === 'pendiente' || !o.estado || o.estado === 'Pedido recibido').length : 0;
+      const deliveredOrders = Array.isArray(ords) ? ords.filter(o => o.estado === 'entregado').length : 0;
+      const totalSales = Array.isArray(ords)
+        ? ords.filter(o => o.estado !== 'cancelado').reduce((sum, o) => sum + Number(o.total || 0), 0)
+        : 0;
+      const catNames = Array.isArray(cats) ? cats.map(c => c.nombre_categoria || c.nombre || c.slug).filter(Boolean).join(', ') : '';
+
+      liveStatsText = `
+MÉTRICAS DEL SISTEMA EN TIEMPO REAL:
+- Catálogo de Productos Activos: ${totalProds} productos
+- Productos con Stock Crítico (<= 5 unidades): ${lowStockProds.length > 0 ? lowStockProds.slice(0, 10).join(', ') : 'Ninguno, inventario abastecido'}
+- Usuarios Registrados: ${totalUsrs} usuarios (${campesinos} identificados como campesinos/productores)
+- Pedidos Registrados: ${totalOrders} pedidos (${pendingOrders} pendientes por procesar/entregar, ${deliveredOrders} entregados)
+- Volumen Total de Ventas: $${totalSales.toLocaleString('es-CO')} COP
+- Categorías Disponibles: ${catNames || 'Cosechas, Transformados, Insumos, Artesanías, Lácteos'}
+`;
+    } catch (metricErr) {
+      console.warn('⚠️ [AdminIA] Advertencia cargando métricas en tiempo real:', metricErr.message);
+    }
 
     const ADMIN_TOOLS = [
       {
         type: 'function',
         function: {
           name: 'list_products',
-          description: 'Obtiene la lista de productos del catálogo.',
+          description: 'Obtiene la lista de productos del catálogo con su stock y precio.',
           parameters: { type: 'object', properties: { search: { type: 'string' } } }
         }
       },
@@ -218,7 +296,7 @@ REGLAS DE FORMATO:
         type: 'function',
         function: {
           name: 'list_users',
-          description: 'Lista usuarios registrados.',
+          description: 'Lista los usuarios registrados en la plataforma.',
           parameters: { type: 'object', properties: { search: { type: 'string' } } }
         }
       },
@@ -226,7 +304,7 @@ REGLAS DE FORMATO:
         type: 'function',
         function: {
           name: 'list_orders',
-          description: 'Lista pedidos y compras registradas.',
+          description: 'Lista los pedidos y compras registradas.',
           parameters: { type: 'object', properties: { search: { type: 'string' }, id_compra: { type: 'integer' } } }
         }
       },
@@ -260,11 +338,11 @@ REGLAS DE FORMATO:
     ];
 
     const executeTool = async (name, args) => {
-      if (name === 'list_products') {
+      if (name === 'list_products' && productoRepository) {
         const rows = args.search ? await productoRepository.buscar(args.search) : await productoRepository.listarTodos();
         return { success: true, count: rows.length, productos: rows.slice(0, 15) };
       }
-      if (name === 'create_product') {
+      if (name === 'create_product' && productoRepository) {
         const prod = await productoRepository.crear({
           nombre_producto: args.nombre,
           precio: args.precio,
@@ -274,7 +352,7 @@ REGLAS DE FORMATO:
         });
         return { success: true, message: `Producto "${args.nombre}" creado exitosamente`, producto: prod };
       }
-      if (name === 'delete_product') {
+      if (name === 'delete_product' && productoRepository) {
         let targetId = args.id_producto;
         if (!targetId && args.nombre) {
           const found = await productoRepository.buscar(args.nombre);
@@ -284,19 +362,19 @@ REGLAS DE FORMATO:
         await productoRepository.eliminar(targetId);
         return { success: true, message: `Producto #${targetId} eliminado correctamente.` };
       }
-      if (name === 'list_users') {
+      if (name === 'list_users' && usuarioRepository) {
         const rows = await usuarioRepository.listarTodos(args.search);
         return { success: true, count: rows.length, usuarios: rows.slice(0, 15) };
       }
-      if (name === 'list_orders') {
+      if (name === 'list_orders' && compraRepository) {
         const rows = await compraRepository.listarTodas(args.search);
         return { success: true, count: rows.length, compras: rows.slice(0, 15) };
       }
-      if (name === 'update_order') {
+      if (name === 'update_order' && compraRepository) {
         await compraRepository.actualizarEstado(args.id_compra, args.estado);
         return { success: true, message: `Compra #${args.id_compra} actualizada a estado: ${args.estado}` };
       }
-      if (name === 'delete_order') {
+      if (name === 'delete_order' && compraRepository) {
         await compraRepository.eliminar(args.id_compra);
         return { success: true, message: `Compra #${args.id_compra} eliminada exitosamente.` };
       }
@@ -305,12 +383,27 @@ REGLAS DE FORMATO:
 
     const systemMessage = {
       role: 'system',
-      content: `Eres el Asistente de IA de Administración de "De los Montes de María S.A.S".
-Ayudas al Administrador a gestionar el sistema, inventario, usuarios y pedidos.
-Cuando te soliciten crear, listar, modificar o eliminar productos, usuarios o pedidos, invoca la herramienta correspondiente inmediatamente.`
+      content: `Eres el "Asistente IA Gerencial y Estratégico" de la plataforma agropecuaria "De los Montes de María S.A.S" (El Carmen de Bolívar, Montes de María, Colombia).
+Tu labor es brindar soporte de alto nivel a la Dirección y Administración General en toma de decisiones, análisis comercial, inventario, precios justos y apoyo al campesinado.
+
+${liveStatsText}
+
+PAUTAS DE COMPORTAMIENTO Y FORMATO:
+1. Responde de forma ejecutiva, estructurada, profesional y empática, usando formato Markdown (títulos, negritas, listas y emojis representativos).
+2. Para consultas sobre ventas, métricas o inventario, usa las cifras en tiempo real indicadas arriba.
+3. Para estrategias de mercado o producción agropecuaria, toma en cuenta la vocación agrícola de la subregión Montes de María (ñame diamante/espino, yuca, cacao, aguacate, plátano, maíz, miel de abejas, tabaco, palma, frutas y artesanías).
+4. Si el administrador solicita expresamente crear, modificar o eliminar registros operativos (productos, usuarios, pedidos), utiliza las herramientas integradas cuando sea necesario.`
     };
 
-    const messages = [systemMessage, ...history, { role: 'user', content: prompt }];
+    // Normalizar historial
+    const normalizedHistory = Array.isArray(history)
+      ? history.map(item => ({
+          role: item.role === 'user' ? 'user' : 'assistant',
+          content: item.content || item.text || ''
+        })).filter(h => Boolean(h.content))
+      : [];
+
+    const messages = [systemMessage, ...normalizedHistory, { role: 'user', content: prompt }];
 
     try {
       const completion = await this.callChatCompletion({
@@ -318,7 +411,7 @@ Cuando te soliciten crear, listar, modificar o eliminar productos, usuarios o pe
         tools: ADMIN_TOOLS,
         tool_choice: 'auto',
         temperature: 0.7,
-        max_tokens: 600,
+        max_tokens: 700,
         appTitle: 'De los Montes de Maria Admin IA'
       });
 
@@ -340,7 +433,7 @@ Cuando te soliciten crear, listar, modificar o eliminar productos, usuarios o pe
         const secondCompletion = await this.callChatCompletion({
           messages,
           temperature: 0.7,
-          max_tokens: 600,
+          max_tokens: 700,
           appTitle: 'De los Montes de Maria Admin IA'
         });
 
