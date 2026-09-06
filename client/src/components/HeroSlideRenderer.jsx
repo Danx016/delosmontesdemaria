@@ -204,7 +204,7 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
               </h1>
 
               <p className="ofercampo-subtitle" style={{ fontSize: isPreview ? '0.78rem' : undefined, marginBottom: isPreview ? '0.5rem' : undefined, lineHeight: isPreview ? 1.35 : undefined }}>
-                {slide.subtitle || slide.subtitulo || 'Directamente desde los Montes de María.'}
+                {slide.subtitle !== undefined && slide.subtitle !== '' ? slide.subtitle : (slide.subtitulo || 'Directamente desde los Montes de María.')}
               </p>
 
               {features.length > 0 && (
@@ -283,7 +283,7 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
             </h1>
 
             <p style={{ fontSize: isPreview ? '0.78rem' : '1.2rem', color: '#dcfce7', maxWidth: '680px', margin: isPreview ? '0 auto 0.6rem auto' : '0 auto 1.5rem auto', lineHeight: 1.4, fontWeight: 400 }}>
-              {slide.subtitle || slide.subtitulo || 'Cosechas frescas, productos artesanales y alimentos del campo sin intermediarios.'}
+              {slide.subtitle !== undefined && slide.subtitle !== '' ? slide.subtitle : (slide.subtitulo || 'Cosechas frescas, productos artesanales y alimentos del campo sin intermediarios.')}
             </p>
 
             {/* Feature Horizontal Strip from Database */}
@@ -334,7 +334,7 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
               </h1>
 
               <p style={{ fontSize: isPreview ? '0.78rem' : '1.05rem', color: '#fed7aa', marginBottom: isPreview ? '0.55rem' : '1.25rem', lineHeight: 1.35 }}>
-                {slide.subtitle || slide.subtitulo || 'Aprovecha precios directos de campesinos de los Montes de María con descuentos exclusivos.'}
+                {slide.subtitle !== undefined && slide.subtitle !== '' ? slide.subtitle : (slide.subtitulo || 'Aprovecha precios directos de campesinos de los Montes de María con descuentos exclusivos.')}
               </p>
 
               {/* Cupón Card con Botón Copiar */}
@@ -346,7 +346,7 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
                     border: '1.5px dashed #f59e0b',
                     borderRadius: '10px',
                     padding: isPreview ? '0.4rem 0.65rem' : '0.9rem 1.25rem',
-                    marginBottom: isPreview ? '0.6rem' : '1.5rem',
+                    marginBottom: isPreview ? '0.5rem' : '1.25rem',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
@@ -382,6 +382,17 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
                     <i className={`fa ${copied ? 'fa-check' : 'fa-copy'}`} />
                     {copied ? '¡Listo!' : 'Copiar'}
                   </button>
+                </div>
+              )}
+
+              {/* Características / Puntos Clave */}
+              {features.length > 0 && (
+                <div style={{ display: 'flex', gap: isPreview ? '0.3rem' : '0.6rem', flexWrap: 'wrap', marginBottom: isPreview ? '0.55rem' : '1.1rem' }}>
+                  {features.map((feat, fIdx) => (
+                    <span key={fIdx} style={{ background: 'rgba(0,0,0,0.3)', backdropFilter: 'blur(4px)', padding: isPreview ? '0.15rem 0.45rem' : '0.25rem 0.65rem', borderRadius: '6px', fontSize: isPreview ? '0.68rem' : '0.8rem', color: '#fed7aa', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                      <i className="fa fa-bolt" style={{ color: '#facc15' }} /> {feat}
+                    </span>
+                  ))}
                 </div>
               )}
 
@@ -466,7 +477,7 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
               </h1>
 
               <p style={{ fontSize: isPreview ? '0.78rem' : '1rem', color: '#e2e8f0', marginBottom: isPreview ? '0.6rem' : '1.25rem', lineHeight: 1.35 }}>
-                {slide.subtitle || slide.subtitulo || 'Conectamos a campesinos de Bolívar y Sucre con familias de toda Colombia sin intermediarios.'}
+                {slide.subtitle !== undefined && slide.subtitle !== '' ? slide.subtitle : (slide.subtitulo || 'Conectamos a campesinos de Bolívar y Sucre con familias de toda Colombia sin intermediarios.')}
               </p>
 
               <div className="ofercampo-actions" style={{ gap: isPreview ? '0.4rem' : undefined }}>
@@ -561,13 +572,13 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
                 }}
               >
                 <p style={{ margin: 0, fontStyle: 'italic', fontSize: isPreview ? '0.72rem' : '0.96rem', color: '#fef3c7', lineHeight: 1.45 }}>
-                  “{slide.subtitle || slide.subtitulo || 'Cada fruto que sembramos lleva el sudor, la esperanza y la tradición de nuestras veredas.'}”
+                  “{slide.subtitle !== undefined && slide.subtitle !== '' ? slide.subtitle : (slide.subtitulo || 'Cada fruto que sembramos lleva el sudor, la esperanza y la tradición de nuestras veredas.')}”
                 </p>
               </div>
 
               {/* Farmer Profile Strip from Database */}
               {vendorName ? (
-                <div style={{ display: 'flex', alignItems: 'center', gap: isPreview ? '0.45rem' : '0.75rem', marginBottom: isPreview ? '0.55rem' : '1.25rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: isPreview ? '0.45rem' : '0.75rem', marginBottom: isPreview ? '0.45rem' : '1rem' }}>
                   <div style={{ width: isPreview ? '30px' : '46px', height: isPreview ? '30px' : '46px', borderRadius: '50%', border: '2px solid #facc15', backgroundColor: '#15803d', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0, boxShadow: '0 4px 10px rgba(0,0,0,0.2)' }}>
                     <img
                       src={catThumb || '/img/Logo.jpg'}
@@ -588,6 +599,17 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
                   </div>
                 </div>
               ) : null}
+
+              {/* Features / Puntos Clave en Historia */}
+              {features.length > 0 && (
+                <div style={{ display: 'flex', gap: isPreview ? '0.3rem' : '0.5rem', flexWrap: 'wrap', marginBottom: isPreview ? '0.55rem' : '1.1rem' }}>
+                  {features.map((feat, fIdx) => (
+                    <span key={fIdx} style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.2)', padding: isPreview ? '0.15rem 0.45rem' : '0.25rem 0.6rem', borderRadius: '6px', fontSize: isPreview ? '0.68rem' : '0.8rem', color: '#dcfce7', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}>
+                      <i className="fa fa-check" style={{ color: '#4ade80' }} /> {feat}
+                    </span>
+                  ))}
+                </div>
+              )}
 
               <div className="ofercampo-actions" style={{ gap: isPreview ? '0.4rem' : undefined }}>
                 {renderPrimaryBtn(isPreview ? 'btn-sm' : '', slide.boton_principal_texto || 'Comprar Cosecha', 'fa-seedling')}
