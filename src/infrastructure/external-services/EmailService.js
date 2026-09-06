@@ -13,6 +13,29 @@ if (dns.setDefaultResultOrder) {
   dns.setDefaultResultOrder('ipv4first');
 }
 
+function htmlToPlainText(html) {
+  if (!html) return '';
+  return html
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<br\s*[\/]?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n\n')
+    .replace(/<\/tr>/gi, '\n')
+    .replace(/<\/td>/gi, ' | ')
+    .replace(/<\/th>/gi, ' | ')
+    .replace(/<\/h[1-6]>/gi, '\n\n')
+    .replace(/<li[^>]*>/gi, '• ')
+    .replace(/<\/li>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 class EmailService {
   constructor() {
     this.transporter465 = null;
@@ -60,6 +83,7 @@ class EmailService {
   async sendViaHttpApi({ to, subject, html, text }) {
     const brevoKey = appConfig.brevoApiKey || process.env.BREVO_API_KEY;
     const resendKey = appConfig.resendApiKey || process.env.RESEND_API_KEY;
+    const plainText = text || htmlToPlainText(html);
 
     if (brevoKey) {
       try {
@@ -68,9 +92,9 @@ class EmailService {
           to: [{ email: to }],
           replyTo: { email: appConfig.smtp.user || 'danilorodelo355@gmail.com', name: 'De los Montes de María' },
           subject,
-          htmlContent: html
+          htmlContent: html,
+          textContent: plainText
         };
-        if (text) payload.textContent = text;
 
         const response = await fetch('https://api.brevo.com/v3/smtp/email', {
           method: 'POST',
@@ -105,8 +129,10 @@ class EmailService {
           body: JSON.stringify({
             from: 'De los Montes de María <onboarding@resend.dev>',
             to: [to],
+            reply_to: appConfig.smtp.user || 'danilorodelo355@gmail.com',
             subject,
-            html
+            html,
+            text: plainText
           })
         });
 
@@ -131,30 +157,30 @@ class EmailService {
       return false;
     }
 
+    const plainText = htmlToPlainText(html);
+
     // 1. Intentar primero por API REST HTTPS si hay clave configurada (Puerto 443)
-    const httpSuccess = await this.sendViaHttpApi({ to, subject, html });
+    const httpSuccess = await this.sendViaHttpApi({ to, subject, html, text: plainText });
     if (httpSuccess) return true;
 
-    // 2. Preparar adjuntos para SMTP
-    const logoPath = path.resolve(__dirname, '../../../public/img/Logo.jpg');
-    const defaultAttachments = fs.existsSync(logoPath)
-      ? [{
-          filename: 'Logo.jpg',
-          path: logoPath,
-          cid: 'logo_montesdemaria'
-        }]
-      : [];
-
-    const finalAttachments = Array.isArray(attachments) && attachments.length > 0
-      ? [...defaultAttachments, ...attachments]
-      : defaultAttachments;
-
+    // 2. Preparar opciones para SMTP con cabeceras anti-spam y versión texto plano
+    const senderEmail = appConfig.smtp.user || 'danilorodelo355@gmail.com';
     const mailOptions = {
-      from: `"De los Montes de María" <${appConfig.smtp.user || 'danilorodelo355@gmail.com'}>`,
+      from: `"De los Montes de María" <${senderEmail}>`,
       to,
+      replyTo: `"De los Montes de María" <${senderEmail}>`,
       subject,
+      text: plainText,
       html,
-      attachments: finalAttachments
+      headers: {
+        'X-Priority': '3',
+        'X-MSMail-Priority': 'Normal',
+        'Importance': 'Normal',
+        'X-Mailer': 'De los Montes de Maria Mailer 1.0',
+        'List-Unsubscribe': `<mailto:${senderEmail}?subject=Unsubscribe>`,
+        'Feedback-ID': `transactional:montesdemaria:${senderEmail}`
+      },
+      attachments: Array.isArray(attachments) ? attachments : []
     };
 
     if (!this.transporter465 || !this.transporter587) {
@@ -279,7 +305,7 @@ class EmailService {
                     <table border="0" cellpadding="0" cellspacing="0" style="margin: 0 auto 14px auto;">
                       <tr>
                         <td align="center" style="background: #ffffff; width: 88px; height: 88px; border-radius: 50%; box-shadow: 0 8px 24px rgba(0,0,0,0.22); border: 3.5px solid #E28C2B; padding: 2px; vertical-align: middle; text-align: center;">
-                          <img src="cid:logo_montesdemaria" onerror="this.onerror=null;this.src='${logoFallback}';" alt="🌱 De los Montes de María" width="80" height="80" style="display: block; width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin: 0 auto; border: 0;" />
+                          <img src="${logoFallback}" alt="🌱 De los Montes de María" width="80" height="80" style="display: block; width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin: 0 auto; border: 0;" />
                         </td>
                       </tr>
                     </table>
