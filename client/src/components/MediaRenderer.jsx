@@ -1,9 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { getProductImageUrl } from '../utils/productImage'
 
 /**
  * Universal Media Renderer:
  * Handles inline SVG strings, HTML snippets, direct URLs, uploaded category/product files,
- * and clean FontAwesome icon fallbacks without unwanted default logos.
+ * blob previews, and clean FontAwesome icon fallbacks without unwanted default logos.
  */
 export default function MediaRenderer({
   src,
@@ -16,6 +17,11 @@ export default function MediaRenderer({
   type = 'category' // 'category' | 'product'
 }) {
   const [hasError, setHasError] = useState(false)
+
+  useEffect(() => {
+    setHasError(false)
+  }, [src])
+
   const content = (src || '').trim()
 
   // Si hubo error de carga o no hay contenido, renderizamos el icono limpio
@@ -68,13 +74,17 @@ export default function MediaRenderer({
 
   // 2. Si es una URL o nombre de archivo de imagen
   let finalSrc = content
-  if (!content.startsWith('http') && !content.startsWith('data:') && !content.startsWith('/') && !content.startsWith('blob:')) {
-    if (content.startsWith('uploads/')) {
-      finalSrc = `/${content}`
-    } else if (content.startsWith('products/') || content.startsWith('categories/') || content.startsWith('profiles/') || content.startsWith('banners/')) {
-      finalSrc = `/uploads/${content}`
-    } else {
-      finalSrc = type === 'category' ? `/uploads/categories/${content}` : `/uploads/products/${content}`
+  if (type === 'product') {
+    finalSrc = getProductImageUrl(content)
+  } else {
+    if (!content.startsWith('http') && !content.startsWith('data:') && !content.startsWith('/') && !content.startsWith('blob:')) {
+      if (content.startsWith('uploads/')) {
+        finalSrc = `/${content}`
+      } else if (content.startsWith('categories/') || content.startsWith('products/') || content.startsWith('profiles/') || content.startsWith('banners/')) {
+        finalSrc = `/uploads/${content}`
+      } else {
+        finalSrc = `/uploads/categories/${content}`
+      }
     }
   }
 
@@ -86,13 +96,12 @@ export default function MediaRenderer({
       style={{
         width: '100%',
         height: '100%',
-        objectFit: 'contain',
+        objectFit: 'cover',
         display: 'block',
         ...style,
       }}
       onError={() => {
         if (fallbackSrc) {
-          // Si tiene fallback explícito
           setHasError(true)
         } else {
           setHasError(true)

@@ -7,6 +7,7 @@ import Footer from '../components/Footer'
 import MediaRenderer from '../components/MediaRenderer'
 import HeroSlideRenderer from '../components/HeroSlideRenderer'
 import { getAvatarUrl, handleAvatarError } from '../utils/avatar'
+import { getProductImageUrl, handleProductImageError } from '../utils/productImage'
 import { exportarVentasExcel, generarReportePDF } from '../utils/reportExporter'
 import {
   obtenerEstadisticas,
@@ -1142,10 +1143,9 @@ export default function AdminPage() {
 
   const handleOpenEditProduct = (prod) => {
     setEditingProd(prod)
-    const isCodeOrUrl = prod.imagen && (prod.imagen.startsWith('<') || prod.imagen.startsWith('http'))
-    const vendorVal = prod.id_vendedor !== undefined && prod.id_vendedor !== null
+    const vendorVal = prod.id_vendedor !== undefined && prod.id_vendedor !== null && String(prod.id_vendedor) !== '0'
       ? String(prod.id_vendedor)
-      : (prod.id_proveedor ? String(prod.id_proveedor) : '')
+      : (prod.id_proveedor && String(prod.id_proveedor) !== '0' ? String(prod.id_proveedor) : '')
     setEditProdForm({
       nombre_producto: prod.nombre_producto || prod.nombre || '',
       descripcion: prod.descripcion || '',
@@ -1157,23 +1157,24 @@ export default function AdminPage() {
       origen: prod.origen || '',
       presentacion: prod.presentacion || '',
       cuidado: prod.cuidado || '',
-      imagen: isCodeOrUrl ? prod.imagen : '',
+      imagen: prod.imagen || '',
     })
     setEditProdImageFile(null)
-    setEditProdImagePreview(prod.imagen || '')
+    setEditProdImagePreview(getProductImageUrl(prod))
     setEditProdError('')
   }
 
   const handleProdImageChange = (e, isEditing = false) => {
     const file = e.target.files?.[0]
     if (!file) return
+    const previewUrl = URL.createObjectURL(file)
     if (isEditing) {
       setEditProdImageFile(file)
-      setEditProdImagePreview(URL.createObjectURL(file))
+      setEditProdImagePreview(previewUrl)
       setEditProdForm((prev) => ({ ...prev, imagen: '' }))
     } else {
       setNewProdImageFile(file)
-      setNewProdImagePreview(URL.createObjectURL(file))
+      setNewProdImagePreview(previewUrl)
       setNewProdForm((prev) => ({ ...prev, imagen: '' }))
     }
   }
@@ -2254,7 +2255,7 @@ export default function AdminPage() {
                   </div>
 
                   <div className="form-group" style={{ marginTop: '0.75rem' }}>
-                    <label className="form-label">
+                    <label className="form-label" style={{ fontWeight: 600 }}>
                       <i className="fa fa-image text-primary" /> Foto del Producto
                     </label>
                     <input
@@ -2266,17 +2267,34 @@ export default function AdminPage() {
                     />
 
                     {newProdImagePreview && (
-                      <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.5rem', background: 'var(--bg-color)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                        <div style={{ width: '60px', height: '60px', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          <MediaRenderer
+                      <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.65rem', background: 'var(--bg-color)', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+                        <div style={{ width: '64px', height: '64px', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#f8fafc', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <img
                             src={newProdImagePreview}
                             alt="Vista previa"
-                            type="product"
+                            onError={handleProductImageError}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                           />
                         </div>
-                        <span className="text-muted" style={{ fontSize: '0.85rem' }}>
-                          Vista previa de la imagen seleccionada
-                        </span>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <span className="badge badge-primary" style={{ marginBottom: '0.2rem', display: 'inline-block' }}>
+                            📸 Foto seleccionada
+                          </span>
+                          <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {newProdImageFile ? newProdImageFile.name : 'Imagen lista para registrar'}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNewProdImageFile(null)
+                            setNewProdImagePreview('')
+                          }}
+                          className="btn btn-sm btn-outline-danger"
+                          title="Quitar foto"
+                        >
+                          <i className="fa fa-times" />
+                        </button>
                       </div>
                     )}
                   </div>
@@ -2467,8 +2485,8 @@ export default function AdminPage() {
                   </div>
 
                   <div className="form-group" style={{ marginTop: '0.75rem' }}>
-                    <label className="form-label">
-                      <i className="fa fa-image text-primary" /> Cambiar Foto del Producto
+                    <label className="form-label" style={{ fontWeight: 600 }}>
+                      <i className="fa fa-image text-primary" /> Foto del Producto
                     </label>
                     <input
                       type="file"
@@ -2478,18 +2496,39 @@ export default function AdminPage() {
                       style={{ padding: '0.45rem' }}
                     />
 
-                    <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.5rem', background: 'var(--bg-color)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                      <div style={{ width: '60px', height: '60px', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <MediaRenderer
-                          src={editProdImageFile ? editProdImagePreview : (editProdForm.imagen || editingProd?.imagen)}
-                          alt="Vista previa"
-                          type="product"
-                        />
+                    {(editProdImagePreview || editProdForm.imagen || editingProd?.imagen) && (
+                      <div style={{ marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.65rem', background: 'var(--bg-color)', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+                        <div style={{ width: '64px', height: '64px', borderRadius: '10px', overflow: 'hidden', backgroundColor: '#f8fafc', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                          <img
+                            src={editProdImagePreview || getProductImageUrl(editProdForm.imagen || editingProd?.imagen)}
+                            alt="Vista previa"
+                            onError={handleProductImageError}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <span className={`badge ${editProdImageFile ? 'badge-primary' : 'badge-secondary'}`} style={{ marginBottom: '0.2rem', display: 'inline-block' }}>
+                            {editProdImageFile ? '📸 Nueva foto seleccionada' : '🖼️ Foto actual'}
+                          </span>
+                          <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {editProdImageFile ? editProdImageFile.name : (editingProd?.nombre_producto || 'Foto guardada')}
+                          </div>
+                        </div>
+                        {editProdImageFile && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditProdImageFile(null)
+                              setEditProdImagePreview(getProductImageUrl(editingProd?.imagen))
+                            }}
+                            className="btn btn-sm btn-outline-danger"
+                            title="Descartar nueva foto y mantener la actual"
+                          >
+                            <i className="fa fa-undo" /> Revertir
+                          </button>
+                        )}
                       </div>
-                      <span className="text-muted" style={{ fontSize: '0.85rem' }}>
-                        Foto actual / nueva seleccionada
-                      </span>
-                    </div>
+                    )}
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem' }}>
