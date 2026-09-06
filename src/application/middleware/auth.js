@@ -88,4 +88,28 @@ function verifyVendedor(req, res, next) {
   next();
 }
 
-module.exports = { verifyToken, verifyAdmin, verifyAdminOrSupport, verifySelf, verifyVendedor };
+// Middleware opcional: si hay token lo decodifica en req.user, si no, continúa
+function optionalAuth(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  let token = req.cookies?.jwt;
+  if (!token && req.headers.cookie) {
+    const match = req.headers.cookie.match(/(?:^|;\s*)jwt=([^;]+)/);
+    if (match) token = decodeURIComponent(match[1]);
+  }
+  if (!token && authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.split(' ')[1];
+  }
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      decoded.id = decoded.id ?? decoded.id_usuario ?? null;
+      decoded.role = decoded.rol ?? decoded.id_rol ?? null;
+      decoded.username = decoded.username ?? decoded.apodo ?? null;
+      req.user = decoded;
+    } catch (_) {}
+  }
+  next();
+}
+
+module.exports = { verifyToken, verifyAdmin, verifyAdminOrSupport, verifySelf, verifyVendedor, optionalAuth };

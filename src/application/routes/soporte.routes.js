@@ -1,17 +1,15 @@
-const express = require('express');
-const { uploadSupportImage } = require('../middleware/upload');
-const { verifyToken, verifyAdmin, verifyAdminOrSupport } = require('../middleware/auth');
+const { verifyToken, verifyAdmin, verifyAdminOrSupport, optionalAuth } = require('../middleware/auth');
 
 function createSoporteRoutes(soporteController) {
   const router = express.Router();
 
   router.post('/upload-imagen', uploadSupportImage.single('imagen'), (req, res) => soporteController.subirImagen(req, res));
-  router.post('/crear-ticket', (req, res) => soporteController.crearTicket(req, res));
-  router.post('/mensaje', (req, res) => soporteController.enviarMensaje(req, res));
-  router.post('/solicitar-agente', (req, res) => soporteController.solicitarAgente(req, res));
-  router.post('/cerrar-ticket', (req, res) => soporteController.cerrarTicket(req, res));
-  router.post('/calificar', (req, res) => soporteController.calificar(req, res));
-  router.get('/buscar', (req, res) => soporteController.buscar(req, res));
+  router.post('/crear-ticket', optionalAuth, (req, res) => soporteController.crearTicket(req, res));
+  router.post('/mensaje', optionalAuth, (req, res) => soporteController.enviarMensaje(req, res));
+  router.post('/solicitar-agente', optionalAuth, (req, res) => soporteController.solicitarAgente(req, res));
+  router.post('/cerrar-ticket', optionalAuth, (req, res) => soporteController.cerrarTicket(req, res));
+  router.post('/calificar', optionalAuth, (req, res) => soporteController.calificar(req, res));
+  router.get('/buscar', optionalAuth, (req, res) => soporteController.buscar(req, res));
 
   // Admin & Asesores
   router.get('/agentes', verifyToken, verifyAdminOrSupport, (req, res) => soporteController.listarAgentes(req, res));

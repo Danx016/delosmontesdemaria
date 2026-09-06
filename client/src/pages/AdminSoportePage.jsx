@@ -34,8 +34,21 @@ export default function AdminSoportePage() {
       onNuevoMensaje: (msg) => {
         if (msg.session_id === selectedTicket?.session_id) {
           setMessages((prev) => {
-            const exists = prev.some((m) => m.id && msg.id && m.id === msg.id)
-            if (exists) return prev
+            if (msg.id && prev.some((m) => m.id === msg.id)) return prev
+
+            // Reemplazar mensaje temporal optimista si existe
+            const tempIdx = prev.findIndex(
+              (m) =>
+                (String(m.id).startsWith('temp_') || !m.id) &&
+                (m.remitente === msg.remitente || m.rol === msg.rol || m.rol === msg.remitente || m.remitente === msg.rol) &&
+                m.mensaje?.trim() === msg.mensaje?.trim()
+            )
+            if (tempIdx !== -1) {
+              const next = [...prev]
+              next[tempIdx] = msg
+              return next
+            }
+
             return [...prev, msg]
           })
         }
@@ -105,11 +118,14 @@ export default function AdminSoportePage() {
     setReplyText('')
 
     const agentName = user?.nombre || user?.username || 'Asesor de Soporte'
+    const tempId = `temp_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
 
     const localMsg = {
+      id: tempId,
       session_id: selectedTicket.session_id,
       ticket_id: selectedTicket.id,
       remitente: 'agente',
+      rol: 'agente',
       nombre_remitente: agentName,
       mensaje: txt,
       fecha: new Date().toISOString(),
@@ -122,9 +138,12 @@ export default function AdminSoportePage() {
         ticket_id: selectedTicket.id,
         mensaje: txt,
         remitente: 'agente',
+        nombre_remitente: agentName,
       })
     } catch (err) {
       console.error('Error sending agent reply:', err)
+      setMessages((prev) => prev.filter((m) => m.id !== tempId))
+      toast.error('No se pudo enviar el mensaje')
     }
   }
 

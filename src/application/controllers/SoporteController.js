@@ -154,7 +154,7 @@ class SoporteController {
 
   async enviarMensaje(req, res) {
     try {
-      const { session_id, ticket_id, mensaje, remitente } = req.body;
+      const { session_id, ticket_id, mensaje, remitente, nombre_remitente } = req.body;
       if ((!session_id && !ticket_id) || !mensaje || !mensaje.trim()) {
         return res.status(400).json({ error: 'Mensaje vacío.' });
       }
@@ -177,7 +177,9 @@ class SoporteController {
       }
 
       const isAgent = remitente === 'agente' || remitente === 'admin';
-      const senderName = isAgent ? (req.user?.nombre || 'Asesor de Soporte') : (ticket.nombre_cliente || req.user?.nombre || 'Cliente');
+      const senderName = isAgent
+        ? (req.user?.nombre || nombre_remitente || 'Asesor de Soporte')
+        : (nombre_remitente || ticket.nombre_cliente || req.user?.nombre || 'Cliente');
       const rol = isAgent ? 'agente' : 'user';
 
       const msgSaved = await this.soporteRepository.agregarMensaje({
@@ -195,6 +197,7 @@ class SoporteController {
           ticket_id: ticket.id,
           session_id: ticket.session_id,
           remitente: rol,
+          rol,
           nombre_remitente: senderName,
           mensaje: cleanMsg,
           fecha: new Date().toISOString()
