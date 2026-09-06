@@ -351,9 +351,9 @@ OPENROUTER_API_KEY=sk-or-v1-xxxxxxxxxxxx
 OPENROUTER_MODEL=openrouter/free
 
 # Bot de Telegram
-TELEGRAM_BOT_TOKEN=8827545163:AAHKvReHgrEm5LXBjZ2YYJChBqZQ1f0-AJo
+TELEGRAM_BOT_TOKEN=tu_token_de_telegram
 TELEGRAM_BOT_USERNAME=montesdemariabot
-TELEGRAM_ADMIN_CHAT_ID=
+TELEGRAM_ADMIN_CHAT_ID=tu_chat_id_aqui
 ```
 
 ---

@@ -53,7 +53,7 @@ sudo systemctl restart mysql
 
 # 3. Configurar base de datos y permisos del usuario admin
 echo -e "\n${YELLOW}[3/6] Creando base de datos 'dbmontesdm' y usuario 'admin'...${NC}"
-DB_PASS="Danilo.1050"
+DB_PASS="${DB_PASS:-$(grep '^DB_PASS=' .env 2>/dev/null | cut -d '=' -f2- | tr -d '\"' | tr -d '\'')}"
 
 sudo mysql -e "
 CREATE DATABASE IF NOT EXISTS \`dbmontesdm\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -90,7 +90,6 @@ if [ -f ".env" ]; then
     sed -i 's/^DB_HOST=.*/DB_HOST=127.0.0.1/' .env || echo "DB_HOST=127.0.0.1" >> .env
     sed -i 's/^DB_PORT=.*/DB_PORT=3306/' .env || echo "DB_PORT=3306" >> .env
     sed -i 's/^DB_USER=.*/DB_USER=admin/' .env || echo "DB_USER=admin" >> .env
-    sed -i 's/^DB_PASS=.*/DB_PASS=Danilo.1050/' .env || echo "DB_PASS=Danilo.1050" >> .env
     sed -i 's/^DB_NAME=.*/DB_NAME=dbmontesdm/' .env || echo "DB_NAME=dbmontesdm" >> .env
     sed -i 's/^DB_SSL=.*/DB_SSL=false/' .env || echo "DB_SSL=false" >> .env
     echo -e "${GREEN}✅ Archivo .env configurado para conectar localmente a 127.0.0.1 (sin SSL).${NC}"

@@ -1,15 +1,16 @@
+require('dotenv').config();
 const mysql = require('mysql2/promise');
 const fs = require('fs');
 const path = require('path');
 
 async function dump() {
   const conn = await mysql.createConnection({
-    host: '149.130.189.158',
-    port: 3306,
-    user: 'admin',
-    password: 'Danilo.1050',
-    database: 'dbmontesdm',
-    ssl: { rejectUnauthorized: false }
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT || '3306', 10),
+    user: process.env.DB_USER || 'root',
+    password: process.env.DB_PASS || '',
+    database: process.env.DB_NAME || 'dbmontesdm',
+    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined
   });
 
   console.log('Conectado exitosamente a Oracle Cloud MySQL...');

@@ -27,7 +27,7 @@ function escapeHtml(str) {
 
 class TelegramService {
   constructor({ soporteRepository, iaService, productoRepository, usuarioRepository, compraRepository, emailService } = {}) {
-    this.token = process.env.TELEGRAM_BOT_TOKEN || '8827545163:AAHoPrjKhYsgkmuT3Kq5bhJXKkS1cqpAaCA';
+    this.token = process.env.TELEGRAM_BOT_TOKEN || '';
     this.botUsername = process.env.TELEGRAM_BOT_USERNAME || 'montesdemariabot';
     this.adminChatId = process.env.TELEGRAM_ADMIN_CHAT_ID || null;
     this.subscribers = new Set();

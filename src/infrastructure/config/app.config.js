@@ -1,6 +1,3 @@
-/**
- * Configuración general de la aplicación
- */
 require('dotenv').config();
 
 function sanitize(val) {
@@ -8,35 +5,34 @@ function sanitize(val) {
   return val.replace(/^\"|\"$/g, '').replace(/^\'|\'$/g, '');
 }
 
-const _d = (b64) => Buffer.from(b64, 'base64').toString('utf8');
-
 module.exports = {
-  port: process.env.PORT || 3000,
-  httpsPort: process.env.HTTPS_PORT || 3443,
-  jwtSecret: process.env.JWT_SECRET || 'dev_change_this_secret',
-  googleClientId: sanitize(process.env.GOOGLE_CLIENT_ID) || '95151482078-k07kflr5nbjnjs89ntoff2dgikgsor1u.apps.googleusercontent.com',
-  openRouterApiKey: process.env.OPENROUTER_API_KEY || _d('c2stb3ItdjEtMWVmNmE1ZmE1ZGU5MGQ4NTc4Yzk4ZTc2OTM0NzI2NzcwNmVkZDYyOTNkOWM1ZTM5ZjIyZTkxMTEwZDRhNDA3Mg=='),
-  openRouterModel: process.env.OPENROUTER_MODEL || 'openrouter/free',
+  port: parseInt(process.env.PORT, 10) || 3000,
+  httpsPort: parseInt(process.env.HTTPS_PORT, 10) || 3443,
+  jwtSecret: process.env.JWT_SECRET || 'dev_secret_key_montes_de_maria',
+  googleClientId: sanitize(process.env.GOOGLE_CLIENT_ID) || '',
+  googleClientSecret: sanitize(process.env.GOOGLE_CLIENT_SECRET) || '',
+  openRouterApiKey: sanitize(process.env.OPENROUTER_API_KEY) || '',
+  openRouterModel: process.env.OPENROUTER_MODEL || 'minimax/minimax-m3:free',
   baseUrl: process.env.BASE_URL || 'https://delosmontesdemaria.duckdns.org',
   company: {
     name: 'DE LOS MONTES DE MARÍA S.A.S',
     nit: '1050277880',
     phone: '3008723989',
     formattedPhone: '+57 300 872 3989',
-    email: 'danilorodelo355@gmail.com',
+    email: sanitize(process.env.SMTP_USER) || 'danilorodelo355@gmail.com',
     address: 'El Carmen de Bolívar, Bolívar, Colombia',
-    website: 'https://delosmontesdemaria.duckdns.org'
+    website: process.env.BASE_URL || 'https://delosmontesdemaria.duckdns.org'
   },
   wompi: {
-    publicKey: process.env.WOMPI_PUBLIC_KEY,
-    integrityKey: process.env.WOMPI_INTEGRITY_KEY
+    publicKey: process.env.WOMPI_PUBLIC_KEY || '',
+    integrityKey: process.env.WOMPI_INTEGRITY_KEY || ''
   },
 
   smtp: {
     host: sanitize(process.env.SMTP_HOST) || 'smtp.gmail.com',
     port: parseInt(process.env.SMTP_PORT, 10) || 465,
-    user: sanitize(process.env.SMTP_USER) || 'danilorodelo355@gmail.com',
-    pass: sanitize(process.env.SMTP_PASS ? process.env.SMTP_PASS.replace(/\s+/g, '') : '') || 'gszsvbqujjebrlgk'
+    user: sanitize(process.env.SMTP_USER) || '',
+    pass: sanitize(process.env.SMTP_PASS ? process.env.SMTP_PASS.replace(/\s+/g, '') : '') || ''
   },
   brevoApiKey: sanitize(process.env.BREVO_API_KEY) || sanitize(process.env.SIB_API_KEY) || '',
   resendApiKey: sanitize(process.env.RESEND_API_KEY) || sanitize(process.env.RESEND_KEY) || ''

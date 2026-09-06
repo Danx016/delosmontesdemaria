@@ -45,8 +45,8 @@ class EmailService {
 
   inicializarTransporters() {
     const host = appConfig.smtp.host || 'smtp.gmail.com';
-    const user = appConfig.smtp.user || 'danilorodelo355@gmail.com';
-    const rawPass = appConfig.smtp.pass || 'gszsvbqujjebrlgk';
+    const user = appConfig.smtp.user || '';
+    const rawPass = appConfig.smtp.pass || '';
     const pass = rawPass.replace(/\s+/g, '');
 
     const isGmail = host.includes('gmail.com');
