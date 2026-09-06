@@ -40,9 +40,12 @@ class MySQLProductoRepository extends ProductoRepository {
   async buscarPorId(id) {
     return new Promise((resolve, reject) => {
       const sql = `
-        SELECT p.*, u.nombre as vendedor_nombre, u.apodo as vendedor_apodo, u.avatar as vendedor_avatar, u.foto_portada as vendedor_portada
+        SELECT p.*, 
+               u.nombre as vendedor_nombre, u.apodo as vendedor_apodo, u.avatar as vendedor_avatar, u.foto_portada as vendedor_portada,
+               c.nombre_categoria as categoria_nombre, c.slug as categoria_slug, c.icono as categoria_icono, c.color as categoria_color
         FROM productos p
         LEFT JOIN usuarios u ON u.id_usuario = COALESCE(p.id_vendedor, p.id_proveedor)
+        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug) = LOWER(p.categoria) OR LOWER(c.nombre_categoria) = LOWER(p.categoria))
         WHERE p.id_producto = ?
       `;
       db.query(sql, [id], (err, rows) => {
@@ -58,24 +61,56 @@ class MySQLProductoRepository extends ProductoRepository {
       const campos = [];
       const valores = [];
 
-      if (datos.id_vendedor !== undefined) { campos.push('id_vendedor = ?'); valores.push(datos.id_vendedor); }
-      if (datos.nombre_producto) { campos.push('nombre_producto = ?'); valores.push(datos.nombre_producto); }
-      if (datos.descripcion !== undefined) { campos.push('descripcion = ?'); valores.push(datos.descripcion); }
-      if (datos.precio !== undefined) { campos.push('precio = ?'); valores.push(datos.precio); }
-      if (datos.stock !== undefined) { campos.push('stock = ?'); valores.push(datos.stock); }
-      if (datos.unidad_medida !== undefined) { campos.push('unidad_medida = ?'); valores.push(datos.unidad_medida); }
-      if (datos.imagen) { campos.push('imagen = ?'); valores.push(datos.imagen); }
-      if (datos.id_categoria !== undefined) { campos.push('id_categoria = ?'); valores.push(datos.id_categoria); }
-      if (datos.id_proveedor !== undefined) { campos.push('id_proveedor = ?'); valores.push(datos.id_proveedor); }
-      if (datos.categoria !== undefined) { campos.push('categoria = ?'); valores.push(datos.categoria); }
-      if (datos.origen !== undefined) { campos.push('origen = ?'); valores.push(datos.origen); }
-      if (datos.presentacion !== undefined) { campos.push('presentacion = ?'); valores.push(datos.presentacion); }
-      if (datos.cuidado !== undefined) { campos.push('cuidado = ?'); valores.push(datos.cuidado); }
-      if (datos.disponibilidad !== undefined) { campos.push('disponibilidad = ?'); valores.push(datos.disponibilidad); }
-
-      if (campos.length === 0) {
-        return resolve(this.buscarPorId(id));
+      if (datos.nombre_producto !== undefined) {
+        campos.push('nombre_producto = ?');
+        valores.push(datos.nombre_producto);
       }
+      if (datos.descripcion !== undefined) {
+        campos.push('descripcion = ?');
+        valores.push(datos.descripcion);
+      }
+      if (datos.precio !== undefined) {
+        campos.push('precio = ?');
+        valores.push(datos.precio);
+      }
+      if (datos.stock !== undefined) {
+        campos.push('stock = ?');
+        valores.push(datos.stock);
+      }
+      if (datos.unidad_medida !== undefined) {
+        campos.push('unidad_medida = ?');
+        valores.push(datos.unidad_medida);
+      }
+      if (datos.imagen !== undefined) {
+        campos.push('imagen = ?');
+        valores.push(datos.imagen);
+      }
+      if (datos.id_categoria !== undefined) {
+        campos.push('id_categoria = ?');
+        valores.push(datos.id_categoria);
+      }
+      if (datos.categoria !== undefined) {
+        campos.push('categoria = ?');
+        valores.push(datos.categoria);
+      }
+      if (datos.origen !== undefined) {
+        campos.push('origen = ?');
+        valores.push(datos.origen);
+      }
+      if (datos.presentacion !== undefined) {
+        campos.push('presentacion = ?');
+        valores.push(datos.presentacion);
+      }
+      if (datos.cuidado !== undefined) {
+        campos.push('cuidado = ?');
+        valores.push(datos.cuidado);
+      }
+      if (datos.disponibilidad !== undefined) {
+        campos.push('disponibilidad = ?');
+        valores.push(datos.disponibilidad);
+      }
+
+      if (campos.length === 0) return resolve(this.buscarPorId(id));
 
       valores.push(id);
       const sql = `UPDATE productos SET ${campos.join(', ')} WHERE id_producto = ?`;
@@ -110,9 +145,12 @@ class MySQLProductoRepository extends ProductoRepository {
   async listarTodos() {
     return new Promise((resolve, reject) => {
       const sql = `
-        SELECT p.*, u.nombre as vendedor_nombre, u.apodo as vendedor_apodo, u.avatar as vendedor_avatar, u.foto_portada as vendedor_portada
+        SELECT p.*, 
+               u.nombre as vendedor_nombre, u.apodo as vendedor_apodo, u.avatar as vendedor_avatar, u.foto_portada as vendedor_portada,
+               c.nombre_categoria as categoria_nombre, c.slug as categoria_slug, c.icono as categoria_icono, c.color as categoria_color
         FROM productos p
         LEFT JOIN usuarios u ON u.id_usuario = COALESCE(p.id_vendedor, p.id_proveedor)
+        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug) = LOWER(p.categoria) OR LOWER(c.nombre_categoria) = LOWER(p.categoria))
         ORDER BY p.id_producto DESC
       `;
       db.query(sql, (err, rows) => {
@@ -129,9 +167,12 @@ class MySQLProductoRepository extends ProductoRepository {
   async listarPorVendedor(idVendedor) {
     return new Promise((resolve, reject) => {
       const sql = `
-        SELECT p.*, u.nombre as vendedor_nombre, u.apodo as vendedor_apodo, u.avatar as vendedor_avatar, u.foto_portada as vendedor_portada
+        SELECT p.*, 
+               u.nombre as vendedor_nombre, u.apodo as vendedor_apodo, u.avatar as vendedor_avatar, u.foto_portada as vendedor_portada,
+               c.nombre_categoria as categoria_nombre, c.slug as categoria_slug, c.icono as categoria_icono, c.color as categoria_color
         FROM productos p
         LEFT JOIN usuarios u ON u.id_usuario = COALESCE(p.id_vendedor, p.id_proveedor)
+        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug) = LOWER(p.categoria) OR LOWER(c.nombre_categoria) = LOWER(p.categoria))
         WHERE p.id_vendedor = ? OR p.id_proveedor = ?
         ORDER BY p.id_producto DESC
       `;
@@ -145,13 +186,16 @@ class MySQLProductoRepository extends ProductoRepository {
   async listarPorCategoria(categoria) {
     return new Promise((resolve, reject) => {
       const sql = `
-        SELECT p.*, u.nombre as vendedor_nombre, u.apodo as vendedor_apodo, u.avatar as vendedor_avatar, u.foto_portada as vendedor_portada
+        SELECT p.*, 
+               u.nombre as vendedor_nombre, u.apodo as vendedor_apodo, u.avatar as vendedor_avatar, u.foto_portada as vendedor_portada,
+               c.nombre_categoria as categoria_nombre, c.slug as categoria_slug, c.icono as categoria_icono, c.color as categoria_color
         FROM productos p
         LEFT JOIN usuarios u ON u.id_usuario = COALESCE(p.id_vendedor, p.id_proveedor)
-        WHERE p.categoria = ?
+        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug) = LOWER(p.categoria) OR LOWER(c.nombre_categoria) = LOWER(p.categoria))
+        WHERE p.categoria = ? OR c.slug = ? OR c.nombre_categoria = ?
         ORDER BY p.id_producto DESC
       `;
-      db.query(sql, [categoria], (err, rows) => {
+      db.query(sql, [categoria, categoria, categoria], (err, rows) => {
         if (err) return reject(err);
         resolve(rows.map(row => new Producto(row)));
       });
@@ -161,9 +205,12 @@ class MySQLProductoRepository extends ProductoRepository {
   async listarPorProveedor(idProveedor) {
     return new Promise((resolve, reject) => {
       const sql = `
-        SELECT p.*, u.nombre as vendedor_nombre, u.apodo as vendedor_apodo, u.avatar as vendedor_avatar, u.foto_portada as vendedor_portada
+        SELECT p.*, 
+               u.nombre as vendedor_nombre, u.apodo as vendedor_apodo, u.avatar as vendedor_avatar, u.foto_portada as vendedor_portada,
+               c.nombre_categoria as categoria_nombre, c.slug as categoria_slug, c.icono as categoria_icono, c.color as categoria_color
         FROM productos p
         LEFT JOIN usuarios u ON u.id_usuario = COALESCE(p.id_vendedor, p.id_proveedor)
+        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug) = LOWER(p.categoria) OR LOWER(c.nombre_categoria) = LOWER(p.categoria))
         WHERE p.id_proveedor = ? OR p.id_vendedor = ?
         ORDER BY p.id_producto DESC
       `;
@@ -178,13 +225,16 @@ class MySQLProductoRepository extends ProductoRepository {
     return new Promise((resolve, reject) => {
       const term = `%${termino}%`;
       const sql = `
-        SELECT p.*, u.nombre as vendedor_nombre, u.apodo as vendedor_apodo, u.avatar as vendedor_avatar, u.foto_portada as vendedor_portada
+        SELECT p.*, 
+               u.nombre as vendedor_nombre, u.apodo as vendedor_apodo, u.avatar as vendedor_avatar, u.foto_portada as vendedor_portada,
+               c.nombre_categoria as categoria_nombre, c.slug as categoria_slug, c.icono as categoria_icono, c.color as categoria_color
         FROM productos p
         LEFT JOIN usuarios u ON u.id_usuario = COALESCE(p.id_vendedor, p.id_proveedor)
-        WHERE p.nombre_producto LIKE ? OR p.descripcion LIKE ?
+        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug) = LOWER(p.categoria) OR LOWER(c.nombre_categoria) = LOWER(p.categoria))
+        WHERE p.nombre_producto LIKE ? OR p.descripcion LIKE ? OR p.categoria LIKE ? OR c.nombre_categoria LIKE ?
         ORDER BY p.id_producto DESC
       `;
-      db.query(sql, [term, term], (err, rows) => {
+      db.query(sql, [term, term, term, term], (err, rows) => {
         if (err) return reject(err);
         resolve(rows.map(row => new Producto(row)));
       });
@@ -195,13 +245,16 @@ class MySQLProductoRepository extends ProductoRepository {
     return new Promise((resolve, reject) => {
       const term = `%${termino}%`;
       const sql = `
-        SELECT p.*, u.nombre as vendedor_nombre, u.apodo as vendedor_apodo, u.avatar as vendedor_avatar, u.foto_portada as vendedor_portada
+        SELECT p.*, 
+               u.nombre as vendedor_nombre, u.apodo as vendedor_apodo, u.avatar as vendedor_avatar, u.foto_portada as vendedor_portada,
+               c.nombre_categoria as categoria_nombre, c.slug as categoria_slug, c.icono as categoria_icono, c.color as categoria_color
         FROM productos p
         LEFT JOIN usuarios u ON u.id_usuario = COALESCE(p.id_vendedor, p.id_proveedor)
-        WHERE p.nombre_producto LIKE ? OR p.descripcion LIKE ?
+        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug) = LOWER(p.categoria) OR LOWER(c.nombre_categoria) = LOWER(p.categoria))
+        WHERE p.nombre_producto LIKE ? OR p.descripcion LIKE ? OR p.categoria LIKE ? OR c.nombre_categoria LIKE ?
         LIMIT ?
       `;
-      db.query(sql, [term, term, limite], (err, rows) => {
+      db.query(sql, [term, term, term, term, limite], (err, rows) => {
         if (err) return reject(err);
         resolve(rows.map(row => new Producto(row)));
       });

@@ -54,7 +54,18 @@ export default function ProductCard({ producto }) {
           />
           {producto.categoria && (
             <span className="product-card-category-badge">
-              {producto.categoria}
+              {(() => {
+                const MAP = {
+                  cosechas: 'Cosechas Frescas',
+                  semillas: 'Semillas Certificadas',
+                  lacteos: 'Lácteos de la Finca',
+                  ferre: 'Herramientas',
+                  abonos: 'Abonos y Fertilizantes',
+                  agro: 'AgroEquipos'
+                }
+                const lower = (producto.categoria || '').toLowerCase()
+                return MAP[lower] || producto.categoria
+              })()}
             </span>
           )}
           {producto.stock <= 5 && producto.stock > 0 && (

@@ -23,7 +23,11 @@ class Producto {
     vendedor_nombre,
     vendedor_apodo,
     vendedor_avatar,
-    vendedor_portada
+    vendedor_portada,
+    categoria_nombre,
+    categoria_slug,
+    categoria_icono,
+    categoria_color
   }) {
     this.id_producto = id_producto;
     this.id_vendedor = id_vendedor || id_proveedor || null;
@@ -45,6 +49,10 @@ class Producto {
     this.vendedor_apodo = vendedor_apodo || null;
     this.vendedor_avatar = vendedor_avatar || null;
     this.vendedor_portada = vendedor_portada || null;
+    this.categoria_nombre = categoria_nombre || null;
+    this.categoria_slug = categoria_slug || null;
+    this.categoria_icono = categoria_icono || null;
+    this.categoria_color = categoria_color || null;
   }
 
   // Métodos de negocio
@@ -132,7 +140,11 @@ class Producto {
       vendedor_nombre: this.vendedor_nombre,
       vendedor_apodo: this.vendedor_apodo,
       vendedor_avatar: this.vendedor_avatar,
-      vendedor_portada: this.vendedor_portada
+      vendedor_portada: this.vendedor_portada,
+      categoria_nombre: this.categoria_nombre,
+      categoria_slug: this.categoria_slug,
+      categoria_icono: this.categoria_icono,
+      categoria_color: this.categoria_color
     };
   }
 }

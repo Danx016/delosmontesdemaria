@@ -8,6 +8,7 @@ import HeroSlideRenderer from '../components/HeroSlideRenderer'
 import { listarProductos, listarCategoriasPublicas } from '../api/productos.api'
 import { listarBannersPublicos } from '../api/banners.api'
 import { useToast } from '../context/ToastContext'
+import { matchProductCategory, countProductsByCategory, slugify } from '../utils/categoryMatcher'
 
 export default function HomePage() {
   const toast = useToast()
@@ -287,13 +288,15 @@ export default function HomePage() {
     setCurrentSlide(idx)
   }
 
-  const filteredProducts = selectedCat === 'all'
-    ? productos
-    : productos.filter((p) => {
-        const catSlug = selectedCat.toLowerCase()
-        const pCat = (p.categoria || '').toLowerCase()
-        return pCat === catSlug || (p.nombre_categoria && p.nombre_categoria.toLowerCase() === catSlug)
-      })
+  const catCounts = useMemo(() => {
+    return countProductsByCategory(productos, categorias)
+  }, [productos, categorias])
+
+  const filteredProducts = useMemo(() => {
+    return selectedCat === 'all'
+      ? productos
+      : productos.filter((p) => matchProductCategory(p, selectedCat, categorias))
+  }, [productos, selectedCat, categorias])
 
   return (
     <>
@@ -441,14 +444,17 @@ export default function HomePage() {
                 Todos ({productos.length})
               </button>
               {categorias.map((cat) => {
-                const slug = cat.slug || cat.nombre_categoria?.toLowerCase().replace(/\s+/g, '-')
+                const slug = cat.slug || slugify(cat.nombre_categoria)
+                const count = catCounts[slug] !== undefined ? catCounts[slug] : (catCounts[cat.id_categoria] || 0)
+                const isSelected = selectedCat === slug || selectedCat === cat.slug
+
                 return (
                   <button
                     key={cat.id_categoria || slug}
-                    className={`catalog-tab-btn ${selectedCat === slug ? 'active' : ''}`}
+                    className={`catalog-tab-btn ${isSelected ? 'active' : ''}`}
                     onClick={() => setSelectedCat(slug)}
                   >
-                    {cat.nombre_categoria}
+                    {cat.nombre_categoria} ({count})
                   </button>
                 )
               })}

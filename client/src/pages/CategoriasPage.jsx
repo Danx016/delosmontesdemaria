@@ -5,6 +5,12 @@ import Footer from '../components/Footer'
 import ProductCard from '../components/ProductCard'
 import MediaRenderer from '../components/MediaRenderer'
 import { listarProductos, listarCategoriasPublicas } from '../api/productos.api'
+import {
+  matchProductCategory,
+  countProductsByCategory,
+  findCategoryInfo,
+  slugify
+} from '../utils/categoryMatcher'
 
 const DEFAULT_CATEGORIAS = [
   { slug: 'all', label: 'Todas las Categorías', icon: 'fa-layer-group', color: '#2e7d32' },
@@ -39,6 +45,14 @@ export default function CategoriasPage() {
   const [onlyInStock, setOnlyInStock] = useState(false)
   const [sortBy, setSortBy] = useState('recientes') // 'recientes' | 'precio_asc' | 'precio_desc' | 'stock' | 'nombre'
 
+  // Sincronizar selectedCat si cambia el URL searchParam
+  useEffect(() => {
+    const catFromUrl = searchParams.get('cat') || 'all'
+    if (catFromUrl !== selectedCat) {
+      setSelectedCat(catFromUrl)
+    }
+  }, [searchParams])
+
   useEffect(() => {
     setLoading(true)
     Promise.all([
@@ -47,17 +61,21 @@ export default function CategoriasPage() {
     ])
       .then(([prodRes, catRes]) => {
         const prodData = prodRes.data?.productos || prodRes.data || []
-        setProductos(prodData)
+        setProductos(Array.isArray(prodData) ? prodData : [])
 
         const rawCats = catRes.data || []
-        if (rawCats.length > 0) {
+        if (Array.isArray(rawCats) && rawCats.length > 0) {
           const mapped = [
-            { slug: 'all', label: 'Todas las Categorías', icon: 'fa-layer-group', color: '#2e7d32' },
+            { slug: 'all', label: 'Todas las Categorías', nombre_categoria: 'Todas las Categorías', icon: 'fa-layer-group', icono: 'fa-layer-group', color: '#2e7d32' },
             ...rawCats.map((c) => ({
               id: c.id_categoria,
-              slug: c.slug || c.nombre_categoria?.toLowerCase().replace(/\s+/g, '-'),
+              id_categoria: c.id_categoria,
+              slug: c.slug || slugify(c.nombre_categoria),
               label: c.nombre_categoria,
+              nombre_categoria: c.nombre_categoria,
+              descripcion: c.descripcion,
               icon: c.icono || 'fa-box',
+              icono: c.icono || 'fa-box',
               color: c.color || '#2e7d32',
               imagen: c.imagen || null
             }))
@@ -71,40 +89,36 @@ export default function CategoriasPage() {
 
   const handleSelectCat = (slug) => {
     setSelectedCat(slug)
+    const newParams = new URLSearchParams(searchParams)
     if (slug === 'all') {
-      searchParams.delete('cat')
+      newParams.delete('cat')
     } else {
-      searchParams.set('cat', slug)
+      newParams.set('cat', slug)
     }
-    setSearchParams(searchParams)
+    setSearchParams(newParams)
   }
 
-  // Conteo de productos por categoría
+  // Conteo reactivo y robusto de productos por categoría
   const countByCat = useMemo(() => {
-    const counts = { all: productos.length }
-    productos.forEach((p) => {
-      const cat = (p.categoria || '').toLowerCase()
-      counts[cat] = (counts[cat] || 0) + 1
-    })
-    return counts
-  }, [productos])
+    return countProductsByCategory(productos, categoriasLista)
+  }, [productos, categoriasLista])
 
   // Filtrado y Ordenamiento reactivo
   const filteredProducts = useMemo(() => {
     return productos
       .filter((p) => {
-        // Categoría
-        const matchCat =
-          selectedCat === 'all' ||
-          (p.categoria || '').toLowerCase() === selectedCat.toLowerCase()
+        // Categoría usando normalizador y coincidencias cruzadas
+        const matchCat = matchProductCategory(p, selectedCat, categoriasLista)
 
-        // Búsqueda
+        // Búsqueda en nombre, descripción, vendedor, origen
         const query = searchTerm.trim().toLowerCase()
         const matchSearch =
           !query ||
-          p.nombre?.toLowerCase().includes(query) ||
-          p.descripcion?.toLowerCase().includes(query) ||
-          p.categoria?.toLowerCase().includes(query)
+          (p.nombre || p.nombre_producto || '').toLowerCase().includes(query) ||
+          (p.descripcion || '').toLowerCase().includes(query) ||
+          (p.categoria || '').toLowerCase().includes(query) ||
+          (p.vendedor_nombre || '').toLowerCase().includes(query) ||
+          (p.origen || '').toLowerCase().includes(query)
 
         // Precio
         const precio = Number(p.precio) || 0
@@ -136,10 +150,10 @@ export default function CategoriasPage() {
         if (sortBy === 'precio_asc') return precioA - precioB
         if (sortBy === 'precio_desc') return precioB - precioA
         if (sortBy === 'stock') return (Number(b.stock) || 0) - (Number(a.stock) || 0)
-        if (sortBy === 'nombre') return (a.nombre || '').localeCompare(b.nombre || '')
+        if (sortBy === 'nombre') return (a.nombre || a.nombre_producto || '').localeCompare(b.nombre || b.nombre_producto || '')
         return (b.id_producto || 0) - (a.id_producto || 0)
       })
-  }, [productos, selectedCat, searchTerm, selectedRango, customMin, customMax, onlyInStock, sortBy])
+  }, [productos, selectedCat, categoriasLista, searchTerm, selectedRango, customMin, customMax, onlyInStock, sortBy])
 
   const handleResetFilters = () => {
     setSelectedCat('all')
@@ -152,7 +166,10 @@ export default function CategoriasPage() {
     setSearchParams({})
   }
 
-  const activeCategory = categoriasLista.find((c) => c.slug === selectedCat) || categoriasLista[0] || { label: 'Categoría' }
+  const activeCategory = useMemo(() => {
+    return findCategoryInfo(selectedCat, categoriasLista)
+  }, [selectedCat, categoriasLista])
+
   const hasActiveFilters =
     selectedCat !== 'all' ||
     selectedRango !== 'all' ||
@@ -171,11 +188,11 @@ export default function CategoriasPage() {
           <nav className="catalog-breadcrumb" aria-label="Ruta de navegación">
             <Link to="/">Inicio</Link>
             <span className="catalog-breadcrumb-sep">/</span>
-            <span>Catálogo & Categorías</span>
+            <Link to="/categorias" onClick={() => handleSelectCat('all')}>Catálogo & Categorías</Link>
             {selectedCat !== 'all' && (
               <>
                 <span className="catalog-breadcrumb-sep">/</span>
-                <strong>{activeCategory.label}</strong>
+                <strong>{activeCategory.label || activeCategory.nombre_categoria}</strong>
               </>
             )}
           </nav>
@@ -186,9 +203,13 @@ export default function CategoriasPage() {
               <span className="badge badge-success">
                 <i className="fa fa-leaf" /> Mercado Directo del Campo
               </span>
-              <h1 className="catalog-title">Catálogo & Categorías</h1>
+              <h1 className="catalog-title">
+                {selectedCat === 'all' ? 'Catálogo & Categorías' : (activeCategory.label || activeCategory.nombre_categoria)}
+              </h1>
               <p className="catalog-subtitle">
-                Explora productos frescos y agrícolas con precios justos de los Montes de María.
+                {selectedCat === 'all'
+                  ? 'Explora productos frescos y agrícolas con precios justos de los Montes de María.'
+                  : (activeCategory.descripcion || 'Explora todos los productos disponibles en esta categoría.')}
               </p>
             </div>
 
@@ -197,7 +218,7 @@ export default function CategoriasPage() {
               <i className="fa fa-search" />
               <input
                 type="text"
-                placeholder="Buscar por nombre, producto..."
+                placeholder="Buscar por nombre, producto, finca..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="catalog-search-input"
@@ -234,26 +255,26 @@ export default function CategoriasPage() {
                   <h4 className="catalog-filter-title">Categorías</h4>
                   <div className="catalog-cat-list">
                     {categoriasLista.map((cat) => {
-                      const count = countByCat[cat.slug] || 0
-                      const isSelected = selectedCat === cat.slug
+                      const count = countByCat[cat.slug] !== undefined ? countByCat[cat.slug] : (countByCat[cat.id_categoria] || 0)
+                      const isSelected = selectedCat === cat.slug || (selectedCat !== 'all' && activeCategory.slug === cat.slug)
 
                       return (
                         <button
-                          key={cat.slug}
+                          key={cat.slug || cat.id_categoria}
                           type="button"
                           onClick={() => handleSelectCat(cat.slug)}
                           className={`catalog-cat-item ${isSelected ? 'active' : ''}`}
                         >
-                          <div style={{ width: '20px', height: '20px', borderRadius: '4px', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <div style={{ width: '22px', height: '22px', borderRadius: '4px', overflow: 'hidden', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                             <MediaRenderer
                               src={cat.imagen}
                               alt={cat.label}
-                              icon={cat.icon || 'fa-box'}
+                              icon={cat.icon || cat.icono || 'fa-box'}
                               color={cat.color || '#2e7d32'}
                               type="category"
                             />
                           </div>
-                          <span className="catalog-cat-name">{cat.label}</span>
+                          <span className="catalog-cat-name">{cat.label || cat.nombre_categoria}</span>
                           <span className="catalog-cat-pill">{count}</span>
                         </button>
                       )
@@ -329,7 +350,7 @@ export default function CategoriasPage() {
               <div className="catalog-toolbar">
                 <div className="catalog-results-meta">
                   <span className="catalog-results-text">
-                    <strong>{filteredProducts.length}</strong> {filteredProducts.length === 1 ? 'producto' : 'productos'} en {activeCategory.label}
+                    <strong>{filteredProducts.length}</strong> {filteredProducts.length === 1 ? 'producto' : 'productos'} en {activeCategory.label || activeCategory.nombre_categoria}
                   </span>
                 </div>
 
@@ -357,7 +378,7 @@ export default function CategoriasPage() {
 
                   {selectedCat !== 'all' && (
                     <span className="catalog-active-pill">
-                      {activeCategory.label}
+                      {activeCategory.label || activeCategory.nombre_categoria}
                       <button onClick={() => handleSelectCat('all')} title="Quitar">
                         <i className="fa fa-times" />
                       </button>
@@ -413,7 +434,7 @@ export default function CategoriasPage() {
               ) : filteredProducts.length > 0 ? (
                 <div className="products-grid-container fade-in">
                   {filteredProducts.map((prod) => (
-                    <ProductCard key={prod.id_producto} producto={prod} />
+                    <ProductCard key={prod.id_producto || prod.id} producto={prod} />
                   ))}
                 </div>
               ) : (
