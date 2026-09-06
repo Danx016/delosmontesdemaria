@@ -61,6 +61,14 @@ class MySQLProductoRepository extends ProductoRepository {
       const campos = [];
       const valores = [];
 
+      if (datos.id_vendedor !== undefined) {
+        campos.push('id_vendedor = ?');
+        valores.push(datos.id_vendedor);
+      }
+      if (datos.id_proveedor !== undefined) {
+        campos.push('id_proveedor = ?');
+        valores.push(datos.id_proveedor);
+      }
       if (datos.nombre_producto !== undefined) {
         campos.push('nombre_producto = ?');
         valores.push(datos.nombre_producto);

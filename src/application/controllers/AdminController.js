@@ -163,7 +163,7 @@ class AdminController {
       }
 
       let imagen = req.file ? req.file.filename : (req.body.imagen || null);
-      const vendorId = (id_vendedor && id_vendedor !== '' && id_vendedor !== 'null') ? parseInt(id_vendedor, 10) : (req.user?.id || 1);
+      const vendorId = (id_vendedor && id_vendedor !== '' && id_vendedor !== 'null' && id_vendedor !== '0') ? parseInt(id_vendedor, 10) : null;
 
       const prod = new Producto({
         id_vendedor: vendorId,
@@ -208,7 +208,7 @@ class AdminController {
       if (presentacion !== undefined) updateData.presentacion = presentacion;
       if (cuidado !== undefined) updateData.cuidado = cuidado;
       if (id_vendedor !== undefined) {
-        const parsedVendor = (id_vendedor === '' || id_vendedor === 'null' || id_vendedor === null) ? null : parseInt(id_vendedor, 10);
+        const parsedVendor = (id_vendedor === '' || id_vendedor === 'null' || id_vendedor === null || id_vendedor === '0') ? null : parseInt(id_vendedor, 10);
         updateData.id_vendedor = parsedVendor;
         updateData.id_proveedor = parsedVendor;
       }

@@ -191,7 +191,7 @@ export default function ProductDetailModal({ producto, isOpen, onClose }) {
           {/* Right Column: Detailed Product Info */}
           <div className="product-modal-info-col">
             {/* Farmer / Producer Header Banner */}
-            {vendorId && (
+            {vendorId && String(vendorId) !== '0' ? (
               <div
                 style={{
                   display: 'flex',
@@ -229,6 +229,34 @@ export default function ProductDetailModal({ producto, isOpen, onClose }) {
                 >
                   <i className="fa fa-store" /> Ver Finca
                 </Link>
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.6rem',
+                  background: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                  padding: '0.65rem 0.85rem',
+                  borderRadius: '14px',
+                  marginBottom: '1rem',
+                }}
+              >
+                <img
+                  src="/img/Logo.jpg"
+                  alt="De los Montes de María"
+                  onError={(e) => { e.target.src = '/img/Logo.jpg' }}
+                  style={{ width: '34px', height: '34px', borderRadius: '50%', objectFit: 'cover', border: '2px solid #16a34a', flexShrink: 0 }}
+                />
+                <div>
+                  <span style={{ fontSize: '0.72rem', color: '#15803d', display: 'block', fontWeight: 700, textTransform: 'uppercase' }}>
+                    <i className="fa fa-shield-alt" /> Tienda Oficial
+                  </span>
+                  <strong style={{ fontSize: '0.88rem', color: '#0f172a' }}>
+                    De los Montes de María (Comercio Directo)
+                  </strong>
+                </div>
               </div>
             )}
 
