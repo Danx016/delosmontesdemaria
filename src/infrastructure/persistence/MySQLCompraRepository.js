@@ -11,61 +11,86 @@ class MySQLCompraRepository extends CompraRepository {
     return new Promise((resolve, reject) => {
       const { id_usuario, total, metodo_pago, direccion_envio, productos } = compraData;
 
-      db.beginTransaction((txErr) => {
-        if (txErr) return reject(txErr);
+      db.getConnection((connErr, conn) => {
+        if (connErr) return reject(connErr);
 
-        const sqlHeader = 'INSERT INTO compras (id_usuario, total, metodo_pago, direccion_envio, estado) VALUES (?, ?, ?, ?, ?)';
-        db.query(sqlHeader, [id_usuario, total, metodo_pago || 'Tarjeta de Crédito', direccion_envio || 'No especificada', 'Pedido recibido'], (errHeader, resHeader) => {
-          if (errHeader) {
-            return db.rollback(() => reject(errHeader));
+        conn.beginTransaction((txErr) => {
+          if (txErr) {
+            conn.release();
+            return reject(txErr);
           }
 
-          const idCompra = resHeader.insertId;
-          const items = productos || [];
+          const sqlHeader = 'INSERT INTO compras (id_usuario, total, metodo_pago, direccion_envio, estado) VALUES (?, ?, ?, ?, ?)';
+          conn.query(sqlHeader, [id_usuario, total, metodo_pago || 'Tarjeta de Crédito', direccion_envio || 'No especificada', 'Pedido recibido'], (errHeader, resHeader) => {
+            if (errHeader) {
+              return conn.rollback(() => {
+                conn.release();
+                reject(errHeader);
+              });
+            }
 
-          if (items.length === 0) {
-            return db.commit((commitErr) => {
-              if (commitErr) return db.rollback(() => reject(commitErr));
-              resolve({ id_compra: idCompra, ...compraData });
-            });
-          }
+            const idCompra = resHeader.insertId;
+            const items = productos || [];
 
-          const itemPromises = items.map(item => {
-            return new Promise((resItem, rejItem) => {
-              const idProd = item.idProducto || item.id_producto;
-              const cantidad = item.cantidad;
-              const precio = item.precio || item.precio_unitario;
-
-              db.query(
-                'INSERT INTO compra_detalles (id_compra, id_producto, cantidad, precio_unitario) VALUES (?, ?, ?, ?)',
-                [idCompra, idProd, cantidad, precio],
-                (errDetail) => {
-                  if (errDetail) return rejItem(errDetail);
-
-                  // Descontar stock de producto
-                  db.query(
-                    'UPDATE productos SET stock = CASE WHEN stock - ? < 0 THEN 0 ELSE stock - ? END WHERE id_producto = ?',
-                    [cantidad, cantidad, idProd],
-                    (stockErr) => {
-                      if (stockErr) console.error('Error descontando stock:', stockErr);
-                      resItem();
-                    }
-                  );
+            if (items.length === 0) {
+              return conn.commit((commitErr) => {
+                if (commitErr) {
+                  return conn.rollback(() => {
+                    conn.release();
+                    reject(commitErr);
+                  });
                 }
-              );
-            });
-          });
-
-          Promise.all(itemPromises)
-            .then(() => {
-              db.commit((commitErr) => {
-                if (commitErr) return db.rollback(() => reject(commitErr));
+                conn.release();
                 resolve({ id_compra: idCompra, ...compraData });
               });
-            })
-            .catch(itemErr => {
-              db.rollback(() => reject(itemErr));
+            }
+
+            const itemPromises = items.map(item => {
+              return new Promise((resItem, rejItem) => {
+                const idProd = item.idProducto || item.id_producto || item.id;
+                const cantidad = item.cantidad || 1;
+                const precio = item.precio || item.precio_unitario || 0;
+
+                conn.query(
+                  'INSERT INTO compra_detalles (id_compra, id_producto, cantidad, precio_unitario) VALUES (?, ?, ?, ?)',
+                  [idCompra, idProd, cantidad, precio],
+                  (errDetail) => {
+                    if (errDetail) return rejItem(errDetail);
+
+                    // Descontar stock de producto
+                    conn.query(
+                      'UPDATE productos SET stock = CASE WHEN stock - ? < 0 THEN 0 ELSE stock - ? END WHERE id_producto = ?',
+                      [cantidad, cantidad, idProd],
+                      (stockErr) => {
+                        if (stockErr) console.error('Error descontando stock:', stockErr);
+                        resItem();
+                      }
+                    );
+                  }
+                );
+              });
             });
+
+            Promise.all(itemPromises)
+              .then(() => {
+                conn.commit((commitErr) => {
+                  if (commitErr) {
+                    return conn.rollback(() => {
+                      conn.release();
+                      reject(commitErr);
+                    });
+                  }
+                  conn.release();
+                  resolve({ id_compra: idCompra, ...compraData });
+                });
+              })
+              .catch(itemErr => {
+                conn.rollback(() => {
+                  conn.release();
+                  reject(itemErr);
+                });
+              });
+          });
         });
       });
     });

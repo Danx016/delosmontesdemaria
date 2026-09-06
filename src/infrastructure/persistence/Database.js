@@ -76,9 +76,7 @@ const dbProxy = {
       if (cb) cb(err, results, fields);
     });
   },
-  beginTransaction: (cb) => pool.query('START TRANSACTION', cb),
-  commit: (cb) => pool.query('COMMIT', cb),
-  rollback: (cb) => pool.query('ROLLBACK', cb),
+  getConnection: (cb) => pool.getConnection(cb),
   ping: (cb) => pool.query('SELECT 1 as ok', [], cb),
   end: (cb) => pool.end(cb)
 };

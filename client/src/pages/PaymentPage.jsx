@@ -201,7 +201,8 @@ export default function PaymentPage() {
       clearCart()
       sessionStorage.removeItem('checkout_shipping')
     } catch (err) {
-      setOtpError('Código inválido o expirado. Por favor verifica el correo.')
+      const errMsg = err.response?.data?.error || err.message || 'Error al validar el código o procesar la compra.'
+      setOtpError(errMsg)
     } finally {
       setVerifyingOtp(false)
     }
