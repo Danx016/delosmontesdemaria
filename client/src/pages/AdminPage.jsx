@@ -1216,58 +1216,64 @@ export default function AdminPage() {
           </div>
 
           {/* Admin Tabs */}
-          <div className="profile-tabs" style={{ marginTop: '1.5rem' }}>
+          <div className="admin-nav-tabs notranslate" translate="no" style={{ marginTop: '1.5rem' }}>
             <button
-              className={`profile-tab-btn ${activeTab === 'stats' ? 'active' : ''}`}
+              className={`admin-tab-btn ${activeTab === 'stats' ? 'active' : ''}`}
               onClick={() => setActiveTab('stats')}
             >
               <i className="fa fa-chart-line" /> Métricas & Resumen
             </button>
             <button
-              className={`profile-tab-btn ${activeTab === 'productos' ? 'active' : ''}`}
+              className={`admin-tab-btn ${activeTab === 'productos' ? 'active' : ''}`}
               onClick={() => setActiveTab('productos')}
             >
-              <i className="fa fa-boxes" /> Inventario Global ({productos.length})
+              <i className="fa fa-boxes" /> Inventario Global
+              <span className="admin-tab-badge">{productos.length}</span>
             </button>
             <button
-              className={`profile-tab-btn ${activeTab === 'categorias' ? 'active' : ''}`}
+              className={`admin-tab-btn ${activeTab === 'categorias' ? 'active' : ''}`}
               onClick={() => setActiveTab('categorias')}
             >
-              <i className="fa fa-tags" /> Categorías ({categorias.length})
+              <i className="fa fa-tags" /> Categorías
+              <span className="admin-tab-badge">{categorias.length}</span>
             </button>
             <button
-              className={`profile-tab-btn ${activeTab === 'banners' ? 'active' : ''}`}
+              className={`admin-tab-btn ${activeTab === 'banners' ? 'active' : ''}`}
               onClick={() => setActiveTab('banners')}
             >
-              <i className="fa fa-images" /> Banners & Carrusel ({banners.length})
+              <i className="fa fa-images" /> Banners & Carrusel
+              <span className="admin-tab-badge">{banners.length}</span>
             </button>
             <button
-              className={`profile-tab-btn ${activeTab === 'cupones' ? 'active' : ''}`}
+              className={`admin-tab-btn ${activeTab === 'cupones' ? 'active' : ''}`}
               onClick={() => setActiveTab('cupones')}
             >
-              <i className="fa fa-ticket-alt" /> Cupones ({cupones.length})
+              <i className="fa fa-ticket-alt" /> Cupones
+              <span className="admin-tab-badge">{cupones.length}</span>
             </button>
             <button
-              className={`profile-tab-btn ${activeTab === 'usuarios' ? 'active' : ''}`}
+              className={`admin-tab-btn ${activeTab === 'usuarios' ? 'active' : ''}`}
               onClick={() => setActiveTab('usuarios')}
             >
-              <i className="fa fa-users" /> Usuarios ({usuarios.length})
+              <i className="fa fa-users" /> Usuarios
+              <span className="admin-tab-badge">{usuarios.length}</span>
             </button>
             <button
-              className={`profile-tab-btn ${activeTab === 'compras' ? 'active' : ''}`}
+              className={`admin-tab-btn ${activeTab === 'compras' ? 'active' : ''}`}
               onClick={() => setActiveTab('compras')}
             >
-              <i className="fa fa-shopping-bag" /> Compras Globales ({compras.length})
+              <i className="fa fa-shopping-bag" /> Compras Globales
+              <span className="admin-tab-badge">{compras.length}</span>
             </button>
             <Link
               to="/admin/soporte"
-              className="profile-tab-btn"
-              style={{ textDecoration: 'none', color: 'inherit' }}
+              className="admin-tab-btn"
+              style={{ textDecoration: 'none' }}
             >
-              <i className="fa fa-headset text-primary" /> Mesa de Ayuda & Chat
+              <i className="fa fa-headset text-warning" /> Mesa de Ayuda & Chat
             </Link>
             <button
-              className={`profile-tab-btn ${activeTab === 'ia' ? 'active' : ''}`}
+              className={`admin-tab-btn ${activeTab === 'ia' ? 'active' : ''}`}
               onClick={() => setActiveTab('ia')}
             >
               <i className="fa fa-robot" /> Asistente IA

@@ -2199,48 +2199,79 @@
   color: var(--text-muted);
 }
 
-/* Profile Tabs */
-.profile-tabs {
+/* Profile & Admin Tabs */
+.profile-tabs,
+.admin-nav-tabs {
   display: flex;
   gap: 0.5rem;
   margin-bottom: 1.5rem;
-  background-color: var(--light-color);
+  background-color: var(--light-color, #f1f5f9);
   padding: 0.5rem;
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  border: 1px solid var(--border-color, #e2e8f0);
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: thin;
 }
 
-[data-theme="dark"] .profile-tabs {
+[data-theme="dark"] .profile-tabs,
+[data-theme="dark"] .admin-nav-tabs {
   background-color: #162032;
+  border-color: #1e293b;
 }
 
-.profile-tab-btn {
-  flex: 1;
-  display: flex;
+.profile-tab-btn,
+.admin-tab-btn {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  padding: 0.75rem 1rem;
+  padding: 0.65rem 1.1rem;
   border: none;
   background: transparent;
-  color: var(--text-muted);
-  font-family: var(--font-heading);
+  color: var(--text-muted, #64748b);
+  font-family: var(--font-heading, inherit);
   font-weight: 600;
-  font-size: 0.9rem;
-  border-radius: 6px;
+  font-size: 0.88rem;
+  border-radius: 8px;
   cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: all 0.2s ease;
+  text-decoration: none;
 }
 
-.profile-tab-btn:hover {
-  background-color: var(--card-bg);
-  color: var(--text-main);
+.profile-tab-btn:hover,
+.admin-tab-btn:hover {
+  background-color: var(--card-bg, #ffffff);
+  color: var(--text-main, #0f172a);
 }
 
-.profile-tab-btn.active {
-  background-color: var(--primary-color);
-  color: #FFFFFF;
-  box-shadow: var(--shadow-sm);
+.profile-tab-btn.active,
+.admin-tab-btn.active {
+  background-color: var(--primary-color, #166534);
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 8px rgba(22, 101, 52, 0.25);
+  font-weight: 700;
+}
+
+.admin-tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.75rem;
+  font-weight: 800;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.08);
+  color: inherit;
+  line-height: 1;
+}
+
+.profile-tab-btn.active .admin-tab-badge,
+.admin-tab-btn.active .admin-tab-badge {
+  background: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
 }
 
 /* Orders Table */
