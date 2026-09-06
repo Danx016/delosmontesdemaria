@@ -12,6 +12,7 @@ export default function LoginPage() {
   const [contrasena, setContrasena] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+  const [isSuspended, setIsSuspended] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const handleAuthSuccess = (token, userData) => {
@@ -29,6 +30,7 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setIsSuspended(false)
     setLoading(true)
     try {
       const res = await loginApi(correo, contrasena)
@@ -40,11 +42,10 @@ export default function LoginPage() {
         setError('Respuesta del servidor inválida.')
       }
     } catch (err) {
-      setError(
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        'Credenciales incorrectas o error en el servidor.'
-      )
+      const errMsg = err.response?.data?.message || err.response?.data?.error || 'Credenciales incorrectas o error en el servidor.'
+      const suspended = err.response?.data?.isSuspended || err.response?.status === 403 || errMsg.toLowerCase().includes('suspendida')
+      setIsSuspended(suspended)
+      setError(errMsg)
     } finally {
       setLoading(false)
     }
@@ -52,6 +53,7 @@ export default function LoginPage() {
 
   const handleGoogleSuccess = async (credentialResponse) => {
     setError('')
+    setIsSuspended(false)
     setLoading(true)
     try {
       const res = await loginGoogleApi(credentialResponse.credential)
@@ -64,11 +66,10 @@ export default function LoginPage() {
       }
     } catch (err) {
       console.error('Error Google Auth:', err)
-      setError(
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        'Error al iniciar sesión con Google.'
-      )
+      const errMsg = err.response?.data?.message || err.response?.data?.error || 'Error al iniciar sesión con Google.'
+      const suspended = err.response?.data?.isSuspended || err.response?.status === 403 || errMsg.toLowerCase().includes('suspendida')
+      setIsSuspended(suspended)
+      setError(errMsg)
     } finally {
       setLoading(false)
     }
@@ -89,20 +90,46 @@ export default function LoginPage() {
           <p>Ingresa a tu cuenta de De los Montes de María</p>
         </div>
 
-        {error && (
+        {/* Suspended Account Card Banner */}
+        {isSuspended ? (
+          <div className="fade-in" style={{ background: '#fef2f2', border: '1.5px solid #ef4444', borderRadius: '14px', padding: '1rem', color: '#991b1b', textAlign: 'left', marginBottom: '1.25rem' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+              <div style={{ background: '#fee2e2', color: '#dc2626', width: '38px', height: '38px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '1.2rem' }}>
+                <i className="fa fa-user-slash" />
+              </div>
+              <div style={{ flex: 1 }}>
+                <strong style={{ display: 'block', fontSize: '0.98rem', color: '#991b1b', marginBottom: '0.25rem' }}>
+                  🚫 Tu cuenta ha sido suspendida
+                </strong>
+                <p style={{ margin: 0, fontSize: '0.86rem', color: '#7f1d1d', lineHeight: 1.45 }}>
+                  {error || 'El acceso a tu cuenta se encuentra temporalmente restringido por la administración de De los Montes de María.'}
+                </p>
+                <div style={{ marginTop: '0.75rem', display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <Link
+                    to="/soporte"
+                    className="btn btn-sm"
+                    style={{ background: '#dc2626', color: '#ffffff', textDecoration: 'none', borderRadius: '8px', padding: '0.4rem 0.85rem', fontSize: '0.82rem', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                  >
+                    <i className="fa fa-headset" /> Contactar a Soporte
+                  </Link>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : error ? (
           <div className="global-alert error fade-in">
             <i className="fa fa-exclamation-circle" /> {error}
           </div>
-        )}
+        ) : null}
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-field">
-            <label htmlFor="correo">Correo Electrónico</label>
+            <label htmlFor="correo">Correo Electrónico o Usuario</label>
             <input
               id="correo"
-              type="email"
+              type="text"
               required
-              placeholder="ejemplo@correo.com"
+              placeholder="ejemplo@correo.com o @usuario"
               value={correo}
               onChange={(e) => setCorreo(e.target.value)}
             />
@@ -164,4 +191,3 @@ export default function LoginPage() {
     </div>
   )
 }
-

@@ -54,7 +54,13 @@ class AuthController {
       });
     } catch (error) {
       console.error('Error en AuthController.login:', error.message);
-      res.status(401).json({ message: error.message || 'Credenciales inválidas' });
+      const isSuspended = error.isSuspended || error.statusCode === 403 || String(error.message).toLowerCase().includes('suspendida');
+      const statusCode = error.statusCode || (isSuspended ? 403 : 401);
+      res.status(statusCode).json({
+        message: error.message || 'Credenciales inválidas',
+        error: error.message || 'Credenciales inválidas',
+        isSuspended
+      });
     }
   }
 
@@ -97,7 +103,13 @@ class AuthController {
       });
     } catch (error) {
       console.error('Error en loginGoogle:', error);
-      res.status(401).json({ message: error.message || 'Token de Google inválido.' });
+      const isSuspended = error.isSuspended || error.statusCode === 403 || String(error.message).toLowerCase().includes('suspendida');
+      const statusCode = error.statusCode || (isSuspended ? 403 : 401);
+      res.status(statusCode).json({
+        message: error.message || 'Token de Google inválido.',
+        error: error.message || 'Token de Google inválido.',
+        isSuspended
+      });
     }
   }
 

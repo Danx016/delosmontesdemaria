@@ -82,7 +82,12 @@ class Usuario {
   }
 
   estaActivo() {
-    return this.estado === 'activo';
+    return (this.estado || 'activo').toLowerCase() === 'activo';
+  }
+
+  estaSuspendido() {
+    const s = (this.estado || '').toLowerCase();
+    return s === 'suspendido' || s === 'inactivo' || s === 'bloqueado';
   }
 
   validarDatos() {

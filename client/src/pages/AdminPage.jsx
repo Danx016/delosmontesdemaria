@@ -1789,8 +1789,8 @@ export default function AdminPage() {
                             <span className={`badge ${roleBadge}`}>{roleName}</span>
                           </td>
                           <td>
-                            <span className={`badge ${isActive ? 'badge-success' : 'badge-danger'}`}>
-                              {isActive ? 'Activo' : 'Inactivo'}
+                            <span className={`badge ${u.estado === 'suspendido' ? 'badge-danger' : u.estado === 'inactivo' ? 'badge-warning' : 'badge-success'}`} style={{ fontWeight: 700, borderRadius: '8px', padding: '0.3rem 0.6rem' }}>
+                              {u.estado === 'suspendido' ? '⛔ Suspendido' : u.estado === 'inactivo' ? '🔴 Inactivo' : '🟢 Activo'}
                             </span>
                           </td>
                           <td style={{ textAlign: 'right' }}>
@@ -1897,8 +1897,9 @@ export default function AdminPage() {
                         onChange={(e) => setUserForm({ ...userForm, estado: e.target.value })}
                         className="form-select"
                       >
-                        <option value="activo">🟢 Activo</option>
-                        <option value="inactivo">🔴 Inactivo / Suspendido</option>
+                        <option value="activo">🟢 Activo / Habilitado</option>
+                        <option value="suspendido">⛔ Suspendido (Bloquea inicio de sesión)</option>
+                        <option value="inactivo">🔴 Inactivo</option>
                       </select>
                     </div>
                   </div>

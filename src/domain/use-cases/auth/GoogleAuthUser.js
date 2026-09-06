@@ -23,6 +23,13 @@ class GoogleAuthUser {
     }
 
     if (user) {
+      if (typeof user.estaSuspendido === 'function' ? user.estaSuspendido() : (user.estado === 'suspendido' || user.estado === 'inactivo')) {
+        const err = new Error('Tu cuenta ha sido suspendida por la administración de De los Montes de María. Si consideras que es un error, por favor comunícate con nuestro equipo de soporte.');
+        err.statusCode = 403;
+        err.isSuspended = true;
+        throw err;
+      }
+
       // Actualizar google_id sin sobreescribir el avatar personalizado existente
       const updateData = { google_id: googleId };
       if (!user.avatar && picture) {

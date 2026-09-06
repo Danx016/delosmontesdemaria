@@ -33,9 +33,19 @@ class LoginUser {
       }
     }
 
-    // Verificar que el usuario esté activo
-    if (!usuario.estaActivo()) {
-      throw new Error('La cuenta de usuario está inactiva');
+    // Verificar que el usuario no esté suspendido o inactivo
+    if (typeof usuario.estaSuspendido === 'function' ? usuario.estaSuspendido() : (usuario.estado === 'suspendido' || usuario.estado === 'inactivo')) {
+      const err = new Error('Tu cuenta ha sido suspendida por la administración de De los Montes de María. Si consideras que es un error, por favor comunícate con nuestro equipo de soporte.');
+      err.statusCode = 403;
+      err.isSuspended = true;
+      throw err;
+    }
+
+    if (typeof usuario.estaActivo === 'function' && !usuario.estaActivo()) {
+      const err = new Error('Tu cuenta se encuentra inactiva. Comunícate con soporte para reactivarla.');
+      err.statusCode = 403;
+      err.isSuspended = true;
+      throw err;
     }
 
     // Generar token JWT
