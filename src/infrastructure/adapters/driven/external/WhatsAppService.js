@@ -103,7 +103,47 @@ class WhatsAppService extends WhatsAppServicePort {
   }
 
   /**
+   * Envía un mensaje basado en plantilla oficial de Meta
+   * @param {string} to - Destinatario
+   * @param {string} templateName - Nombre de la plantilla aprobada en Meta (ej: 'jaspers_market_order_confirmation_v1' o 'hello_world')
+   * @param {string} languageCode - Código de idioma (ej: 'en_US', 'es', 'es_CO')
+   * @param {Array<string>} bodyParameters - Parámetros posicionales para el cuerpo del template
+   */
+  async sendTemplateMessage(to, templateName = 'jaspers_market_order_confirmation_v1', languageCode = 'en_US', bodyParameters = []) {
+    const cleanTo = this.formatPhoneNumber(to);
+    if (!cleanTo) throw new Error('Número de teléfono inválido');
+
+    const components = [];
+    if (bodyParameters && bodyParameters.length > 0) {
+      components.push({
+        type: 'body',
+        parameters: bodyParameters.map(param => ({
+          type: 'text',
+          text: String(param)
+        }))
+      });
+    }
+
+    const payload = {
+      messaging_product: 'whatsapp',
+      to: cleanTo,
+      type: 'template',
+      template: {
+        name: templateName,
+        language: {
+          code: languageCode
+        },
+        ...(components.length > 0 ? { components } : {})
+      }
+    };
+
+    return this._postToMeta(payload);
+  }
+
+  /**
    * Envía alerta de venta al campesino / productor
+   * Intenta mensaje directo con formato rico, y si la ventana de 24h está cerrada,
+   * envía la plantilla oficial de confirmación.
    */
   async sendOrderAlertToFarmer(to, orderData) {
     const { orderId, total, items, shippingAddress } = orderData;
@@ -118,21 +158,39 @@ class WhatsAppService extends WhatsAppServicePort {
                     `🛒 *Cosechas solicitadas:*\n${itemsText}\n\n` +
                     `🚜 Por favor ten listo el pedido para la recolección del transporte rural.`;
 
-    return this.sendMessage(to, message);
+    try {
+      return await this.sendMessage(to, message);
+    } catch (err) {
+      console.warn(`⚠️ [WhatsApp] Intento de texto directo falló (${err.message}). Intentando fallback con plantilla oficial...`);
+      return this.sendTemplateMessage(to, 'jaspers_market_order_confirmation_v1', 'en_US', [
+        'Campesino Montes de Maria',
+        `#${orderId}`,
+        new Date().toLocaleDateString('es-CO')
+      ]);
+    }
   }
 
   /**
    * Envía confirmación de compra al cliente
    */
   async sendOrderConfirmationToBuyer(to, orderData) {
-    const { orderId, total } = orderData;
-    const message = `✅ *¡Hola! Tu compra en De los Montes de María fue confirmada.*\n\n` +
+    const { orderId, total, customerName } = orderData;
+    const message = `✅ *¡Hola ${customerName || ''}! Tu compra en De los Montes de María fue confirmada.*\n\n` +
                     `📦 *Orden:* #${orderId}\n` +
                     `💰 *Total Pagado:* $${Number(total || 0).toLocaleString('es-CO')} COP\n\n` +
                     `Nuestros campesinos ya están alistando tus cosechas frescas del campo. Puedes ver tu factura y estado aquí:\n` +
                     `👉 https://delosmontesdemaria.duckdns.org/perfil`;
 
-    return this.sendMessage(to, message);
+    try {
+      return await this.sendMessage(to, message);
+    } catch (err) {
+      console.warn(`⚠️ [WhatsApp] Intento de texto falló (${err.message}). Enviando plantilla de orden...`);
+      return this.sendTemplateMessage(to, 'jaspers_market_order_confirmation_v1', 'en_US', [
+        customerName || 'Cliente Estimado',
+        `#${orderId}`,
+        new Date().toLocaleDateString('es-CO')
+      ]);
+    }
   }
 }
 
