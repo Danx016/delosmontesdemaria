@@ -12,7 +12,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 
-const { EmailService, TelegramService } = require('../../src/infrastructure/adapters/driven/external');
+const { EmailService, TelegramService, WhatsAppService } = require('../../src/infrastructure/adapters/driven/external');
 const createTelegramRoutes = require('../../src/infrastructure/adapters/driving/http/routes/telegram.routes');
 
 const { eventBus, CHANNELS, STREAMS, EVENTS } = require('../common/events/EventBus');
@@ -33,18 +33,31 @@ app.use(correlationMiddleware('notification-service'));
 // Inyección de adaptadores
 const emailService = new EmailService();
 const telegramService = new TelegramService({ emailService });
+const whatsAppService = new WhatsAppService();
 
 // Rutas del servicio (Webhook de Telegram)
 app.use('/api/telegram', createTelegramRoutes(telegramService));
+
+// Endpoint de prueba directa de WhatsApp
+app.post('/api/notification/whatsapp/test', async (req, res) => {
+  try {
+    const { to, message } = req.body;
+    if (!to) return res.status(400).json({ error: 'Falta el número de teléfono (to)' });
+    const result = await whatsAppService.sendMessage(to, message || '🌾 ¡Hola desde De los Montes de María! Tu servicio de WhatsApp está activo.');
+    res.json({ success: true, result });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
 
 // Lógica de notificación de nueva compra
 const procesarAlertaCompra = async (event, msgId = 'pubsub') => {
   if (event.type === EVENTS.ORDER_CREATED && event.data) {
     const trace = event.correlationId || 'N/A';
-    const { orderId, total, items, shippingAddress } = event.data;
+    const { orderId, total, items, shippingAddress, customerPhone, phone } = event.data;
     console.log(`📢 [Notification Service: ${msgId}] [Trace: ${trace}] Evento recibido: ORDER_CREATED #${orderId}`);
 
-    // Notificar por Telegram al administrador y campesinos
+    // 1. Notificar por Telegram al administrador y campesinos
     try {
       const msg = `🌾 *¡NUEVA COMPRA EN LA PLATAFORMA!*\n\n` +
                   `📦 *Orden:* #${orderId || 'N/A'}\n` +
@@ -59,6 +72,19 @@ const procesarAlertaCompra = async (event, msgId = 'pubsub') => {
       }
     } catch (err) {
       console.error(`⚠️ [Telegram Event Error: ${msgId}]:`, err.message);
+    }
+
+    // 2. Notificar por WhatsApp Oficial de Meta
+    if (whatsAppService.isConfigured()) {
+      try {
+        const destPhone = customerPhone || phone || process.env.WHATSAPP_ADMIN_PHONE;
+        if (destPhone) {
+          await whatsAppService.sendOrderAlertToFarmer(destPhone, event.data);
+          console.log(`  📲 Alerta de venta enviada por WhatsApp a: ${destPhone}`);
+        }
+      } catch (waErr) {
+        console.error(`⚠️ [WhatsApp Event Error: ${msgId}]:`, waErr.message);
+      }
     }
   }
 };

@@ -6,5 +6,6 @@ module.exports = {
   GoogleAuthService: require('./GoogleAuthService'),
   IAService: require('./IAService'),
   PaymentService: require('./PaymentService'),
-  TelegramService: require('./TelegramService')
+  TelegramService: require('./TelegramService'),
+  WhatsAppService: require('./WhatsAppService')
 };

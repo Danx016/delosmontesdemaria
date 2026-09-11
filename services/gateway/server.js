@@ -248,7 +248,7 @@ app.use(createResilientProxy(
 app.use(createResilientProxy(
   circuits.notification,
   SERVICES.notification,
-  (p) => p.startsWith('/api/telegram')
+  (p) => p.startsWith('/api/telegram') || p.startsWith('/api/notification') || p.startsWith('/api/whatsapp')
 ));
 
 // Fallback SPA React
