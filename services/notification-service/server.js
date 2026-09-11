@@ -50,6 +50,55 @@ app.post('/api/notification/whatsapp/test', async (req, res) => {
   }
 });
 
+// ==========================================
+// WEBHOOK OFICIAL DE WHATSAPP BUSINESS (META)
+// ==========================================
+
+// 1. Handshake de verificación de Meta (GET)
+app.get(['/api/whatsapp/webhook', '/api/notification/whatsapp/webhook'], (req, res) => {
+  const mode = req.query['hub.mode'];
+  const token = req.query['hub.verify_token'];
+  const challenge = req.query['hub.challenge'];
+  const verifyToken = process.env.WHATSAPP_VERIFY_TOKEN || 'montesdemaria_webhook_2026';
+
+  if (mode && token) {
+    if (mode === 'subscribe' && token === verifyToken) {
+      console.log('✅ [WhatsApp Webhook] Verificado con éxito por Meta Graph API');
+      return res.status(200).send(challenge);
+    } else {
+      console.warn(`❌ [WhatsApp Webhook] Token inválido recibido: ${token}`);
+      return res.sendStatus(403);
+    }
+  }
+  res.sendStatus(400);
+});
+
+// 2. Recepción de eventos y estados de entrega (POST)
+app.post(['/api/whatsapp/webhook', '/api/notification/whatsapp/webhook'], (req, res) => {
+  const body = req.body;
+  if (body && body.object === 'whatsapp_business_account') {
+    // Responder 200 inmediatamente a Meta
+    res.status(200).send('EVENT_RECEIVED');
+
+    try {
+      const entry = body.entry?.[0];
+      const changes = entry?.changes?.[0];
+      const value = changes?.value;
+      if (value?.messages && value.messages.length > 0) {
+        const msg = value.messages[0];
+        console.log(`📩 [WhatsApp Mensaje Entrante de ${msg.from}]:`, msg.text?.body || msg.type);
+      } else if (value?.statuses && value.statuses.length > 0) {
+        const status = value.statuses[0];
+        console.log(`📊 [WhatsApp Estado ${status.id}]: ${status.status} (Destinatario: ${status.recipient_id})`);
+      }
+    } catch (e) {
+      console.warn('⚠️ [WhatsApp Webhook Parse Warning]:', e.message);
+    }
+  } else {
+    res.sendStatus(404);
+  }
+});
+
 // Lógica de notificación de nueva compra
 const procesarAlertaCompra = async (event, msgId = 'pubsub') => {
   if (event.type === EVENTS.ORDER_CREATED && event.data) {
