@@ -154,6 +154,24 @@ app.post('/api/dlq/clear', async (req, res) => {
   }
 });
 
+// Purgar caché distribuida de Redis (catálogo, productos, banners)
+app.post(['/api/cache/clear', '/api/catalog/cache/clear'], async (req, res) => {
+  try {
+    const redis = registry.getRedisClient();
+    const keys = await redis.keys('catalog:*');
+    if (keys && keys.length > 0) {
+      await redis.del(...keys);
+    }
+    const productKeys = await redis.keys('productos:*');
+    if (productKeys && productKeys.length > 0) {
+      await redis.del(...productKeys);
+    }
+    res.json({ success: true, message: `Caché Redis invalidada exitosamente (${keys.length + productKeys.length} claves eliminadas).` });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Proxy para WebSockets (Socket.IO hacia ai-support-service)
 const wsProxy = createProxyMiddleware({
   target: SERVICES.support,
@@ -229,7 +247,7 @@ app.use(createResilientProxy(
 app.use(createResilientProxy(
   circuits.catalog,
   SERVICES.catalog,
-  (p) => p.startsWith('/api/productos') || p.startsWith('/api/banners')
+  (p) => p.startsWith('/api/productos') || p.startsWith('/api/banners') || p.startsWith('/api/catalog')
 ));
 
 // 3. Order Service (3003)

@@ -118,6 +118,17 @@ eventBus.consumeStream({
   handler: procesarOrdenInventario
 }).catch(err => console.warn('⚠️ [Catalog Stream Consumer Init Warning]:', err.message));
 
+// Endpoint para invalidación manual de caché de catálogo
+app.post(['/api/catalog/cache/clear', '/api/productos/cache/clear'], async (req, res) => {
+  try {
+    await cache.delPattern('productos:*');
+    await cache.delPattern('banners:*');
+    res.json({ success: true, message: 'Caché de catálogo y productos invalidada exitosamente.' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({
