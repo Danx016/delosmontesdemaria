@@ -115,7 +115,7 @@ async function migrar() {
     `);
     await connection.query(`
       CREATE OR REPLACE VIEW \`db_support\`.\`compras\` AS 
-      SELECT id_compra, id_usuario, total, estado, fecha_compra 
+      SELECT * 
       FROM \`db_orders\`.\`compras\`;
     `);
     console.log('  ✅ [db_support.usuarios, productos y compras] vistas creadas.');
