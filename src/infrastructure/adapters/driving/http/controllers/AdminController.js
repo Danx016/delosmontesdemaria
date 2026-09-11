@@ -20,18 +20,24 @@ class AdminController {
     this.soporteRepository = soporteRepository;
     this.emailService = emailService;
     this.iaService = iaService;
-    this.getAdminStats = new GetAdminStats(compraRepository);
-    this.manageUsersAdmin = new ManageUsersAdmin(usuarioRepository, emailService);
-    this.processAdminAIChat = new ProcessAdminAIChat(iaService, {
-      usuarioRepository,
-      productoRepository,
-      compraRepository,
-      categoriaRepository,
-      bannerRepository,
-      couponRepository,
-      soporteRepository,
-      emailService
-    });
+    if (compraRepository) {
+      this.getAdminStats = new GetAdminStats(compraRepository);
+    }
+    if (usuarioRepository) {
+      this.manageUsersAdmin = new ManageUsersAdmin(usuarioRepository, emailService);
+    }
+    if (iaService) {
+      this.processAdminAIChat = new ProcessAdminAIChat(iaService, {
+        usuarioRepository,
+        productoRepository,
+        compraRepository,
+        categoriaRepository,
+        bannerRepository,
+        couponRepository,
+        soporteRepository,
+        emailService
+      });
+    }
   }
 
   async obtenerEstadisticas(req, res) {

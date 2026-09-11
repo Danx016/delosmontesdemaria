@@ -31,11 +31,13 @@ const {
 
 const {
   CompraController,
-  CouponController
+  CouponController,
+  AdminController
 } = require('../../src/infrastructure/adapters/driving/http/controllers');
 
 const createCompraRoutes = require('../../src/infrastructure/adapters/driving/http/routes/compra.routes');
 const createCouponRoutes = require('../../src/infrastructure/adapters/driving/http/routes/coupon.routes');
+const createAdminRoutes = require('../../src/infrastructure/adapters/driving/http/routes/admin.routes');
 
 const { eventBus, CHANNELS, STREAMS, EVENTS } = require('../common/events/EventBus');
 const { correlationMiddleware } = require('../common/tracing/correlation');
@@ -119,11 +121,17 @@ compraController.crear = async (req, res) => {
 };
 
 const couponController = new CouponController(couponRepository);
+const adminController = new AdminController({
+  compraRepository,
+  couponRepository,
+  emailService
+});
 
 // Rutas del servicio
 app.use('/api/compra', createCompraRoutes(compraController));
 app.use('/api/compras', createCompraRoutes(compraController));
 app.use('/api/cupones', createCouponRoutes(couponController));
+app.use('/api/admin', createAdminRoutes(adminController));
 
 // Health check
 app.get('/health', (req, res) => {

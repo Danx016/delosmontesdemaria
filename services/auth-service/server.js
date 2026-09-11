@@ -17,9 +17,10 @@ const cookieParser = require('cookie-parser');
 
 const { MySQLUsuarioRepository } = require('../../src/infrastructure/adapters/driven/persistence');
 const { EmailService, GoogleAuthService, TelegramService } = require('../../src/infrastructure/adapters/driven/external');
-const { AuthController, UsuarioController } = require('../../src/infrastructure/adapters/driving/http/controllers');
+const { AuthController, UsuarioController, AdminController } = require('../../src/infrastructure/adapters/driving/http/controllers');
 const createAuthRoutes = require('../../src/infrastructure/adapters/driving/http/routes/auth.routes');
 const createUsuarioRoutes = require('../../src/infrastructure/adapters/driving/http/routes/usuario.routes');
+const createAdminRoutes = require('../../src/infrastructure/adapters/driving/http/routes/admin.routes');
 
 const { eventBus, CHANNELS, STREAMS, EVENTS } = require('../common/events/EventBus');
 const { correlationMiddleware } = require('../common/tracing/correlation');
@@ -55,9 +56,15 @@ const usuarioController = new UsuarioController({
   telegramService
 });
 
+const adminController = new AdminController({
+  usuarioRepository,
+  emailService
+});
+
 // Rutas del servicio
 app.use('/api/auth', createAuthRoutes(authController));
 app.use('/api/user', createUsuarioRoutes(usuarioController));
+app.use('/api/admin', createAdminRoutes(adminController));
 app.use('/register', createAuthRoutes(authController));
 app.use('/login', createAuthRoutes(authController));
 app.use('/api/recover', createAuthRoutes(authController));

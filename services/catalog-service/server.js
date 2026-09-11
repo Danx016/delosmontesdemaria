@@ -25,11 +25,13 @@ const {
 
 const {
   ProductoController,
-  BannerController
+  BannerController,
+  AdminController
 } = require('../../src/infrastructure/adapters/driving/http/controllers');
 
 const createProductoRoutes = require('../../src/infrastructure/adapters/driving/http/routes/producto.routes');
 const createBannerRoutes = require('../../src/infrastructure/adapters/driving/http/routes/banner.routes');
+const createAdminRoutes = require('../../src/infrastructure/adapters/driving/http/routes/admin.routes');
 
 const { eventBus, CHANNELS, STREAMS, EVENTS } = require('../common/events/EventBus');
 const { correlationMiddleware } = require('../common/tracing/correlation');
@@ -66,6 +68,12 @@ app.post('/api/catalog/cache/clear', async (req, res) => {
   res.json({ success: true, message: 'Caché de catálogo purgada exitosamente' });
 });
 
+const adminController = new AdminController({
+  productoRepository,
+  categoriaRepository,
+  bannerRepository
+});
+
 // Rutas del servicio con Caché Distribuida Redis (< 2ms)
 app.use(
   '/api/productos',
@@ -78,6 +86,8 @@ app.use(
   cache.middleware((req) => `banners:${req.path}`, 300),
   createBannerRoutes(bannerController)
 );
+
+app.use('/api/admin', createAdminRoutes(adminController));
 
 // Lógica de procesamiento de orden (actualización de inventario e invalidación de caché)
 const procesarOrdenInventario = async (event, msgId = 'pubsub') => {

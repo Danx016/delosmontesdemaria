@@ -240,28 +240,28 @@ function createResilientProxy(circuit, targetUrl, pathFilterRule) {
 app.use(createResilientProxy(
   circuits.auth,
   SERVICES.auth,
-  (p) => p.startsWith('/api/auth') || p.startsWith('/api/user') || p.startsWith('/register') || p.startsWith('/login') || p.startsWith('/api/recover')
+  (p) => p.startsWith('/api/auth') || p.startsWith('/api/user') || p.startsWith('/register') || p.startsWith('/login') || p.startsWith('/api/recover') || p.startsWith('/api/admin/usuarios')
 ));
 
 // 2. Catalog Service (3002)
 app.use(createResilientProxy(
   circuits.catalog,
   SERVICES.catalog,
-  (p) => p.startsWith('/api/productos') || p.startsWith('/api/banners') || p.startsWith('/api/catalog')
+  (p) => p.startsWith('/api/productos') || p.startsWith('/api/banners') || p.startsWith('/api/catalog') || p.startsWith('/api/admin/categorias') || p.startsWith('/api/admin/productos')
 ));
 
 // 3. Order Service (3003)
 app.use(createResilientProxy(
   circuits.order,
   SERVICES.order,
-  (p) => p.startsWith('/api/compra') || p.startsWith('/api/compras') || p.startsWith('/api/cupones')
+  (p) => p.startsWith('/api/compra') || p.startsWith('/api/compras') || p.startsWith('/api/cupones') || p.startsWith('/api/admin/compras') || p.startsWith('/api/admin/estadisticas')
 ));
 
 // 4. Support Service (3004)
 app.use(createResilientProxy(
   circuits.support,
   SERVICES.support,
-  (p) => p.startsWith('/api/soporte') || p.startsWith('/api/chat')
+  (p) => p.startsWith('/api/soporte') || p.startsWith('/api/chat') || p.startsWith('/api/admin/ia-chat')
 ));
 
 // 5. Notification Service (3005)
