@@ -35,31 +35,43 @@
 
 ---
 
-## 2. Arquitectura del Software
+## 2. Arquitectura del Software (Arquitectura Hexagonal - Puertos y Adaptadores)
 
-El backend está diseñado siguiendo los principios de **Clean Architecture (Arquitectura Limpia)** y **Domain-Driven Design (DDD)**, garantizando desacoplamiento, alta testabilidad y fácil mantenibilidad.
+El backend está estructurado bajo **Arquitectura Hexagonal (Ports & Adapters)** y principios de **Domain-Driven Design (DDD)**, aislando por completo la lógica de negocio y las entidades de los frameworks y tecnologías externas:
 
 ```
                   ┌────────────────────────────────────────────────────────┐
-                  │                 CAPA DE FRAMEWORK                      │
-                  │   Express.js • Socket.IO • Helmet • CORS • Multer     │
+                  │                 ADAPTADORES DE ENTRADA                 │
+                  │                   (Driving Adapters)                   │
+                  │   Express REST Controllers • Rutas • Middlewares       │
+                  │   Socket.IO Handlers • Webhooks de Telegram            │
                   └───────────────────────────┬────────────────────────────┘
-                                              │
-                  ┌───────────────────────────▼────────────────────────────┐
-                  │               CAPA DE APLICACIÓN                       │
-                  │   Controladores REST • Rutas • Middlewares Validadores │
+                                              │ Invocan
+                                              ▼
+                  ┌────────────────────────────────────────────────────────┐
+                  │                   CAPA DE APLICACIÓN                   │
+                  │                  (Application Layer)                   │
+                  │   Casos de Uso (Use Cases): Auth, Productos, Compras,  │
+                  │   Soporte, Admin, Cupones, Banners, Chat, Usuarios     │
                   └───────────────────────────┬────────────────────────────┘
-                                              │
-                  ┌───────────────────────────▼────────────────────────────┐
-                  │                 CAPA DE DOMINIO                        │
-                  │   Entidades de Negocio • Casos de Uso (Use Cases)      │
-                  │   Interfaces / Contratos de Repositorios               │
+                                              │ Orquesta
+                                              ▼
+                  ┌────────────────────────────────────────────────────────┐
+                  │                    NÚCLEO DE DOMINIO                   │
+                  │                     (Domain Core)                      │
+                  │   Entidades de Negocio (Usuario, Producto, Compra, ...) │
+                  │   PUERTOS DE SALIDA (Outbound / Driven Ports):         │
+                  │     - Repositorios (UsuarioRepositoryPort, etc.)       │
+                  │     - Servicios (EmailServicePort, PaymentServicePort, │
+                  │       AIServicePort, TelegramServicePort, GoogleAuth)  │
                   └───────────────────────────▲────────────────────────────┘
+                                              │ Implementan
                                               │
                   ┌───────────────────────────┴────────────────────────────┐
-                  │             CAPA DE INFRAESTRUCTURA                    │
-                  │   MySQL (Aiven Cloud) • EmailService (Brevo / Gmail)    │
-                  │   TelegramService • IAService • GoogleAuthService      │
+                  │                 ADAPTADORES DE SALIDA                  │
+                  │                    (Driven Adapters)                   │
+                  │   MySQL (Pool SSL) • Brevo / Gmail SMTP EmailService   │
+                  │   OpenRouter IA • Bot Telegram • Pasarela Wompi        │
                   └────────────────────────────────────────────────────────┘
 ```
 

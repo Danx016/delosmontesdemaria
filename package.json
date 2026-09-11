@@ -10,6 +10,9 @@
     "build:client": "npm --prefix client run build",
     "dev:server": "node src/framework/server.js",
     "dev:client": "npm --prefix client run dev",
+    "dev:services": "node services/runner.js",
+    "start:services": "node services/runner.js",
+    "gateway": "node services/gateway/server.js",
     "install:all": "npm install && npm --prefix client install",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -30,6 +33,7 @@
     "helmet": "^8.1.0",
     "hpp": "^0.2.3",
     "html-escaper": "^3.0.3",
+    "http-proxy-middleware": "^4.2.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.1.1",
     "mysql2": "^3.23.3",

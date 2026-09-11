@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  gateway:
+    build: .
+    command: node services/gateway/server.js
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - AUTH_SERVICE_URL=http://auth-service:3001
+      - CATALOG_SERVICE_URL=http://catalog-service:3002
+      - ORDER_SERVICE_URL=http://order-service:3003
+      - AI_SUPPORT_SERVICE_URL=http://ai-support-service:3004
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3005
+    env_file:
+      - .env
+    depends_on:
+      - auth-service
+      - catalog-service
+      - order-service
+      - ai-support-service
+      - notification-service
+    networks:
+      - agro-network
+
+  auth-service:
+    build: .
+    command: node services/auth-service/server.js
+    ports:
+      - "3001:3001"
+    environment:
+      - AUTH_SERVICE_PORT=3001
+    env_file:
+      - .env
+    networks:
+      - agro-network
+
+  catalog-service:
+    build: .
+    command: node services/catalog-service/server.js
+    ports:
+      - "3002:3002"
+    environment:
+      - CATALOG_SERVICE_PORT=3002
+    env_file:
+      - .env
+    networks:
+      - agro-network
+
+  order-service:
+    build: .
+    command: node services/order-service/server.js
+    ports:
+      - "3003:3003"
+    environment:
+      - ORDER_SERVICE_PORT=3003
+    env_file:
+      - .env
+    networks:
+      - agro-network
+
+  ai-support-service:
+    build: .
+    command: node services/ai-support-service/server.js
+    ports:
+      - "3004:3004"
+    environment:
+      - AI_SUPPORT_SERVICE_PORT=3004
+    env_file:
+      - .env
+    networks:
+      - agro-network
+
+  notification-service:
+    build: .
+    command: node services/notification-service/server.js
+    ports:
+      - "3005:3005"
+    environment:
+      - NOTIFICATION_SERVICE_PORT=3005
+    env_file:
+      - .env
+    networks:
+      - agro-network
+
+networks:
+  agro-network:
+    driver: bridge

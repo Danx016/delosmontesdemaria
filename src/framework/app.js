@@ -10,43 +10,49 @@ const hpp = require('hpp');
 const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 
-// Repositorios (Persistencia)
-const MySQLUsuarioRepository = require('../infrastructure/persistence/MySQLUsuarioRepository');
-const MySQLProductoRepository = require('../infrastructure/persistence/MySQLProductoRepository');
-const MySQLCompraRepository = require('../infrastructure/persistence/MySQLCompraRepository');
-const MySQLSoporteRepository = require('../infrastructure/persistence/MySQLSoporteRepository');
-const MySQLTokenRepository = require('../infrastructure/persistence/MySQLTokenRepository');
-const MySQLChatRepository = require('../infrastructure/persistence/MySQLChatRepository');
-const MySQLBannerRepository = require('../infrastructure/persistence/MySQLBannerRepository');
-const MySQLCategoriaRepository = require('../infrastructure/persistence/MySQLCategoriaRepository');
-const MySQLCouponRepository = require('../infrastructure/persistence/MySQLCouponRepository');
+// Adaptadores Secundarios / Driven Adapters: Persistencia MySQL
+const {
+  MySQLUsuarioRepository,
+  MySQLProductoRepository,
+  MySQLCompraRepository,
+  MySQLSoporteRepository,
+  MySQLTokenRepository,
+  MySQLChatRepository,
+  MySQLBannerRepository,
+  MySQLCategoriaRepository,
+  MySQLCouponRepository
+} = require('../infrastructure/adapters/driven/persistence');
 
-// Servicios Externos
-const EmailService = require('../infrastructure/external-services/EmailService');
-const GoogleAuthService = require('../infrastructure/external-services/GoogleAuthService');
-const IAService = require('../infrastructure/external-services/IAService');
-const PaymentService = require('../infrastructure/external-services/PaymentService');
-const TelegramService = require('../infrastructure/external-services/TelegramService');
+// Adaptadores Secundarios / Driven Adapters: Servicios Externos
+const {
+  EmailService,
+  GoogleAuthService,
+  IAService,
+  PaymentService,
+  TelegramService
+} = require('../infrastructure/adapters/driven/external');
 
-// WebSockets
-const SocketHandler = require('../infrastructure/websocket/SocketHandler');
+// Adaptadores Primarios / Driving Adapters: WebSockets
+const SocketHandler = require('../infrastructure/adapters/driving/websocket/SocketHandler');
 
-// Controladores
-const AuthController = require('../application/controllers/AuthController');
-const UsuarioController = require('../application/controllers/UsuarioController');
-const ProductoController = require('../application/controllers/ProductoController');
-const CompraController = require('../application/controllers/CompraController');
-const SoporteController = require('../application/controllers/SoporteController');
-const ChatController = require('../application/controllers/ChatController');
-const AdminController = require('../application/controllers/AdminController');
-const BannerController = require('../application/controllers/BannerController');
-const CouponController = require('../application/controllers/CouponController');
+// Adaptadores Primarios / Driving Adapters: Controladores HTTP
+const {
+  AuthController,
+  UsuarioController,
+  ProductoController,
+  CompraController,
+  SoporteController,
+  ChatController,
+  AdminController,
+  BannerController,
+  CouponController
+} = require('../infrastructure/adapters/driving/http/controllers');
 
-// Enrutador y Middlewares
-const setupRoutes = require('../application/routes/index');
-const csrfProtection = require('../application/middleware/csrf');
-const { requestLogger, logError } = require('../application/middleware/logger');
-const { globalLimiter } = require('../application/middleware/rateLimiter');
+// Adaptadores Primarios / Driving Adapters: Enrutador y Middlewares
+const setupRoutes = require('../infrastructure/adapters/driving/http/routes/index');
+const csrfProtection = require('../infrastructure/adapters/driving/http/middleware/csrf');
+const { requestLogger, logError } = require('../infrastructure/adapters/driving/http/middleware/logger');
+const { globalLimiter } = require('../infrastructure/adapters/driving/http/middleware/rateLimiter');
 const appConfig = require('../infrastructure/config/app.config');
 
 // 1. Inicializar Repositorios (Adaptadores Secundarios)

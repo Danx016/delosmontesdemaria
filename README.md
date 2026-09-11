@@ -57,7 +57,7 @@
 
 ## 🏗️ Arquitectura del Sistema
 
-El proyecto está estructurado bajo **Arquitectura Limpia (Clean Architecture)** y principios de **Diseño Guiado por el Dominio (DDD)**:
+El proyecto está estructurado bajo **Arquitectura Hexagonal (Ports & Adapters)** y principios de **Diseño Guiado por el Dominio (DDD)**:
 
 ```
 ├── client/                     # Aplicación Frontend en React 18 + Vite
@@ -70,20 +70,20 @@ El proyecto está estructurado bajo **Arquitectura Limpia (Clean Architecture)**
 │   │   └── main.jsx            # Punto de entrada de React con ErrorBoundary
 │   └── vite.config.js          # Configuración de compilación con Vite
 │
-├── src/                        # Backend en Node.js + Express
-│   ├── domain/                 # Entidades, Interfaces de Repositorios y Casos de Uso
-│   │   ├── entities/           # Usuario, Producto, Compra, Cupon, Banner, SoporteTicket
-│   │   ├── repositories/       # Contratos/Interfaces
-│   │   └── use-cases/          # Lógica de negocio pura independiente del framework
-│   ├── application/            # Controladores, Rutas y Middlewares
-│   │   ├── controllers/        # Controladores REST API
-│   │   ├── middleware/         # Autenticación JWT, CSRF, Rate Limiting, Subida de Archivos, Logger
-│   │   └── routes/             # Enrutadores modulares de la API
-│   ├── infrastructure/         # Base de Datos, Servicios Externos y WebSockets
-│   │   ├── persistence/        # Implementación de Repositorios MySQL y Pool de Conexiones
-│   │   ├── external-services/  # Email (Nodemailer), Google OAuth, Inteligencia Artificial
-│   │   └── websocket/          # Servidor Socket.io para chat de soporte en vivo
-│   └── framework/              # Configuración de Express, Helmet, CORS y Servidor HTTP
+├── src/                        # Backend en Node.js + Express (Arquitectura Hexagonal)
+│   ├── domain/                 # 🔷 Núcleo de Dominio (Puro y desacoplado)
+│   │   ├── entities/           # Usuario, Producto, Compra, Cupon, Banner, SoporteTicket, etc.
+│   │   └── ports/              # Contratos e Interfaces del Hexágono
+│   │       ├── outbound/       # Puertos de Salida (Repositorios y Servicios Externos)
+│   │       └── inbound/        # Puertos de Entrada
+│   ├── application/            # 🔶 Capa de Aplicación
+│   │   └── use-cases/          # Casos de Uso (Auth, Product, Purchase, User, Admin, Support, etc.)
+│   ├── infrastructure/         # ⚙️ Capa de Infraestructura (Adaptadores)
+│   │   ├── adapters/
+│   │   │   ├── driving/        # Adaptadores Primarios / Entrada (HTTP Controllers, Routes, Middleware, WebSockets)
+│   │   │   └── driven/         # Adaptadores Secundarios / Salida (MySQL Repositories, Brevo/Gmail, Telegram, IA)
+│   │   └── config/             # Configuración del entorno y variables del sistema
+│   └── framework/              # 🚀 Composition Root (app.js inyección de dependencias, server.js HTTP/S)
 │
 ├── public/                     # Archivos estáticos, imágenes de productos y assets
 ├── scripts/                    # Scripts de utilidad y mantenimiento
