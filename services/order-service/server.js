@@ -1,9 +1,12 @@
 /**
- * Microservicio: Orders & Payment Service
+ * Microservicio: Orders & Payment Service Enterprise
  * Puerto: 3003 (por defecto o ORDER_SERVICE_PORT)
  * Base de Datos Privada: db_orders
  * Responsabilidades: Gestión de compras, órdenes, cálculo de costos de envío,
  * cupones de descuento, firmas de pasarela Wompi y verificación OTP de entregas.
+ * Trazabilidad: X-Correlation-ID
+ * Eventos: Pub/Sub y Redis Streams persistentes
+ * Resiliencia: Heartbeat a ServiceRegistry
  */
 require('dotenv').config();
 process.env.DB_NAME = process.env.ORDER_DB_NAME || 'db_orders';
@@ -33,7 +36,10 @@ const {
 
 const createCompraRoutes = require('../../src/infrastructure/adapters/driving/http/routes/compra.routes');
 const createCouponRoutes = require('../../src/infrastructure/adapters/driving/http/routes/coupon.routes');
-const { eventBus, CHANNELS, EVENTS } = require('../common/events/EventBus');
+
+const { eventBus, CHANNELS, STREAMS, EVENTS } = require('../common/events/EventBus');
+const { correlationMiddleware } = require('../common/tracing/correlation');
+const { registry } = require('../common/registry/ServiceRegistry');
 
 const app = express();
 const PORT = process.env.ORDER_SERVICE_PORT || 3003;
@@ -43,6 +49,9 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Trazabilidad Distribuida (Correlation-ID)
+app.use(correlationMiddleware('order-service'));
 
 // Inyección de dependencias
 const compraRepository = new MySQLCompraRepository();
@@ -71,12 +80,11 @@ const compraController = new CompraController({
   telegramService
 });
 
-// Decorar el método crear de CompraController para emitir EVENT_ORDER_CREATED en Redis
+// Interceptar el método crear de CompraController para emitir EVENT_ORDER_CREATED en Redis
 const originalCrear = compraController.crear.bind(compraController);
 compraController.crear = async (req, res) => {
-  // Capturar respuesta json para emitir evento si la compra fue exitosa
   const originalJson = res.json.bind(res);
-  res.json = function(data) {
+  res.json = async function(data) {
     if (data && (data.id_compra || data.compra || (data.message && data.message.includes('exitosa')))) {
       const orderInfo = {
         orderId: data.id_compra || (data.compra && data.compra.id_compra),
@@ -86,11 +94,23 @@ compraController.crear = async (req, res) => {
         paymentMethod: req.body.metodoPago || req.body.metodo_pago,
         shippingAddress: req.body.direccion || req.body.direccion_envio
       };
-      eventBus.publish(CHANNELS.ORDERS, {
+
+      const eventPayload = {
         type: EVENTS.ORDER_CREATED,
+        correlationId: req.correlationId,
         data: orderInfo
-      });
-      console.log(`📢 [EventBus] Publicado evento ORDER_CREATED para orden #${orderInfo.orderId}`);
+      };
+
+      // 1. Emitir evento volátil en Pub/Sub
+      eventBus.publish(CHANNELS.ORDERS, eventPayload);
+
+      // 2. Emitir evento persistente en Redis Stream (garantía de entrega)
+      try {
+        await eventBus.publishStream(STREAMS.ORDERS, eventPayload);
+        console.log(`📢 [EventBus Stream] [Trace: ${req.correlationId}] Evento ORDER_CREATED guardado en Stream persistentemente para orden #${orderInfo.orderId}`);
+      } catch (streamErr) {
+        console.warn(`⚠️ [EventBus Stream Warning]:`, streamErr.message);
+      }
     }
     return originalJson(data);
   };
@@ -111,13 +131,17 @@ app.get('/health', (req, res) => {
     service: 'order-service',
     status: 'UP',
     database: process.env.DB_NAME,
-    port: PORT
+    port: PORT,
+    correlationId: req.correlationId,
+    timestamp: new Date().toISOString()
   });
 });
 
 if (require.main === module) {
   app.listen(PORT, () => {
-    console.log(`💳 [Order Service] corriendo en puerto ${PORT} conectado a [${process.env.DB_NAME}]`);
+    console.log(`💳 [Order & Payment Service Enterprise] corriendo en puerto ${PORT} conectado a [${process.env.DB_NAME}]`);
+    // Iniciar latido a Service Registry
+    registry.startHeartbeat({ serviceName: 'order-service', port: PORT });
   });
 }
 

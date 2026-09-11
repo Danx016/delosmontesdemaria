@@ -1,9 +1,11 @@
 /**
- * Microservicio: AI & Support Service
+ * Microservicio: AI & Support Service Enterprise
  * Puerto: 3004 (por defecto o AI_SUPPORT_SERVICE_PORT)
  * Base de Datos Privada: db_support
  * Responsabilidades: Tickets de soporte al cliente, Socket.IO para soporte en tiempo real
  * y Asistente IA (OpenRouter / LLM) para la tienda y consultas.
+ * Trazabilidad: X-Correlation-ID
+ * Resiliencia: Heartbeat a ServiceRegistry
  */
 require('dotenv').config();
 process.env.DB_NAME = process.env.SUPPORT_DB_NAME || 'db_support';
@@ -36,7 +38,9 @@ const {
 
 const createSoporteRoutes = require('../../src/infrastructure/adapters/driving/http/routes/soporte.routes');
 const createChatRoutes = require('../../src/infrastructure/adapters/driving/http/routes/chat.routes');
-const { eventBus, CHANNELS, EVENTS } = require('../common/events/EventBus');
+
+const { correlationMiddleware } = require('../common/tracing/correlation');
+const { registry } = require('../common/registry/ServiceRegistry');
 
 const app = express();
 const server = http.createServer(app);
@@ -47,6 +51,9 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Trazabilidad Distribuida (Correlation-ID)
+app.use(correlationMiddleware('ai-support-service'));
 
 // Configuración de Socket.IO
 const io = new Server(server, {
@@ -101,13 +108,17 @@ app.get('/health', (req, res) => {
     service: 'ai-support-service',
     status: 'UP',
     database: process.env.DB_NAME,
-    port: PORT
+    port: PORT,
+    correlationId: req.correlationId,
+    timestamp: new Date().toISOString()
   });
 });
 
 if (require.main === module) {
   server.listen(PORT, () => {
-    console.log(`🤖 [AI & Support Service] corriendo en puerto ${PORT} conectado a [${process.env.DB_NAME}]`);
+    console.log(`🤖 [AI & Support Service Enterprise] corriendo en puerto ${PORT} conectado a [${process.env.DB_NAME}]`);
+    // Iniciar latido a Service Registry
+    registry.startHeartbeat({ serviceName: 'ai-support-service', port: PORT });
   });
 }
 
