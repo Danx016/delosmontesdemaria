@@ -33,7 +33,8 @@ const SERVICES = {
   catalog: process.env.CATALOG_SERVICE_URL || 'http://127.0.0.1:3002',
   order: process.env.ORDER_SERVICE_URL || 'http://127.0.0.1:3003',
   support: process.env.AI_SUPPORT_SERVICE_URL || 'http://127.0.0.1:3004',
-  notification: process.env.NOTIFICATION_SERVICE_URL || 'http://127.0.0.1:3005'
+  notification: process.env.NOTIFICATION_SERVICE_URL || 'http://127.0.0.1:3005',
+  logistics: process.env.LOGISTICS_SERVICE_URL || 'http://127.0.0.1:3006'
 };
 
 // Circuit Breakers por servicio
@@ -42,7 +43,8 @@ const circuits = {
   catalog: new CircuitBreaker('catalog-service', { failureThreshold: 5, recoveryTimeout: 10000 }),
   order: new CircuitBreaker('order-service', { failureThreshold: 5, recoveryTimeout: 10000 }),
   support: new CircuitBreaker('ai-support-service', { failureThreshold: 5, recoveryTimeout: 10000 }),
-  notification: new CircuitBreaker('notification-service', { failureThreshold: 5, recoveryTimeout: 10000 })
+  notification: new CircuitBreaker('notification-service', { failureThreshold: 5, recoveryTimeout: 10000 }),
+  logistics: new CircuitBreaker('logistics-service', { failureThreshold: 5, recoveryTimeout: 10000 })
 };
 
 app.set('trust proxy', 1);
@@ -249,6 +251,13 @@ app.use(createResilientProxy(
   circuits.notification,
   SERVICES.notification,
   (p) => p.startsWith('/api/telegram') || p.startsWith('/api/notification') || p.startsWith('/api/whatsapp')
+));
+
+// 6. Logistics & Tracking Service (3006)
+app.use(createResilientProxy(
+  circuits.logistics,
+  SERVICES.logistics,
+  (p) => p.startsWith('/api/logistics')
 ));
 
 // Fallback SPA React

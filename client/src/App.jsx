@@ -35,6 +35,7 @@ import AdminMicroserviciosPage from './pages/AdminMicroserviciosPage'
 import AdminLoginPage from './pages/AdminLoginPage'
 import TerminosPage from './pages/TerminosPage'
 import PrivacidadPage from './pages/PrivacidadPage'
+import TrackingPage from './pages/TrackingPage'
 import NotFoundPage from './pages/NotFoundPage'
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '95151482078-k07kflr5nbjnjs89ntoff2dgikgsor1u.apps.googleusercontent.com'
 export default function App() {
@@ -61,6 +62,8 @@ export default function App() {
               <Route path="/categoria/:slug" element={<CategoryPage />} />
               <Route path="/vendedores" element={<VendedoresPage />} />
               <Route path="/vendedor/:id" element={<VendedorPerfilPage />} />
+              <Route path="/rastreo" element={<TrackingPage />} />
+              <Route path="/rastreo/:trackingNumber" element={<TrackingPage />} />
               <Route path="/soporte" element={<SoportePage />} />
               <Route path="/terminos" element={<TerminosPage />} />
               <Route path="/terminos-condiciones" element={<TerminosPage />} />

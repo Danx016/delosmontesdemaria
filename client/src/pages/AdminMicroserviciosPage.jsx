@@ -177,7 +177,7 @@ export default function AdminMicroserviciosPage() {
             <div style={{ background: '#fff', padding: '18px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
               <div style={{ fontSize: '12px', color: '#64748b', fontWeight: '600', textTransform: 'uppercase' }}>Instancias Vivas (Redis)</div>
               <div style={{ fontSize: '22px', fontWeight: '800', color: '#0f172a', margin: '4px 0' }}>
-                {registryData?.length || 0} / 5 Servicios
+                {registryData?.length || 0} / 6 Servicios
               </div>
               <div style={{ fontSize: '12px', color: '#94a3b8' }}>Heartbeats activos cada 6s</div>
             </div>
@@ -211,7 +211,8 @@ export default function AdminMicroserviciosPage() {
                 catalog: { name: 'Catalog & Product Service', port: 3002, db: 'db_catalog', icon: 'fa-box-open', desc: 'Productos, Banners, Categorías y Caché Redis' },
                 order: { name: 'Order & Purchase Service', port: 3003, db: 'db_orders', icon: 'fa-shopping-cart', desc: 'Compras, Pagos Wompi, Cupones y Eventos' },
                 support: { name: 'AI & Support Service', port: 3004, db: 'db_support', icon: 'fa-robot', desc: 'Tickets, Socket.IO y Asistente IA OpenRouter' },
-                notification: { name: 'Notification Service', port: 3005, db: 'N/A', icon: 'fa-paper-plane', desc: 'Worker Telegram Bot y Correos Transaccionales' }
+                notification: { name: 'Notification Service', port: 3005, db: 'N/A', icon: 'fa-paper-plane', desc: 'WhatsApp Cloud API, Telegram Bot y Correos' },
+                logistics: { name: 'Logistics & Tracking Service', port: 3006, db: 'db_logistics', icon: 'fa-truck-fast', desc: 'Fletes Rurales, Tracking en Tiempo Real y Despachos' }
               }[key] || { name: key, port: 'N/A', db: 'N/A', icon: 'fa-server', desc: '' }
 
               return (

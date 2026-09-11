@@ -81,6 +81,20 @@ module.exports = {
         NOTIFICATION_SERVICE_PORT: 3005,
         REDIS_URL: 'redis://127.0.0.1:6379'
       }
+    },
+    {
+      name: 'logistics-service',
+      script: 'services/logistics-service/server.js',
+      instances: 1,
+      autorestart: true,
+      watch: false,
+      max_memory_restart: '250M',
+      env: {
+        NODE_ENV: 'production',
+        LOGISTICS_SERVICE_PORT: 3006,
+        DB_NAME: 'db_logistics',
+        REDIS_URL: 'redis://127.0.0.1:6379'
+      }
     }
   ]
 };

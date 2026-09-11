@@ -212,6 +212,12 @@ export default function Navbar() {
             </li>
 
             <li>
+              <Link to="/rastreo" className={`nav-link-item ${isActive('/rastreo') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>
+                <i className="fa fa-truck-fast" /> <span>Rastreo</span>
+              </Link>
+            </li>
+
+            <li>
               <Link
                 to={isAdmin || isSupport ? '/admin/soporte' : '/soporte'}
                 className={`nav-link-item ${isActive('/soporte') || isActive('/admin/soporte') ? 'active' : ''}`}
@@ -257,6 +263,9 @@ export default function Navbar() {
                     <hr className="user-popup-divider" />
                     <Link to="/perfil" onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }}>
                       <i className="fa fa-user" /> Mi Perfil y Pedidos
+                    </Link>
+                    <Link to="/rastreo" onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }}>
+                      <i className="fa fa-truck-fast" /> Rastrear Cosecha
                     </Link>
                     <Link to="/vendedor" onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }}>
                       <i className="fa fa-store" /> Centro de Ventas (Vender)
