@@ -1,6 +1,7 @@
 /**
- * Configuración de PM2 para Ecosistema de Microservicios
+ * Configuración de PM2 para Ecosistema de Microservicios Puros
  * De los Montes de María en Servidor Propio (Ubuntu)
+ * Cada microservicio tiene su base de datos privada y bus de eventos Redis.
  */
 module.exports = {
   apps: [
@@ -25,7 +26,8 @@ module.exports = {
       max_memory_restart: '250M',
       env: {
         NODE_ENV: 'production',
-        AUTH_SERVICE_PORT: 3001
+        AUTH_SERVICE_PORT: 3001,
+        DB_NAME: 'db_auth'
       }
     },
     {
@@ -37,7 +39,8 @@ module.exports = {
       max_memory_restart: '250M',
       env: {
         NODE_ENV: 'production',
-        CATALOG_SERVICE_PORT: 3002
+        CATALOG_SERVICE_PORT: 3002,
+        DB_NAME: 'db_catalog'
       }
     },
     {
@@ -49,7 +52,8 @@ module.exports = {
       max_memory_restart: '250M',
       env: {
         NODE_ENV: 'production',
-        ORDER_SERVICE_PORT: 3003
+        ORDER_SERVICE_PORT: 3003,
+        DB_NAME: 'db_orders'
       }
     },
     {
@@ -61,7 +65,8 @@ module.exports = {
       max_memory_restart: '300M',
       env: {
         NODE_ENV: 'production',
-        AI_SUPPORT_SERVICE_PORT: 3004
+        AI_SUPPORT_SERVICE_PORT: 3004,
+        DB_NAME: 'db_support'
       }
     },
     {
@@ -73,7 +78,8 @@ module.exports = {
       max_memory_restart: '250M',
       env: {
         NODE_ENV: 'production',
-        NOTIFICATION_SERVICE_PORT: 3005
+        NOTIFICATION_SERVICE_PORT: 3005,
+        REDIS_URL: 'redis://127.0.0.1:6379'
       }
     }
   ]

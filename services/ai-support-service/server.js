@@ -1,10 +1,13 @@
 /**
  * Microservicio: AI & Support Service
  * Puerto: 3004 (por defecto o AI_SUPPORT_SERVICE_PORT)
+ * Base de Datos Privada: db_support
  * Responsabilidades: Tickets de soporte al cliente, Socket.IO para soporte en tiempo real
  * y Asistente IA (OpenRouter / LLM) para la tienda y consultas.
  */
 require('dotenv').config();
+process.env.DB_NAME = process.env.SUPPORT_DB_NAME || 'db_support';
+
 const http = require('http');
 const express = require('express');
 const cors = require('cors');
@@ -33,6 +36,7 @@ const {
 
 const createSoporteRoutes = require('../../src/infrastructure/adapters/driving/http/routes/soporte.routes');
 const createChatRoutes = require('../../src/infrastructure/adapters/driving/http/routes/chat.routes');
+const { eventBus, CHANNELS, EVENTS } = require('../common/events/EventBus');
 
 const app = express();
 const server = http.createServer(app);
@@ -93,12 +97,17 @@ app.use('/api/chat', createChatRoutes(chatController));
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ service: 'ai-support-service', status: 'UP', port: PORT });
+  res.json({
+    service: 'ai-support-service',
+    status: 'UP',
+    database: process.env.DB_NAME,
+    port: PORT
+  });
 });
 
 if (require.main === module) {
   server.listen(PORT, () => {
-    console.log(`🤖 [AI & Support Service] corriendo en puerto ${PORT}`);
+    console.log(`🤖 [AI & Support Service] corriendo en puerto ${PORT} conectado a [${process.env.DB_NAME}]`);
   });
 }
 
