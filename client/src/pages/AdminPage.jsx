@@ -1343,6 +1343,9 @@ export default function AdminPage() {
                 <i className="fa fa-file-pdf" style={{ color: '#dc2626', fontSize: '1.1rem' }} />
                 Balance PDF
               </button>
+              <Link to="/admin/microservicios" className="btn btn-outline" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, padding: '0.65rem 1.15rem', borderColor: '#10b981', color: '#059669', background: '#ecfdf5' }}>
+                <i className="fa fa-network-wired" /> Microservicios 🛡️
+              </Link>
               <Link to="/admin/soporte" className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, padding: '0.65rem 1.15rem' }}>
                 <i className="fa fa-headset" /> Mesa de Ayuda
               </Link>
@@ -1405,6 +1408,13 @@ export default function AdminPage() {
               style={{ textDecoration: 'none' }}
             >
               <i className="fa fa-headset text-warning" /> Mesa de Ayuda & Chat
+            </Link>
+            <Link
+              to="/admin/microservicios"
+              className="admin-tab-btn"
+              style={{ textDecoration: 'none', color: '#059669' }}
+            >
+              <i className="fa fa-shield-alt text-success" /> Microservicios 🛡️
             </Link>
             <button
               className={`admin-tab-btn ${activeTab === 'ia' ? 'active' : ''}`}

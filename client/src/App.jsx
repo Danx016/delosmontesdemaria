@@ -31,6 +31,7 @@ import VendedoresPage from './pages/VendedoresPage'
 import SoportePage from './pages/SoportePage'
 import AdminPage from './pages/AdminPage'
 import AdminSoportePage from './pages/AdminSoportePage'
+import AdminMicroserviciosPage from './pages/AdminMicroserviciosPage'
 import AdminLoginPage from './pages/AdminLoginPage'
 import TerminosPage from './pages/TerminosPage'
 import PrivacidadPage from './pages/PrivacidadPage'
@@ -93,6 +94,10 @@ export default function App() {
               <Route
                 path="/admin"
                 element={<AdminRoute><AdminPage /></AdminRoute>}
+              />
+              <Route
+                path="/admin/microservicios"
+                element={<AdminRoute><AdminMicroserviciosPage /></AdminRoute>}
               />
 
               {/* Rutas para Admin y Soporte */}

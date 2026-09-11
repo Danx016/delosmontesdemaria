@@ -5,6 +5,7 @@
  * Responsabilidades: Catálogo de productos agropecuarios, categorías,
  * filtros de búsqueda, inventario y banners dinámicos.
  * Trazabilidad: X-Correlation-ID
+ * Caché: Redis Cache-Aside (< 2ms) con X-Cache: HIT/MISS
  * Eventos: Pub/Sub y Redis Streams con Consumer Groups y XACK
  * Resiliencia: Heartbeat a ServiceRegistry
  */
@@ -33,9 +34,11 @@ const createBannerRoutes = require('../../src/infrastructure/adapters/driving/ht
 const { eventBus, CHANNELS, STREAMS, EVENTS } = require('../common/events/EventBus');
 const { correlationMiddleware } = require('../common/tracing/correlation');
 const { registry } = require('../common/registry/ServiceRegistry');
+const { CacheManager } = require('../common/cache/CacheManager');
 
 const app = express();
 const PORT = process.env.CATALOG_SERVICE_PORT || 3002;
+const cache = new CacheManager('catalog:');
 
 // Middlewares
 app.use(cors({ origin: true, credentials: true }));
@@ -57,11 +60,26 @@ const productoController = new ProductoController({
 });
 const bannerController = new BannerController(bannerRepository);
 
-// Rutas del servicio
-app.use('/api/productos', createProductoRoutes(productoController));
-app.use('/api/banners', createBannerRoutes(bannerController));
+// Limpieza manual de caché
+app.post('/api/catalog/cache/clear', async (req, res) => {
+  await cache.delPattern('*');
+  res.json({ success: true, message: 'Caché de catálogo purgada exitosamente' });
+});
 
-// Lógica de procesamiento de orden (actualización de inventario)
+// Rutas del servicio con Caché Distribuida Redis (< 2ms)
+app.use(
+  '/api/productos',
+  cache.middleware((req) => `productos:${req.path}:${JSON.stringify(req.query)}`, 300),
+  createProductoRoutes(productoController)
+);
+
+app.use(
+  '/api/banners',
+  cache.middleware((req) => `banners:${req.path}`, 300),
+  createBannerRoutes(bannerController)
+);
+
+// Lógica de procesamiento de orden (actualización de inventario e invalidación de caché)
 const procesarOrdenInventario = async (event, msgId = 'pubsub') => {
   if (event.type === EVENTS.ORDER_CREATED && event.data && Array.isArray(event.data.items)) {
     const trace = event.correlationId || 'N/A';
@@ -83,6 +101,9 @@ const procesarOrdenInventario = async (event, msgId = 'pubsub') => {
         });
       }
     }
+    // Invalidar caché de productos para que la tienda refleje de inmediato el nuevo stock
+    await cache.delPattern('productos:*');
+    console.log('  ⚡ [Catalog Cache] Caché de productos invalidada tras cambio de inventario.');
   }
 };
 
@@ -104,6 +125,7 @@ app.get('/health', (req, res) => {
     status: 'UP',
     database: process.env.DB_NAME,
     port: PORT,
+    cache: 'REDIS_ENABLED',
     correlationId: req.correlationId,
     timestamp: new Date().toISOString()
   });
@@ -111,7 +133,7 @@ app.get('/health', (req, res) => {
 
 if (require.main === module) {
   app.listen(PORT, () => {
-    console.log(`📦 [Catalog Service Enterprise] corriendo en puerto ${PORT} conectado a [${process.env.DB_NAME}]`);
+    console.log(`📦 [Catalog Service Enterprise] corriendo en puerto ${PORT} conectado a [${process.env.DB_NAME}] con Caché Redis`);
     // Iniciar latido a Service Registry
     registry.startHeartbeat({ serviceName: 'catalog-service', port: PORT });
   });

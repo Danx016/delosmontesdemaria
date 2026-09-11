@@ -1,26 +1,63 @@
-name: Auto Deploy to Oracle Cloud
+name: CI/CD Pipeline - De los Montes de María
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  deploy:
+  validate-and-build:
+    name: 🧪 Validación y Compilación
     runs-on: ubuntu-latest
 
     steps:
-      - name: Conectar por SSH y Desplegar
+      - name: 📥 Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: ⚙️ Configurar Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: 📦 Instalar dependencias backend
+        run: npm ci || npm install
+
+      - name: 🔍 Validar sintaxis de Microservicios
+        run: |
+          node -c services/gateway/server.js
+          node -c services/auth-service/server.js
+          node -c services/catalog-service/server.js
+          node -c services/order-service/server.js
+          node -c services/ai-support-service/server.js
+          node -c services/notification-service/server.js
+
+      - name: 🎨 Compilar Frontend React (Vite)
+        run: |
+          npm --prefix client install
+          npm --prefix client run build
+
+  deploy:
+    name: 🚀 Despliegue en Oracle Cloud
+    needs: validate-and-build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: 📡 Desplegar en Servidor Remoto vía SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: 157.137.233.119
-          username: ubuntu
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          host: ${{ secrets.SSH_HOST || '157.137.233.119' }}
+          username: ${{ secrets.SSH_USERNAME || 'ubuntu' }}
+          key: ${{ secrets.SSH_KEY }}
           port: 22
+          script_stop: true
           script: |
+            echo "🚀 Iniciando despliegue de microservicios en Oracle Cloud..."
             cd /home/ubuntu/montesdemaria
-            git fetch origin main
-            git reset --hard origin/main
-            npm install --production=false
-            npm run build
-            pm2 restart montesdemaria || pm2 restart all
+            git pull origin main
+            npm install --production
+            npm run build:client
+            pm2 reload all --update-env
+            pm2 save
+            echo "✅ ¡Despliegue completado con éxito y cero tiempo de inactividad (Zero Downtime)!"

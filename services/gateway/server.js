@@ -129,6 +129,29 @@ app.get('/api/dlq', async (req, res) => {
   });
 });
 
+// Resetear un Circuit Breaker manualmente desde el panel de control
+app.post('/api/circuit-status/reset/:service', (req, res) => {
+  const { service } = req.params;
+  const circuit = circuits[service];
+  if (!circuit) {
+    return res.status(404).json({ error: `Circuito para servicio [${service}] no encontrado.` });
+  }
+  circuit.state = 'CLOSED';
+  circuit.failureCount = 0;
+  res.json({ success: true, message: `Circuito [${service}] reseteado a CLOSED exitosamente.` });
+});
+
+// Limpiar mensajes acumulados de la DLQ
+app.post('/api/dlq/clear', async (req, res) => {
+  try {
+    const redis = registry.getRedisClient();
+    await redis.del('stream:dlq');
+    res.json({ success: true, message: 'Dead Letter Queue vaciada exitosamente.' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Proxy para WebSockets (Socket.IO hacia ai-support-service)
 const wsProxy = createProxyMiddleware({
   target: SERVICES.support,
