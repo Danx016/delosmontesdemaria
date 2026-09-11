@@ -74,32 +74,37 @@ const wsProxy = createProxyMiddleware({
 });
 app.use('/socket.io', wsProxy);
 
-// Enrutamiento de Reverse-Proxy a Microservicios
-app.use(['/api/auth', '/api/user', '/register', '/login', '/api/recover'], createProxyMiddleware({
+// Enrutamiento de Reverse-Proxy a Microservicios (Preservando URL completa)
+app.use(createProxyMiddleware({
+  pathFilter: (pathname) => pathname.startsWith('/api/auth') || pathname.startsWith('/api/user') || pathname.startsWith('/register') || pathname.startsWith('/login') || pathname.startsWith('/api/recover'),
   target: SERVICES.auth,
   changeOrigin: true,
   xfwd: true
 }));
 
-app.use(['/api/productos', '/api/banners'], createProxyMiddleware({
+app.use(createProxyMiddleware({
+  pathFilter: (pathname) => pathname.startsWith('/api/productos') || pathname.startsWith('/api/banners'),
   target: SERVICES.catalog,
   changeOrigin: true,
   xfwd: true
 }));
 
-app.use(['/api/compra', '/api/compras', '/api/cupones'], createProxyMiddleware({
+app.use(createProxyMiddleware({
+  pathFilter: (pathname) => pathname.startsWith('/api/compra') || pathname.startsWith('/api/compras') || pathname.startsWith('/api/cupones'),
   target: SERVICES.order,
   changeOrigin: true,
   xfwd: true
 }));
 
-app.use(['/api/soporte', '/api/chat'], createProxyMiddleware({
+app.use(createProxyMiddleware({
+  pathFilter: (pathname) => pathname.startsWith('/api/soporte') || pathname.startsWith('/api/chat'),
   target: SERVICES.support,
   changeOrigin: true,
   xfwd: true
 }));
 
-app.use('/api/telegram', createProxyMiddleware({
+app.use(createProxyMiddleware({
+  pathFilter: (pathname) => pathname.startsWith('/api/telegram'),
   target: SERVICES.notification,
   changeOrigin: true,
   xfwd: true
