@@ -147,7 +147,15 @@ class AdminController {
   async listarProductosGlobal(req, res) {
     try {
       const productos = await this.productoRepository.listarTodos();
-      const usuarios = await this.usuarioRepository.listarTodos();
+      let usuarios = [];
+      if (this.usuarioRepository && typeof this.usuarioRepository.listarTodos === 'function') {
+        try {
+          usuarios = await this.usuarioRepository.listarTodos();
+        } catch (uErr) {
+          // Si está en microservicio aislado, continuar sin bloquear
+        }
+      }
+
       const userMap = {};
       if (Array.isArray(usuarios)) {
         usuarios.forEach(u => {
@@ -157,7 +165,7 @@ class AdminController {
 
       const enriched = productos.map(p => {
         const json = typeof p.toJSON === 'function' ? p.toJSON() : p;
-        json.vendedor_nombre = userMap[json.id_vendedor] || userMap[json.id_proveedor] || 'Administrador / Sin asignar';
+        json.vendedor_nombre = userMap[json.id_vendedor] || userMap[json.id_proveedor] || 'Productor Campesino';
         return json;
       });
 
