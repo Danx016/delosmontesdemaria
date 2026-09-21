@@ -23,14 +23,13 @@ class IAService {
 
     const preferredModel = (appConfig.openRouterModel && appConfig.openRouterModel !== 'openrouter/free')
       ? appConfig.openRouterModel
-      : 'inclusionai/ling-3.0-flash-vl:free';
+      : 'openai/gpt-4o-mini';
 
     const candidateModels = [
       preferredModel,
+      'openai/gpt-4o-mini',
+      'deepseek/deepseek-chat',
       'inclusionai/ling-3.0-flash-vl:free',
-      'inclusionai/ling-3.0-flash-fin:free',
-      'inclusionai/ling-3.0-flash-sante:free',
-      'cohere/north-mini-code:free',
       'nvidia/nemotron-3.5-lightning:free'
     ].filter(Boolean);
     const modelsToTry = [...new Set(candidateModels)];
