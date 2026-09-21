@@ -322,6 +322,28 @@ app.use(createResilientProxy(
   (p) => p.startsWith('/api/logistics')
 ));
 
+// 7. WebSocket & HTTP Polling Proxy para Soporte en Vivo (Socket.IO -> ai-support-service)
+const socketIoProxy = createProxyMiddleware({
+  target: SERVICES.support,
+  changeOrigin: true,
+  ws: true,
+  on: {
+    error: (err, req, res) => {
+      if (res && !res.headersSent && typeof res.status === 'function') {
+        res.status(503).json({ error: 'Socket.IO no disponible actualmente' });
+      }
+    }
+  }
+});
+
+app.use('/socket.io', socketIoProxy);
+
+server.on('upgrade', (req, socket, head) => {
+  if (req.url && req.url.startsWith('/socket.io')) {
+    socketIoProxy.upgrade(req, socket, head);
+  }
+});
+
 // Fallback SPA React
 app.use((req, res, next) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/uploads') || req.path.startsWith('/img') || req.path.startsWith('/socket.io')) {
