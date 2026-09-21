@@ -212,19 +212,32 @@ app.post(['/api/cache/clear', '/api/catalog/cache/clear'], async (req, res) => {
   }
 });
 
-// Proxy para WebSockets (Socket.IO hacia ai-support-service)
-const wsProxy = createProxyMiddleware({
+// Proxy para WebSockets y HTTP Polling (Socket.IO hacia ai-support-service: 3004)
+const socketIoProxy = createProxyMiddleware({
+  pathFilter: '/socket.io/**',
   target: SERVICES.support,
   changeOrigin: true,
   ws: true,
-  logLevel: 'silent',
-  onProxyReq: (proxyReq, req) => {
-    if (req.correlationId) {
-      proxyReq.setHeader('X-Correlation-ID', req.correlationId);
+  on: {
+    proxyReq: (proxyReq, req) => {
+      if (req.correlationId) {
+        proxyReq.setHeader('X-Correlation-ID', req.correlationId);
+      }
+    },
+    error: (err, req, res) => {
+      if (res && !res.headersSent && typeof res.status === 'function') {
+        res.status(503).json({ error: 'Socket.IO no disponible actualmente' });
+      }
     }
   }
 });
-app.use('/socket.io', wsProxy);
+app.use(socketIoProxy);
+
+server.on('upgrade', (req, socket, head) => {
+  if (req.url && req.url.startsWith('/socket.io')) {
+    socketIoProxy.upgrade(req, socket, head);
+  }
+});
 
 // ==========================================
 // PROXY RESILIENTE CON CIRCUIT BREAKER
@@ -322,32 +335,6 @@ app.use(createResilientProxy(
   (p) => p.startsWith('/api/logistics')
 ));
 
-// 7. WebSocket & HTTP Polling Proxy para Soporte en Vivo (Socket.IO -> ai-support-service)
-const socketIoProxy = createProxyMiddleware({
-  target: SERVICES.support,
-  changeOrigin: true,
-  ws: true,
-  on: {
-    error: (err, req, res) => {
-      if (res && !res.headersSent && typeof res.status === 'function') {
-        res.status(503).json({ error: 'Socket.IO no disponible actualmente' });
-      }
-    }
-  }
-});
-
-app.use((req, res, next) => {
-  if (req.path.startsWith('/socket.io')) {
-    return socketIoProxy(req, res, next);
-  }
-  next();
-});
-
-server.on('upgrade', (req, socket, head) => {
-  if (req.url && req.url.startsWith('/socket.io')) {
-    socketIoProxy.upgrade(req, socket, head);
-  }
-});
 
 // Fallback SPA React
 app.use((req, res, next) => {
