@@ -13,6 +13,8 @@ module.exports = {
   googleClientSecret: sanitize(process.env.GOOGLE_CLIENT_SECRET) || '',
   openRouterApiKey: sanitize(process.env.OPENROUTER_API_KEY) || '',
   openRouterModel: process.env.OPENROUTER_MODEL || 'openai/gpt-4o-mini',
+  groqApiKey: sanitize(process.env.GROQ_API_KEY) || '',
+  groqModel: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
   baseUrl: process.env.BASE_URL || 'https://delosmontesdemaria.duckdns.org',
   company: {
     name: 'DE LOS MONTES DE MARÍA S.A.S',

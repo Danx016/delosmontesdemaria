@@ -16,9 +16,71 @@ class IAService {
    * Ejecuta llamadas seguras a OpenRouter con tolerancia a fallos, soporte de herramientas y recuperación de modelos
    */
   async callChatCompletion({ messages, tools = null, tool_choice = null, temperature = 0.7, max_tokens = 1200, appTitle = 'De los Montes de Maria AI' }) {
+    const tokenLimit = Math.max(Number(max_tokens) || 1200, 1000);
+
+    // 1. Proveedor Primario: Groq Cloud (100% Gratuito, ultra rápido, 14.400 peticiones/día)
+    if (appConfig.groqApiKey && !appConfig.groqApiKey.startsWith('tu_clave')) {
+      const groqModels = [
+        appConfig.groqModel || 'openai/gpt-oss-120b',
+        'openai/gpt-oss-120b',
+        'qwen/qwen3.8-27b'
+      ];
+      const uniqueGroqModels = [...new Set(groqModels.filter(Boolean))];
+
+      for (const model of uniqueGroqModels) {
+        try {
+          const bodyPayload = {
+            model,
+            messages,
+            temperature,
+            max_tokens: tokenLimit
+          };
+          if (tools && Array.isArray(tools) && tools.length > 0) {
+            bodyPayload.tools = tools;
+            if (tool_choice) bodyPayload.tool_choice = tool_choice;
+          }
+
+          const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            signal: AbortSignal.timeout(15000),
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${appConfig.groqApiKey}`
+            },
+            body: JSON.stringify(bodyPayload)
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            const choice = data?.choices?.[0];
+            if (choice) {
+              const message = choice.message || {};
+              let content = message.content;
+              if (typeof content === 'string') {
+                const cleaned = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+                content = cleaned || content.trim();
+              }
+              return {
+                modelUsed: `groq/${model}`,
+                choice,
+                message: { ...message, content },
+                tool_calls: message.tool_calls || []
+              };
+            }
+          } else {
+            const errText = await response.text();
+            console.warn(`⚠️ [Groq ${model} Status ${response.status}]:`, errText.slice(0, 120));
+          }
+        } catch (groqErr) {
+          console.warn(`⚠️ [Groq Error con ${model}]:`, groqErr.message);
+        }
+      }
+    }
+
+    // 2. Proveedor Secundario: OpenRouter
     const apiKey = appConfig.openRouterApiKey;
     if (!apiKey || apiKey.startsWith('tu_clave')) {
-      throw new Error('API Key de OpenRouter no configurada');
+      throw new Error('Sin proveedor de IA disponible');
     }
 
     const preferredModel = (appConfig.openRouterModel && appConfig.openRouterModel !== 'openrouter/free')
@@ -35,7 +97,6 @@ class IAService {
     const modelsToTry = [...new Set(candidateModels)];
 
     let lastError = null;
-    const tokenLimit = Math.max(Number(max_tokens) || 1200, 1000);
 
     for (const model of modelsToTry) {
       try {
