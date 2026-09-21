@@ -68,6 +68,11 @@ class IAService {
           console.warn(`⚠️ [OpenRouter ${model} Status ${response.status}]:`, errText.slice(0, 150));
           lastError = new Error(`Status ${response.status}: ${errText.slice(0, 100)}`);
 
+          // Si el límite es a nivel de cuenta (cuota diaria agotada), no tiene sentido probar otros modelos gratuitos en la misma cuenta
+          if (response.status === 429 && errText.includes('free-models-per-day')) {
+            break;
+          }
+
           // Si falla con herramientas (ej: 400 Bad Request), reintentar el mismo modelo sin tools
           if (response.status === 400 && tools && tools.length > 0) {
             try {
@@ -204,11 +209,95 @@ REGLAS DE FORMATO:
         max_tokens: 1200,
         appTitle: 'De los Montes de Maria Store AI'
       });
-      return completion.message?.content || 'Entendido.';
+      return completion.message?.content || this._generarRespuestaFallbackPublico(message, productos);
     } catch (err) {
-      console.error('Error en procesarChatPublico:', err);
-      return `❌ Error al conectar con el Asistente de IA: ${err.message}`;
+      console.warn('⚠️ [OpenRouter degradado o en cuota límite (429) - activando motor semántico resiliente]:', err.message);
+      return this._generarRespuestaFallbackPublico(message, productos);
     }
+  }
+
+  /**
+   * Generador semántico contextual resiliente
+   * Garantiza respuestas amables, rápidas e interactivas con botones de compra incluso si el LLM externo no está disponible
+   */
+  _generarRespuestaFallbackPublico(message, productos = []) {
+    const cleanMsg = (message || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+
+    const formatPrice = (p) => {
+      const num = Number(p) || 0;
+      return '$' + num.toLocaleString('es-CO') + ' COP';
+    };
+
+    const formatProductTag = (p) => {
+      const id = p.id_producto || p.id;
+      const nombre = p.nombre_producto || p.nombre || 'Producto Campesino';
+      const precio = Number(p.precio) || 0;
+      const pres = p.presentacion || p.unidad_medida || 'Unidad';
+      const disp = p.stock || p.disponibilidad || 10;
+      const img = p.imagen
+        ? (p.imagen.startsWith('http') || p.imagen.startsWith('/') ? p.imagen : `/uploads/products/${p.imagen}`)
+        : '/img/Logo.jpg';
+      const loc = p.ubicacion_nombre || p.origen || 'Montes de María';
+
+      return `* **Insumo:** ${nombre}\n* **Precio:** ${formatPrice(precio)}\n* **Presentación:** ${pres} | **Disponibilidad:** ${disp}\n* **Origen:** ${loc}\n[AGRO_ADD_CART: ${id}|${nombre}|${precio}|${pres}|${disp}|${img}]`;
+    };
+
+    // 1. Saludos
+    if (/\b(hola|buen|buenos|buenas|dias|tardes|noches|saludos|hey|alo|hello)\b/.test(cleanMsg)) {
+      const destacados = (productos || []).slice(0, 2);
+      let prodText = '';
+      if (destacados.length > 0) {
+        prodText = `\n\n🌾 **Te recomiendo echarle un vistazo a estos productos recién cosechados:**\n\n` +
+          destacados.map(formatProductTag).join('\n\n');
+      }
+      return `¡Hola! 🌱 Bienvenido a **De los Montes de María**, el mercado campesino que conecta a las familias agricultoras directamente contigo.\n\nPuedo orientarte con:\n- 🌱 **Semillas nativas y seleccionadas**\n- 🧀 **Lácteos y cosechas frescas**\n- 🚚 **Envíos y cobertura nacional**\n- 💳 **Medios de pago disponibles**\n\n¿En qué cultivo o producto te gustaría que te asesore hoy?${prodText}`;
+    }
+
+    // 2. Envíos y cobertura
+    if (/\b(envio|envios|domicilio|domicilios|cobertura|transporte|despacho|cuanto tarda|demora|ciudades|bogota|medellin|cali|barranquilla|cartagena|sincelejo)\b/.test(cleanMsg)) {
+      return `🚚 **Envíos y Cobertura Nacional:**\n\n- Despachamos directamente desde los **Montes de María** (El Carmen de Bolívar, San Jacinto, San Juan Nepomuceno) a cualquier municipio o ciudad de Colombia.\n- **Tiempos de entrega:** De **2 a 5 días hábiles** dependiendo de tu ciudad.\n- **Garantía:** Los productos van empacados en condiciones óptimas para conservar su frescura.\n- Puedes rastrear el estado de tu pedido desde tu panel de usuario en **Mis Compras**.\n\n¿Deseas pedir algún producto para calcular tu despacho?`;
+    }
+
+    // 3. Pagos y métodos de compra
+    if (/\b(pago|pagos|pagar|metodo|metodos|tarjeta|credito|debito|nequi|daviplata|pse|wompi|epayco|paypal|transferencia|efectivo|agrocredito)\b/.test(cleanMsg)) {
+      return `💳 **Métodos de Pago Disponibles:**\n\n- **Pasarelas Seguras:** Wompi y ePayco (admiten Tarjetas Visa, Mastercard, American Express, PSE, Nequi y Daviplata).\n- **Agro-Créditos:** Facilidad de financiamiento para productores y clientes frecuentes.\n- **PayPal:** Disponible para compras internacionales o en moneda extranjera.\n\nTodas las transacciones están cifradas y respaldadas para tu total seguridad.`;
+    }
+
+    // 4. Ubicación / Sobre Montes de María
+    if (/\b(donde|quienes son|sede|montes de maria|origen|campesinos|finca|bolivar|sucre|ubicacion)\b/.test(cleanMsg)) {
+      return `📍 **Sobre De los Montes de María:**\n\nSomos una plataforma agropecuaria comunitaria con centro de acopio en **El Carmen de Bolívar**, Colombia. Trabajamos mano a mano con pequeños agricultores y campesinos de Bolívar y Sucre (San Jacinto, San Juan Nepomuceno, Ovejas, Colosó, Chalán) para llevar sus cosechas frescas y semillas nativas directo a tu mesa o finca sin intermediarios.`;
+    }
+
+    // 5. Búsqueda de productos en el catálogo
+    const stopWords = ['de', 'la', 'el', 'los', 'las', 'un', 'una', 'unos', 'unas', 'y', 'o', 'para', 'por', 'con', 'en', 'que', 'tienen', 'venden', 'busco', 'quiero', 'precio', 'costo', 'vale', 'cuanto', 'cuánto', 'producto', 'productos', 'hay', 'donde'];
+    const searchTerms = cleanMsg.split(/\s+/).filter(w => w.length > 2 && !stopWords.includes(w));
+
+    let matched = [];
+    if (searchTerms.length > 0 && Array.isArray(productos) && productos.length > 0) {
+      matched = productos.filter(p => {
+        const pName = (p.nombre_producto || p.nombre || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const pDesc = (p.descripcion || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const pCat = (p.categoria || p.categoria_nombre || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        return searchTerms.some(term => pName.includes(term) || pDesc.includes(term) || pCat.includes(term));
+      });
+    }
+
+    if (matched.length > 0) {
+      const topMatches = matched.slice(0, 3);
+      return `🌾 Encontré **${matched.length} producto(s)** en nuestro catálogo que coinciden con lo que buscas:\n\n` +
+        topMatches.map(formatProductTag).join('\n\n') +
+        `\n\n💡 *Puedes agregarlos a tu pedido usando el botón verde de cada producto o consultar detalles adicionales.*`;
+    }
+
+    // 6. Respuesta por defecto
+    const randomSamples = (productos || []).slice(0, 2);
+    let sampleText = '';
+    if (randomSamples.length > 0) {
+      sampleText = `\n\nAquí tienes algunas opciones destacadas disponibles hoy:\n\n` +
+        randomSamples.map(formatProductTag).join('\n\n');
+    }
+
+    return `🌾 Entendido. En **De los Montes de María** disponemos de cosechas frescas, semillas nativas certificadas, abonos orgánicos e insumos agrícolas de origen campesino.${sampleText}\n\n¿Hay algún cultivo, semilla o producto en particular sobre el que desees más detalles?`;
   }
 
   // ==========================================
