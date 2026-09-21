@@ -336,7 +336,12 @@ const socketIoProxy = createProxyMiddleware({
   }
 });
 
-app.use('/socket.io', socketIoProxy);
+app.use((req, res, next) => {
+  if (req.path.startsWith('/socket.io')) {
+    return socketIoProxy(req, res, next);
+  }
+  next();
+});
 
 server.on('upgrade', (req, socket, head) => {
   if (req.url && req.url.startsWith('/socket.io')) {
