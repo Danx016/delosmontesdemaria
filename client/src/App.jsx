@@ -100,7 +100,7 @@ export default function App() {
               />
               <Route
                 path="/admin/microservicios"
-                element={<AdminRoute><AdminMicroserviciosPage /></AdminRoute>}
+                element={<AdminMicroserviciosPage />}
               />
 
               {/* Rutas para Admin y Soporte */}

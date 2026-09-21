@@ -8,7 +8,7 @@
  * Resiliencia: Heartbeat a ServiceRegistry
  */
 require('dotenv').config();
-process.env.DB_NAME = process.env.SUPPORT_DB_NAME || 'db_support';
+process.env.DB_NAME = process.env.SUPPORT_DB_NAME || process.env.DB_NAME || 'dbmontesdm';
 
 const http = require('http');
 const express = require('express');
@@ -20,7 +20,10 @@ const {
   MySQLSoporteRepository,
   MySQLUsuarioRepository,
   MySQLProductoRepository,
-  MySQLCompraRepository
+  MySQLCompraRepository,
+  MySQLCategoriaRepository,
+  MySQLBannerRepository,
+  MySQLCouponRepository
 } = require('../../src/infrastructure/adapters/driven/persistence');
 
 const {
@@ -32,10 +35,12 @@ const {
 const SocketHandler = require('../../src/infrastructure/adapters/driving/websocket/SocketHandler');
 
 const {
+  AdminController,
   SoporteController,
   ChatController
 } = require('../../src/infrastructure/adapters/driving/http/controllers');
 
+const createAdminRoutes = require('../../src/infrastructure/adapters/driving/http/routes/admin.routes');
 const createSoporteRoutes = require('../../src/infrastructure/adapters/driving/http/routes/soporte.routes');
 const createChatRoutes = require('../../src/infrastructure/adapters/driving/http/routes/chat.routes');
 
@@ -67,6 +72,9 @@ const soporteRepository = new MySQLSoporteRepository();
 const usuarioRepository = new MySQLUsuarioRepository();
 const productoRepository = new MySQLProductoRepository();
 const compraRepository = new MySQLCompraRepository();
+const categoriaRepository = new MySQLCategoriaRepository();
+const bannerRepository = new MySQLBannerRepository();
+const couponRepository = new MySQLCouponRepository();
 
 const emailService = new EmailService();
 const iaService = new IAService(emailService);
@@ -98,9 +106,22 @@ const chatController = new ChatController({
   compraRepository
 });
 
+const adminController = new AdminController({
+  usuarioRepository,
+  productoRepository,
+  compraRepository,
+  categoriaRepository,
+  bannerRepository,
+  couponRepository,
+  soporteRepository,
+  emailService,
+  iaService
+});
+
 // Rutas del servicio
 app.use('/api/soporte', createSoporteRoutes(soporteController));
 app.use('/api/chat', createChatRoutes(chatController));
+app.use('/api/admin', createAdminRoutes(adminController));
 
 // Health check
 app.get('/health', (req, res) => {

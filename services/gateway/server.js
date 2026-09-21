@@ -111,6 +111,46 @@ app.get('/api/circuit-status', (req, res) => {
   });
 });
 
+// Test de latencia y ping directo hacia cualquier microservicio
+app.get('/api/ping/:service', async (req, res) => {
+  const { service } = req.params;
+  const start = Date.now();
+  if (service === 'gateway') {
+    return res.json({
+      success: true,
+      service: 'gateway',
+      port: PORT,
+      status: 200,
+      time: 1
+    });
+  }
+
+  const targetUrl = SERVICES[service];
+  if (!targetUrl) {
+    return res.status(404).json({ success: false, error: `Servicio [${service}] no registrado en Gateway.` });
+  }
+
+  try {
+    const healthUrl = `${targetUrl}/health`;
+    const pingRes = await fetch(healthUrl, { signal: AbortSignal.timeout(4000) });
+    const duration = Date.now() - start;
+    res.json({
+      success: pingRes.ok,
+      service,
+      status: pingRes.status,
+      time: duration
+    });
+  } catch (err) {
+    res.status(503).json({
+      success: false,
+      service,
+      status: 503,
+      time: Date.now() - start,
+      error: err.message
+    });
+  }
+});
+
 // Service Registry en vivo (instancias vivas descubiertas en Redis)
 app.get('/api/registry', async (req, res) => {
   const services = await registry.getAllServices();
@@ -190,37 +230,40 @@ app.use('/socket.io', wsProxy);
 // PROXY RESILIENTE CON CIRCUIT BREAKER
 // ==========================================
 
-function createResilientProxy(circuit, targetUrl, pathFilterRule) {
+function createResilientProxy(circuit, targetUrl, pathFilterRule, options = {}) {
+  const timeoutMs = options.timeout || 30000;
   const proxy = createProxyMiddleware({
     pathFilter: pathFilterRule,
     target: targetUrl,
     changeOrigin: true,
     xfwd: true,
-    proxyTimeout: 10000,
-    timeout: 10000,
-    onProxyReq: (proxyReq, req) => {
-      // Propagar Correlation-ID hacia el microservicio
-      if (req.correlationId) {
-        proxyReq.setHeader('X-Correlation-ID', req.correlationId);
-      }
-    },
-    onProxyRes: (proxyRes, req, res) => {
-      if (proxyRes.statusCode >= 500) {
-        circuit.recordFailure(`HTTP ${proxyRes.statusCode}`);
-      } else {
-        circuit.recordSuccess();
-      }
-    },
-    onError: (err, req, res) => {
-      circuit.recordFailure(err);
-      if (!res.headersSent) {
-        res.status(503).json({
-          success: false,
-          error: `Error de conexión con el microservicio [${circuit.serviceName}].`,
-          details: err.message,
-          circuitState: circuit.state,
-          correlationId: req.correlationId
-        });
+    proxyTimeout: timeoutMs,
+    timeout: timeoutMs,
+    on: {
+      proxyReq: (proxyReq, req) => {
+        // Propagar Correlation-ID hacia el microservicio
+        if (req.correlationId) {
+          proxyReq.setHeader('X-Correlation-ID', req.correlationId);
+        }
+      },
+      proxyRes: (proxyRes, req, res) => {
+        if (proxyRes.statusCode >= 500) {
+          circuit.recordFailure(`HTTP ${proxyRes.statusCode}`);
+        } else {
+          circuit.recordSuccess();
+        }
+      },
+      error: (err, req, res) => {
+        circuit.recordFailure(err);
+        if (res && !res.headersSent && typeof res.status === 'function') {
+          res.status(503).json({
+            success: false,
+            error: `Error de conexión con el microservicio [${circuit.serviceName}].`,
+            details: err.message,
+            circuitState: circuit.state,
+            correlationId: req ? req.correlationId : 'N/A'
+          });
+        }
       }
     }
   });
@@ -261,7 +304,8 @@ app.use(createResilientProxy(
 app.use(createResilientProxy(
   circuits.support,
   SERVICES.support,
-  (p) => p.startsWith('/api/soporte') || p.startsWith('/api/chat') || p.startsWith('/api/admin/ia-chat')
+  (p) => p.startsWith('/api/soporte') || p.startsWith('/api/chat') || p.startsWith('/api/admin/ia-chat'),
+  { timeout: 60000 }
 ));
 
 // 5. Notification Service (3005)

@@ -11,6 +11,7 @@ const SERVICES = [
   { name: 'ORDERS', script: 'services/order-service/server.js', port: 3003, color: '\x1b[35m' },       // Magenta
   { name: 'SUPPORT', script: 'services/ai-support-service/server.js', port: 3004, color: '\x1b[36m' },  // Cyan
   { name: 'NOTIFY', script: 'services/notification-service/server.js', port: 3005, color: '\x1b[34m' }, // Azul
+  { name: 'LOGISTICS', script: 'services/logistics-service/server.js', port: 3006, color: '\x1b[35m' }, // Magenta
   { name: 'GATEWAY', script: 'services/gateway/server.js', port: 3000, color: '\x1b[31m' }             // Rojo/Destacado
 ];
 

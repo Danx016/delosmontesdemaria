@@ -12,7 +12,13 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 
-const { EmailService, TelegramService, WhatsAppService } = require('../../src/infrastructure/adapters/driven/external');
+const { EmailService, TelegramService, WhatsAppService, IAService } = require('../../src/infrastructure/adapters/driven/external');
+const {
+  MySQLSoporteRepository,
+  MySQLUsuarioRepository,
+  MySQLProductoRepository,
+  MySQLCompraRepository
+} = require('../../src/infrastructure/adapters/driven/persistence');
 const createTelegramRoutes = require('../../src/infrastructure/adapters/driving/http/routes/telegram.routes');
 
 const { eventBus, CHANNELS, STREAMS, EVENTS } = require('../common/events/EventBus');
@@ -32,7 +38,20 @@ app.use(correlationMiddleware('notification-service'));
 
 // Inyección de adaptadores
 const emailService = new EmailService();
-const telegramService = new TelegramService({ emailService });
+const iaService = new IAService(emailService);
+const soporteRepository = new MySQLSoporteRepository();
+const usuarioRepository = new MySQLUsuarioRepository();
+const productoRepository = new MySQLProductoRepository();
+const compraRepository = new MySQLCompraRepository();
+
+const telegramService = new TelegramService({
+  soporteRepository,
+  iaService,
+  productoRepository,
+  usuarioRepository,
+  compraRepository,
+  emailService
+});
 const whatsAppService = new WhatsAppService();
 
 // Rutas del servicio (Webhook de Telegram)

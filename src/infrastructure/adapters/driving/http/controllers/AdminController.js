@@ -178,7 +178,7 @@ class AdminController {
 
   async crearProducto(req, res) {
     try {
-      const { nombre, nombre_producto, descripcion, precio, stock, categoria, id_categoria, unidad_medida, id_vendedor, origen, presentacion, cuidado } = req.body;
+      const { nombre, nombre_producto, descripcion, precio, stock, categoria, id_categoria, unidad_medida, id_vendedor, origen, presentacion, cuidado, latitud, longitud, ubicacion_nombre } = req.body;
       const nombreFinal = nombre || nombre_producto;
       if (!nombreFinal || !nombreFinal.trim()) {
         return res.status(400).json({ error: 'El nombre del producto es obligatorio.' });
@@ -201,7 +201,10 @@ class AdminController {
         presentacion: presentacion || 'Empaque fresco de finca',
         cuidado: cuidado || 'Conservar en lugar fresco y seco',
         imagen: imagen,
-        disponibilidad: 1
+        disponibilidad: 1,
+        latitud: latitud !== undefined && latitud !== null && latitud !== '' ? parseFloat(latitud) : null,
+        longitud: longitud !== undefined && longitud !== null && longitud !== '' ? parseFloat(longitud) : null,
+        ubicacion_nombre: ubicacion_nombre || null
       });
 
       const nuevo = await this.productoRepository.crear(prod);
@@ -215,7 +218,7 @@ class AdminController {
   async actualizarProducto(req, res) {
     try {
       const idProducto = req.params.id_producto;
-      const { nombre, nombre_producto, descripcion, precio, stock, categoria, id_categoria, unidad_medida, id_vendedor, origen, presentacion, cuidado } = req.body;
+      const { nombre, nombre_producto, descripcion, precio, stock, categoria, id_categoria, unidad_medida, id_vendedor, origen, presentacion, cuidado, latitud, longitud, ubicacion_nombre } = req.body;
       const updateData = {};
 
       const nombreFinal = nombre || nombre_producto;
@@ -229,6 +232,9 @@ class AdminController {
       if (origen !== undefined) updateData.origen = origen;
       if (presentacion !== undefined) updateData.presentacion = presentacion;
       if (cuidado !== undefined) updateData.cuidado = cuidado;
+      if (latitud !== undefined) updateData.latitud = latitud !== null && latitud !== '' ? parseFloat(latitud) : null;
+      if (longitud !== undefined) updateData.longitud = longitud !== null && longitud !== '' ? parseFloat(longitud) : null;
+      if (ubicacion_nombre !== undefined) updateData.ubicacion_nombre = ubicacion_nombre;
       if (id_vendedor !== undefined) {
         const parsedVendor = (id_vendedor === '' || id_vendedor === 'null' || id_vendedor === null || id_vendedor === '0') ? null : parseInt(id_vendedor, 10);
         updateData.id_vendedor = parsedVendor;

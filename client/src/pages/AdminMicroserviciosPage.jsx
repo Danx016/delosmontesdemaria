@@ -16,6 +16,65 @@ export default function AdminMicroserviciosPage() {
   const [registryData, setRegistryData] = useState(null)
   const [dlqData, setDlqData] = useState(null)
   const [actionLoading, setActionLoading] = useState(null)
+  const [pingResults, setPingResults] = useState({})
+  const [expandedServices, setExpandedServices] = useState({
+    gateway: true,
+    auth: true,
+    catalog: true,
+    order: true,
+    support: true,
+    notification: true,
+    logistics: true
+  })
+
+  const toggleExpand = (key) => {
+    setExpandedServices(prev => ({ ...prev, [key]: !prev[key] }))
+  }
+
+  const toggleAll = (state) => {
+    setExpandedServices({
+      gateway: state,
+      auth: state,
+      catalog: state,
+      order: state,
+      support: state,
+      notification: state,
+      logistics: state
+    })
+  }
+
+  const testPing = async (key) => {
+    setPingResults(prev => ({ ...prev, [key]: { loading: true } }))
+    const start = performance.now()
+    try {
+      const res = await fetch(`/api/ping/${key}`, { signal: AbortSignal.timeout(6000) })
+      const data = await res.json().catch(() => null)
+      const duration = data?.time !== undefined ? data.time : Math.round(performance.now() - start)
+      setPingResults(prev => ({
+        ...prev,
+        [key]: {
+          loading: false,
+          status: data?.status || res.status,
+          time: duration,
+          success: res.ok && data?.success !== false,
+          timestamp: new Date().toLocaleTimeString()
+        }
+      }))
+    } catch (e) {
+      const duration = Math.round(performance.now() - start)
+      setPingResults(prev => ({
+        ...prev,
+        [key]: {
+          loading: false,
+          status: 'ERR',
+          time: duration,
+          error: e.message,
+          success: false,
+          timestamp: new Date().toLocaleTimeString()
+        }
+      }))
+    }
+  }
 
   const fetchData = async (isManual = false) => {
     if (isManual) setRefreshing(true)
@@ -199,62 +258,437 @@ export default function AdminMicroserviciosPage() {
             </div>
           </div>
 
-          {/* Grid de Microservicios y Circuit Breakers */}
-          <h2 style={{ fontSize: '18px', fontWeight: '700', color: '#1e293b', marginBottom: '15px' }}>
-            Microservicios y Estado de Circuit Breakers
-          </h2>
+          {/* Encabezado y Controles del Grid de Microservicios */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
+            <div>
+              <h2 style={{ fontSize: '20px', fontWeight: '800', color: '#0f172a', margin: '0 0 4px 0' }}>
+                Ecosistema de Microservicios: Operaciones, Rutas & Telemetría 🛡️
+              </h2>
+              <p style={{ margin: 0, fontSize: '13px', color: '#64748b' }}>
+                Monitoreo en tiempo real de los 7 microservicios: puertos, rutas/endpoints, bases de datos, mensajería Redis Streams y resiliencia.
+              </p>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                onClick={() => toggleAll(true)}
+                style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: '600', color: '#334155', cursor: 'pointer' }}
+              >
+                <i className="fa fa-expand-alt" style={{ marginRight: '4px' }} /> Expandir Todos
+              </button>
+              <button
+                onClick={() => toggleAll(false)}
+                style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: '600', color: '#334155', cursor: 'pointer' }}
+              >
+                <i className="fa fa-compress-alt" style={{ marginRight: '4px' }} /> Contraer
+              </button>
+            </div>
+          </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '18px', marginBottom: '30px' }}>
-            {circuitData && Object.entries(circuitData).map(([key, c]) => {
-              const meta = {
-                auth: { name: 'Auth & User Service', port: 3001, db: 'db_auth', icon: 'fa-lock', desc: 'Login, JWT, OAuth, Usuarios y Vendedores' },
-                catalog: { name: 'Catalog & Product Service', port: 3002, db: 'db_catalog', icon: 'fa-box-open', desc: 'Productos, Banners, Categorías y Caché Redis' },
-                order: { name: 'Order & Purchase Service', port: 3003, db: 'db_orders', icon: 'fa-shopping-cart', desc: 'Compras, Pagos Wompi, Cupones y Eventos' },
-                support: { name: 'AI & Support Service', port: 3004, db: 'db_support', icon: 'fa-robot', desc: 'Tickets, Socket.IO y Asistente IA OpenRouter' },
-                notification: { name: 'Notification Service', port: 3005, db: 'N/A', icon: 'fa-paper-plane', desc: 'WhatsApp Cloud API, Telegram Bot y Correos' },
-                logistics: { name: 'Logistics & Tracking Service', port: 3006, db: 'db_logistics', icon: 'fa-truck-fast', desc: 'Fletes Rurales, Tracking en Tiempo Real y Despachos' }
-              }[key] || { name: key, port: 'N/A', db: 'N/A', icon: 'fa-server', desc: '' }
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px', marginBottom: '30px', alignItems: 'start' }}>
+            {[
+              {
+                key: 'gateway',
+                name: 'API Gateway Central',
+                port: 3000,
+                protocol: 'HTTP / HTTPS (Proxy Inverso) & WebSockets (WSS)',
+                db: 'Sin base de datos (Proxy stateless & Reverse proxy)',
+                icon: 'fa-network-wired',
+                badgeColor: '#0f172a',
+                category: 'Punto de Entrada & Enrutador',
+                desc: 'Enrutador central de tráfico. Inyecta X-Correlation-ID en cada petición, administra Circuit Breakers hacia los microservicios y entrega la SPA React.',
+                pingUrl: '/health',
+                isGateway: true,
+                tablas: ['En memoria (Estado de Circuit Breakers)', 'Redis (Discovery & Heartbeats)'],
+                endpoints: [
+                  { method: 'GET', path: '/health', desc: 'Chequeo de salud del Gateway y estado general' },
+                  { method: 'GET', path: '/api/circuit-status', desc: 'Telemetría de llamadas y fallos por microservicio' },
+                  { method: 'GET', path: '/api/registry', desc: 'Service Registry: Instancias vivas en Redis' },
+                  { method: 'GET', path: '/api/dlq', desc: 'Inspección de fallas en Dead Letter Queue' },
+                  { method: 'POST', path: '/api/catalog/cache/clear', desc: 'Purgado forzado de memoria caché en Redis' },
+                  { method: 'WSS', path: '/socket.io', desc: 'Proxy bidireccional WebSockets hacia :3004' }
+                ],
+                routesForwarded: [
+                  { route: '/api/auth/*', target: ':3001 (Auth Service)' },
+                  { route: '/api/productos/*', target: ':3002 (Catalog Service)' },
+                  { route: '/api/compras/*', target: ':3003 (Order Service)' },
+                  { route: '/api/chat/*', target: ':3004 (Support Service)' },
+                  { route: '/api/telegram/*', target: ':3005 (Notification Service)' },
+                  { route: '/api/logistics/*', target: ':3006 (Logistics Service)' }
+                ],
+                eventsPub: [],
+                eventsSub: [],
+                externalDeps: ['Nginx Reverse Proxy', 'SSL Let\'s Encrypt', 'Redis Service Discovery']
+              },
+              {
+                key: 'auth',
+                name: 'Auth & User Service',
+                port: 3001,
+                protocol: 'HTTP (RESTful API)',
+                db: 'db_auth (fallback: dbmontesdm)',
+                icon: 'fa-user-shield',
+                badgeColor: '#3b82f6',
+                category: 'Seguridad & Usuarios',
+                desc: 'Autenticación centralizada, tokens JWT con salting bcrypt, validación de Google OAuth 2.0 y perfiles de campesinos y compradores.',
+                pingUrl: '/api/auth/google/client-id',
+                tablas: ['usuarios', 'roles', 'direcciones', 'telegram_sesiones', 'telegram_auth_codigos'],
+                endpoints: [
+                  { method: 'POST', path: '/api/auth/register', desc: 'Registro de clientes y campesinos productores' },
+                  { method: 'POST', path: '/api/auth/login', desc: 'Autenticación con contraseña y firma de JWT' },
+                  { method: 'POST', path: '/api/auth/google', desc: 'Autenticación federada con Google OAuth 2.0' },
+                  { method: 'GET', path: '/api/auth/perfil', desc: 'Consulta de perfil de usuario y rol' },
+                  { method: 'GET', path: '/api/auth/direcciones', desc: 'Listado de direcciones de despacho' },
+                  { method: 'POST', path: '/api/auth/direcciones', desc: 'Creación de dirección de entrega rural' }
+                ],
+                eventsPub: ['USER_REGISTERED', 'USER_LOGGED_IN'],
+                eventsSub: ['stream:orders (cg:auth) -> Suma cashback o créditos de fidelidad por compra'],
+                externalDeps: ['Google OAuth 2.0 API', 'MySQL Database', 'Bcrypt Security', 'Redis Streams']
+              },
+              {
+                key: 'catalog',
+                name: 'Catalog & Product Service',
+                port: 3002,
+                protocol: 'HTTP (RESTful API)',
+                db: 'db_catalog (fallback: dbmontesdm)',
+                icon: 'fa-boxes',
+                badgeColor: '#059669',
+                category: 'Catálogo & Stock Rural',
+                desc: 'Catálogo público de productos agropecuarios, filtros por categoría o disponibilidad, banners del Home y gestión atómica de inventario con Redis Cache-Aside.',
+                pingUrl: '/api/productos',
+                tablas: ['productos', 'categorias', 'banners_hero', 'proveedores'],
+                endpoints: [
+                  { method: 'GET', path: '/api/productos', desc: 'Catálogo completo acelerado con Redis Cache (< 2ms)' },
+                  { method: 'GET', path: '/api/productos/:id', desc: 'Ficha técnica y disponibilidad de producto' },
+                  { method: 'POST', path: '/api/productos', desc: 'Creación de nuevo producto agropecuario' },
+                  { method: 'PUT', path: '/api/productos/:id', desc: 'Actualización de precio, stock o descripción' },
+                  { method: 'DELETE', path: '/api/productos/:id', desc: 'Baja lógica de producto en la tienda' },
+                  { method: 'GET', path: '/api/banners', desc: 'Listado de banners para Hero Section' }
+                ],
+                eventsPub: ['PRODUCT_CREATED', 'PRODUCT_STOCK_CHANGED'],
+                eventsSub: ['stream:orders (cg:catalog) -> Descuenta stock atómicamente e invalida caché Redis'],
+                externalDeps: ['Redis Cache-Aside (TTL 300s)', 'MySQL Database', 'Redis Streams (cg:catalog)']
+              },
+              {
+                key: 'order',
+                name: 'Order & Checkout Service',
+                port: 3003,
+                protocol: 'HTTP (RESTful API)',
+                db: 'db_orders (fallback: dbmontesdm)',
+                icon: 'fa-shopping-cart',
+                badgeColor: '#8b5cf6',
+                category: 'Compras & Pagos Wompi',
+                desc: 'Procesamiento transaccional de compras, validación de cupones, integración con pasarela Wompi (SHA-256) y emisión del evento ORDER_CREATED a Redis Streams.',
+                pingUrl: '/api/cupones',
+                tablas: ['compras', 'compra_detalles', 'cupones'],
+                endpoints: [
+                  { method: 'POST', path: '/api/compras', desc: 'Creación de orden de compra y persistencia' },
+                  { method: 'GET', path: '/api/compras/usuario', desc: 'Historial de compras del cliente actual' },
+                  { method: 'GET', path: '/api/compras/:id', desc: 'Detalle de orden, ítems comprados y estado de pago' },
+                  { method: 'POST', path: '/api/compras/validar-cupon', desc: 'Verificación de vigencia y descuento de cupón' },
+                  { method: 'POST', path: '/api/compras/verificar-otp', desc: 'Validación de código OTP de un solo uso' }
+                ],
+                eventsPub: ['ORDER_CREATED (stream:orders) -> Notifica a inventario, alertas y despacho'],
+                eventsSub: ['PAYMENT_WEBHOOK_RECEIVED -> Actualiza estado transaccional a PAGADO'],
+                externalDeps: ['Pasarela Wompi (Tarjetas, PSE, Nequi)', 'Firma SHA-256', 'Redis Streams']
+              },
+              {
+                key: 'support',
+                name: 'AI Support & Chat Service',
+                port: 3004,
+                protocol: 'HTTP (REST) & WebSockets (Socket.IO)',
+                db: 'db_support (fallback: dbmontesdm)',
+                icon: 'fa-robot',
+                badgeColor: '#06b6d4',
+                category: 'Atención & Asistente IA',
+                desc: 'Chat en tiempo real mediante WebSockets, tickets de reclamos y asistente virtual inteligente especializado en producción agropecuaria de Montes de María.',
+                pingUrl: '/health',
+                tablas: ['soporte_tickets', 'soporte_mensajes', 'soporte_calificaciones'],
+                endpoints: [
+                  { method: 'POST', path: '/api/chat/public', desc: 'Consulta al Asistente Virtual Agropecuario LLM' },
+                  { method: 'GET', path: '/api/soporte/tickets', desc: 'Listado de tickets de atención técnica' },
+                  { method: 'POST', path: '/api/soporte/tickets', desc: 'Creación de nuevo ticket de soporte' },
+                  { method: 'WSS', path: '/socket.io', desc: 'Conexión Socket.IO bidireccional en tiempo real' }
+                ],
+                eventsPub: ['TICKET_CREATED', 'AI_RESPONSE_GENERATED'],
+                eventsSub: ['stream:orders -> Indexa datos del comprador para soporte posventa'],
+                externalDeps: ['OpenRouter API (Modelos LLM)', 'Socket.IO Server Engine', 'MySQL Database']
+              },
+              {
+                key: 'notification',
+                name: 'Notification Service',
+                port: 3005,
+                protocol: 'Worker Asíncrono + Webhooks',
+                db: 'Sin base de datos propia (Logs de entrega en memoria)',
+                icon: 'fa-paper-plane',
+                badgeColor: '#f59e0b',
+                category: 'Alertas & Multicanal',
+                desc: 'Worker de mensajería automática. Atiende el Bot oficial de Telegram (@montesdemariabot), correos HTML con Brevo y mensajes a WhatsApp Cloud API.',
+                pingUrl: '/health',
+                tablas: ['telegram_alertas (en memoria / logs)', 'email_audit_log'],
+                endpoints: [
+                  { method: 'POST', path: '/api/telegram/webhook', desc: 'Recepción de comandos y mensajes de Telegram' },
+                  { method: 'POST', path: '/api/telegram/send', desc: 'Envío de mensaje Markdown directo a un Chat ID' },
+                  { method: 'POST', path: '/api/notification/email', desc: 'Envío de correo transaccional vía Brevo API' }
+                ],
+                eventsPub: ['NOTIFICATION_SENT', 'NOTIFICATION_FAILED -> stream:dlq'],
+                eventsSub: ['stream:orders (cg:notifications) -> Envía alerta instantánea al campesino'],
+                externalDeps: ['Telegram Bot API (@montesdemariabot)', 'Brevo (Sendinblue) REST API', 'WhatsApp Cloud API', 'Dead Letter Queue']
+              },
+              {
+                key: 'logistics',
+                name: 'Logistics & Tracking Service',
+                port: 3006,
+                protocol: 'HTTP (RESTful API)',
+                db: 'db_logistics (fallback: dbmontesdm)',
+                icon: 'fa-truck-fast',
+                badgeColor: '#ec4899',
+                category: 'Logística & Transporte Rural',
+                desc: 'Algoritmo de tarificación de fletes por distancia entre municipios y veredas de Montes de María, asignación de transportistas y número de guía.',
+                pingUrl: '/health',
+                tablas: ['envios', 'tarifas_municipios', 'transportistas', 'tracking_eventos'],
+                endpoints: [
+                  { method: 'POST', path: '/api/logistics/quote', desc: 'Cotización automática de flete por municipio de origen/destino' },
+                  { method: 'POST', path: '/api/logistics/shipments', desc: 'Generación de guía de despacho y transportista' },
+                  { method: 'GET', path: '/api/logistics/tracking/:code', desc: 'Consulta pública de estado del envío (tracking)' },
+                  { method: 'PUT', path: '/api/logistics/shipments/:id/status', desc: 'Actualización de checkpoint logístico' }
+                ],
+                eventsPub: ['SHIPMENT_CREATED', 'SHIPMENT_STATUS_UPDATED'],
+                eventsSub: ['stream:orders (cg:logistics) -> Genera orden de despacho y transportista'],
+                externalDeps: ['Tabla de distancias intermunicipales', 'MySQL Database', 'Redis Streams']
+              }
+            ].map(meta => {
+              const c = circuitData ? circuitData[meta.key] : null
+              const liveInstance = registryData?.find(i => 
+                i.serviceName.includes(meta.key) || 
+                (meta.key === 'support' && i.serviceName.includes('ai-support')) || 
+                (meta.key === 'order' && i.serviceName.includes('order')) ||
+                (meta.key === 'gateway' && i.serviceName.includes('gateway'))
+              )
+              const isExpanded = !!expandedServices[meta.key]
+              const ping = pingResults[meta.key]
 
               return (
-                <div key={key} style={{ background: '#fff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0f172a', fontSize: '18px' }}>
-                        <i className={`fa ${meta.icon}`} />
+                <div key={meta.key} style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.03)', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                  {/* Encabezado de la Tarjeta */}
+                  <div style={{ padding: '20px 20px 15px 20px', borderBottom: '1px solid #f1f5f9' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{ width: '46px', height: '46px', borderRadius: '12px', background: `${meta.badgeColor}15`, color: meta.badgeColor, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                          <i className={`fa ${meta.icon}`} />
+                        </div>
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <span style={{ fontSize: '10px', fontWeight: '800', background: `${meta.badgeColor}20`, color: meta.badgeColor, padding: '2px 8px', borderRadius: '10px', textTransform: 'uppercase' }}>
+                              {meta.category}
+                            </span>
+                            <span style={{ fontSize: '11px', color: '#64748b', fontFamily: 'monospace' }}>Puerto :{meta.port}</span>
+                          </div>
+                          <h3 style={{ margin: '3px 0 0 0', fontSize: '16px', fontWeight: '800', color: '#0f172a' }}>{meta.name}</h3>
+                        </div>
                       </div>
                       <div>
-                        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: '#0f172a' }}>{meta.name}</h3>
-                        <span style={{ fontSize: '12px', color: '#64748b' }}>Puerto: {meta.port} • BD: <code style={{ background: '#f1f5f9', padding: '2px 5px', borderRadius: '4px' }}>{meta.db}</code></span>
+                        {meta.isGateway ? (
+                          <span style={{ background: '#dcfce7', color: '#15803d', padding: '4px 10px', borderRadius: '12px', fontWeight: 'bold', fontSize: '12px' }}>
+                            <i className="fa fa-check-circle" /> OPERACIONAL
+                          </span>
+                        ) : (
+                          c ? getCircuitBadge(c.state) : <span style={{ color: '#94a3b8', fontSize: '12px' }}>Conectando...</span>
+                        )}
                       </div>
                     </div>
+                    <p style={{ fontSize: '12px', color: '#64748b', margin: '10px 0 0 0', lineHeight: '1.4' }}>{meta.desc}</p>
                   </div>
 
-                  <p style={{ fontSize: '12px', color: '#64748b', margin: '0 0 15px 0' }}>{meta.desc}</p>
+                  {/* Panel de Telemetría en Vivo (Redis & Gateway) */}
+                  <div style={{ padding: '15px 20px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', fontSize: '12px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '10px' }}>
+                      <div style={{ background: '#fff', padding: '8px 10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                        <span style={{ color: '#64748b', fontSize: '11px', display: 'block' }}>Llamadas Totales:</span>
+                        <strong style={{ fontSize: '15px', color: '#0f172a' }}>{meta.isGateway ? 'Activo' : (c?.totalCalls || 0)}</strong>
+                      </div>
+                      <div style={{ background: '#fff', padding: '8px 10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                        <span style={{ color: '#64748b', fontSize: '11px', display: 'block' }}>{meta.isGateway ? 'Circuitos:' : 'Fallos de Circuito:'}</span>
+                        <strong style={{ fontSize: '15px', color: (c?.failureCount || 0) > 0 ? '#dc2626' : '#16a34a' }}>
+                          {meta.isGateway ? '5 Activos' : `${c?.failureCount || 0} / 5`}
+                        </strong>
+                      </div>
+                    </div>
 
-                  <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', marginBottom: '12px', fontSize: '12px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-                      <span style={{ color: '#64748b' }}>Estado Disyuntor:</span>
-                      {getCircuitBadge(c.state)}
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                      <span style={{ color: '#64748b' }}>Llamadas Totales:</span>
-                      <strong style={{ color: '#0f172a' }}>{c.totalCalls || 0}</strong>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ color: '#64748b' }}>Fallos Consecutivos:</span>
-                      <strong style={{ color: (c.failureCount || 0) > 0 ? '#dc2626' : '#16a34a' }}>{c.failureCount || 0} / 5</strong>
+                    {/* Datos de Instancia Redis */}
+                    {liveInstance ? (
+                      <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '8px', padding: '8px 10px', fontSize: '11px', color: '#065f46' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '3px' }}>
+                          <span><strong>● Instancia Redis:</strong> {liveInstance.instanceId.slice(0, 18)}...</span>
+                          <span style={{ fontWeight: 'bold', color: '#047857' }}>UP</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#047857' }}>
+                          <span>RAM: <strong>{(liveInstance.memory / 1024 / 1024).toFixed(1)} MB</strong></span>
+                          <span>Uptime: <strong>{Math.floor(liveInstance.uptime / 60)} min</strong></span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', padding: '8px 10px', fontSize: '11px', color: '#991b1b' }}>
+                        {meta.isGateway ? '🟢 Proceso Gateway Principal (Puerto 3000)' : '⚠️ Sin instancia viva registrada en Redis Heartbeat'}
+                      </div>
+                    )}
+
+                    {/* Test de Latencia en Vivo */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '10px' }}>
+                      <button
+                        onClick={() => testPing(meta.key)}
+                        disabled={ping?.loading}
+                        style={{ background: '#0f172a', color: '#fff', border: 'none', padding: '5px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px' }}
+                      >
+                        <i className={`fa fa-tachometer-alt ${ping?.loading ? 'fa-spin' : ''}`} />
+                        {ping?.loading ? 'Midiendo...' : 'Test Latencia'}
+                      </button>
+
+                      {ping && !ping.loading && (
+                        <span style={{ fontSize: '11px', color: ping.success ? '#15803d' : '#b91c1c', fontWeight: 'bold' }}>
+                          {ping.success ? `✅ ${ping.time} ms (${ping.status})` : `❌ ${ping.time} ms (${ping.error || ping.status})`}
+                        </span>
+                      )}
+
+                      {!meta.isGateway && c && (c.failureCount > 0 || c.state !== 'CLOSED') && (
+                        <button
+                          onClick={() => handleResetCircuit(meta.key)}
+                          disabled={actionLoading === `circuit-${meta.key}`}
+                          style={{ background: '#ef4444', color: '#fff', border: 'none', padding: '5px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}
+                        >
+                          <i className="fa fa-undo" /> Reset
+                        </button>
+                      )}
                     </div>
                   </div>
 
-                  {(c.failureCount > 0 || c.state !== 'CLOSED') && (
+                  {/* Sección Expandible: Ficha Operativa del Microservicio */}
+                  <div style={{ padding: '12px 20px', borderTop: '1px solid #f1f5f9', background: '#fff' }}>
                     <button
-                      onClick={() => handleResetCircuit(key)}
-                      disabled={actionLoading === `circuit-${key}`}
-                      style={{ width: '100%', background: '#f1f5f9', color: '#0f172a', border: '1px solid #cbd5e1', padding: '8px', borderRadius: '6px', fontWeight: '600', fontSize: '12px', cursor: 'pointer' }}
+                      onClick={() => toggleExpand(meta.key)}
+                      style={{
+                        width: '100%',
+                        background: isExpanded ? '#f1f5f9' : '#f8fafc',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        padding: '8px 12px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        color: '#1e293b',
+                        fontSize: '12px',
+                        fontWeight: '700',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
                     >
-                      <i className="fa fa-undo" /> Restablecer Circuito a CLOSED
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <i className="fa fa-server" style={{ color: meta.badgeColor }} />
+                        Ficha Técnica y Operativa
+                      </span>
+                      <span style={{ fontSize: '11px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        {isExpanded ? 'Ocultar' : 'Ver Rutas & BD'}
+                        <i className={`fa ${isExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}`} />
+                      </span>
                     </button>
-                  )}
+
+                    {isExpanded && (
+                      <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '11px' }}>
+                        {/* Rutas y Endpoints HTTP */}
+                        <div style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                          <span style={{ color: '#475569', fontWeight: 'bold', display: 'block', marginBottom: '6px' }}>
+                            <i className="fa fa-route" style={{ color: '#3b82f6', marginRight: '4px' }} /> Rutas & Endpoints HTTP del Microservicio:
+                          </span>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            {meta.endpoints.map((ep, idx) => (
+                              <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', background: '#fff', padding: '4px 6px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                  <span style={{
+                                    fontSize: '9px',
+                                    fontWeight: '800',
+                                    padding: '1px 4px',
+                                    borderRadius: '3px',
+                                    color: ep.method === 'GET' ? '#059669' : ep.method === 'POST' ? '#2563eb' : ep.method === 'PUT' ? '#d97706' : ep.method === 'DELETE' ? '#dc2626' : '#7c3aed',
+                                    background: ep.method === 'GET' ? '#ecfdf5' : ep.method === 'POST' ? '#eff6ff' : ep.method === 'PUT' ? '#fffbeb' : ep.method === 'DELETE' ? '#fef2f2' : '#f5f3ff'
+                                  }}>
+                                    {ep.method}
+                                  </span>
+                                  <code style={{ fontSize: '11px', color: '#0f172a' }}>{ep.path}</code>
+                                </div>
+                                <span style={{ color: '#64748b', fontSize: '10px' }}>{ep.desc}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Mapeo de Enrutamiento (Solo Gateway) */}
+                        {meta.routesForwarded && (
+                          <div style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                            <span style={{ color: '#475569', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>
+                              <i className="fa fa-random" style={{ color: '#0f172a', marginRight: '4px' }} /> Enrutamiento de Proxy Inverso:
+                            </span>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                              {meta.routesForwarded.map((rf, idx) => (
+                                <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: '#475569' }}>
+                                  <code>{rf.route}</code>
+                                  <strong style={{ color: '#059669' }}>{rf.target}</strong>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Base de Datos & Tablas */}
+                        <div style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                          <span style={{ color: '#475569', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>
+                            <i className="fa fa-database" style={{ color: '#059669', marginRight: '4px' }} /> Base de Datos & Tablas Asignadas:
+                          </span>
+                          <span style={{ color: '#0f172a', fontWeight: '600', display: 'block', marginBottom: '4px' }}>{meta.db}</span>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                            {meta.tablas.map((t, idx) => (
+                              <code key={idx} style={{ background: '#e2e8f0', color: '#334155', padding: '1px 5px', borderRadius: '3px', fontSize: '10px' }}>{t}</code>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Eventos Redis Streams (Event-Driven) */}
+                        {(meta.eventsPub.length > 0 || meta.eventsSub.length > 0) && (
+                          <div style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                            <span style={{ color: '#475569', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>
+                              <i className="fa fa-bolt" style={{ color: '#8b5cf6', marginRight: '4px' }} /> Mensajería Redis Streams:
+                            </span>
+                            {meta.eventsPub.length > 0 && (
+                              <div style={{ color: '#64748b', marginBottom: '4px' }}>
+                                <strong style={{ color: '#0f172a' }}>Publica:</strong> {meta.eventsPub.map((ep, i) => (
+                                  <span key={i} style={{ background: '#ede9fe', color: '#6d28d9', padding: '1px 5px', borderRadius: '3px', margin: '0 2px', fontSize: '10px', fontWeight: 'bold' }}>{ep}</span>
+                                ))}
+                              </div>
+                            )}
+                            {meta.eventsSub.length > 0 && (
+                              <div style={{ color: '#64748b' }}>
+                                <strong style={{ color: '#0f172a' }}>Consume:</strong> {meta.eventsSub.map((es, i) => (
+                                  <div key={i} style={{ marginTop: '2px', color: '#475569' }}>• {es}</div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Dependencias e Integraciones */}
+                        <div style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+                          <span style={{ color: '#475569', fontWeight: 'bold', display: 'block', marginBottom: '4px' }}>
+                            <i className="fa fa-plug" style={{ color: '#ea580c', marginRight: '4px' }} /> Integraciones & Dependencias Externas:
+                          </span>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                            {meta.externalDeps.map((dep, idx) => (
+                              <span key={idx} style={{ background: '#ffedd5', color: '#9a3412', padding: '1px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: '600' }}>
+                                {dep}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                      </div>
+                    )}
+                  </div>
                 </div>
               )
             })}

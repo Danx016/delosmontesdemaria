@@ -15,7 +15,7 @@ class IAService {
   /**
    * Ejecuta llamadas seguras a OpenRouter con tolerancia a fallos, soporte de herramientas y recuperación de modelos
    */
-  async callChatCompletion({ messages, tools = null, tool_choice = null, temperature = 0.7, max_tokens = 700, appTitle = 'De los Montes de Maria AI' }) {
+  async callChatCompletion({ messages, tools = null, tool_choice = null, temperature = 0.7, max_tokens = 1200, appTitle = 'De los Montes de Maria AI' }) {
     const apiKey = appConfig.openRouterApiKey;
     if (!apiKey || apiKey.startsWith('tu_clave')) {
       throw new Error('API Key de OpenRouter no configurada');
@@ -23,20 +23,20 @@ class IAService {
 
     const preferredModel = (appConfig.openRouterModel && appConfig.openRouterModel !== 'openrouter/free')
       ? appConfig.openRouterModel
-      : 'minimax/minimax-m3:free';
+      : 'inclusionai/ling-3.0-flash-vl:free';
 
     const candidateModels = [
       preferredModel,
-      'minimax/minimax-m3:free',
-      'nvidia/nemotron-3.5-lightning:free',
-      'google/gemma-4-31b-it:free',
-      'google/gemma-4-26b-a4b-it:free',
-      'minimax/minimax-m2.7:free',
-      'openrouter/free'
+      'inclusionai/ling-3.0-flash-vl:free',
+      'inclusionai/ling-3.0-flash-fin:free',
+      'inclusionai/ling-3.0-flash-sante:free',
+      'cohere/north-mini-code:free',
+      'nvidia/nemotron-3.5-lightning:free'
     ].filter(Boolean);
     const modelsToTry = [...new Set(candidateModels)];
 
     let lastError = null;
+    const tokenLimit = Math.max(Number(max_tokens) || 1200, 1000);
 
     for (const model of modelsToTry) {
       try {
@@ -44,7 +44,7 @@ class IAService {
           model,
           messages,
           temperature,
-          max_tokens: Math.min(max_tokens, 800)
+          max_tokens: tokenLimit
         };
         if (tools && Array.isArray(tools) && tools.length > 0) {
           bodyPayload.tools = tools;
@@ -53,6 +53,7 @@ class IAService {
 
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
           method: 'POST',
+          signal: AbortSignal.timeout(18000),
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${apiKey}`,
@@ -74,10 +75,11 @@ class IAService {
                 model,
                 messages,
                 temperature,
-                max_tokens: Math.min(max_tokens, 800)
+                max_tokens: tokenLimit
               };
               const resNoTools = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                 method: 'POST',
+                signal: AbortSignal.timeout(18000),
                 headers: {
                   'Content-Type': 'application/json',
                   'Authorization': `Bearer ${apiKey}`,
@@ -91,7 +93,10 @@ class IAService {
                 const choiceNoTools = dataNoTools?.choices?.[0];
                 if (choiceNoTools?.message) {
                   let content = choiceNoTools.message.content || choiceNoTools.message.reasoning || '';
-                  if (typeof content === 'string') content = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+                  if (typeof content === 'string') {
+                    const cleaned = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+                    content = cleaned || content.trim();
+                  }
                   return {
                     modelUsed: model,
                     choice: choiceNoTools,
@@ -123,7 +128,12 @@ class IAService {
         }
 
         if (typeof content === 'string') {
-          content = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+          const cleaned = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+          content = cleaned || content.trim();
+        }
+
+        if (!content && message.reasoning) {
+          content = message.reasoning.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
         }
 
         return {
@@ -191,7 +201,7 @@ REGLAS DE FORMATO:
       const completion = await this.callChatCompletion({
         messages,
         temperature: 0.7,
-        max_tokens: 600,
+        max_tokens: 1200,
         appTitle: 'De los Montes de Maria Store AI'
       });
       return completion.message?.content || 'Entendido.';
@@ -228,7 +238,7 @@ REGLAS DE FORMATO:
         productoRepository ? productoRepository.listarTodos() : [],
         usuarioRepository ? usuarioRepository.listarTodos() : [],
         compraRepository ? compraRepository.listarTodas() : [],
-        categoriaRepository ? categoriaRepository.listar() : [],
+        categoriaRepository ? (categoriaRepository.obtenerTodas ? categoriaRepository.obtenerTodas() : (categoriaRepository.listar ? categoriaRepository.listar() : [])) : [],
         couponRepository ? couponRepository.obtenerTodos() : [],
         bannerRepository ? bannerRepository.obtenerTodos() : []
       ]);
@@ -606,7 +616,7 @@ MÉTRICAS Y ESTADO DEL SISTEMA EN TIEMPO REAL:
 
         // CATEGORÍAS
         if (name === 'list_categories' && categoriaRepository) {
-          const rows = await categoriaRepository.listar();
+          const rows = categoriaRepository.obtenerTodas ? await categoriaRepository.obtenerTodas() : await categoriaRepository.listar();
           return { success: true, count: rows.length, categorias: rows };
         }
         if (name === 'create_category' && categoriaRepository) {
@@ -748,7 +758,7 @@ PAUTAS CRÍTICAS:
         tools: ADMIN_TOOLS,
         tool_choice: 'auto',
         temperature: 0.7,
-        max_tokens: 800,
+        max_tokens: 1200,
         appTitle: 'De los Montes de Maria Admin IA'
       });
 
@@ -770,7 +780,7 @@ PAUTAS CRÍTICAS:
         const secondCompletion = await this.callChatCompletion({
           messages,
           temperature: 0.7,
-          max_tokens: 800,
+          max_tokens: 1200,
           appTitle: 'De los Montes de Maria Admin IA'
         });
 
@@ -901,7 +911,7 @@ Responde con amabilidad, precisión y concisión. Usa las herramientas cuando se
         tools: SUPPORT_TOOLS,
         tool_choice: 'auto',
         temperature: 0.7,
-        max_tokens: 500,
+        max_tokens: 1000,
         appTitle: 'De los Montes de Maria Support IA'
       });
 
@@ -923,7 +933,7 @@ Responde con amabilidad, precisión y concisión. Usa las herramientas cuando se
         const secondCompletion = await this.callChatCompletion({
           messages,
           temperature: 0.7,
-          max_tokens: 500,
+          max_tokens: 1000,
           appTitle: 'De los Montes de Maria Support IA'
         });
 
@@ -960,7 +970,7 @@ Contexto: ${contexto}`
       const completion = await this.callChatCompletion({
         messages,
         temperature: 0.7,
-        max_tokens: 300,
+        max_tokens: 800,
         appTitle: 'De los Montes de Maria Quick Support Reply'
       });
       return completion.message?.content || null;

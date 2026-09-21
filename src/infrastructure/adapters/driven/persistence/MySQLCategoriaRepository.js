@@ -17,6 +17,10 @@ class MySQLCategoriaRepository extends CategoriaRepository {
     });
   }
 
+  async listar() {
+    return this.obtenerTodas();
+  }
+
   async obtenerPorId(id) {
     return new Promise((resolve, reject) => {
       const sql = 'SELECT * FROM categorias WHERE id_categoria = ?';

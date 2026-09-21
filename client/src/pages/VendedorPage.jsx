@@ -10,6 +10,7 @@ import { listarTodasVendedor, actualizarEstadoDespacho } from '../api/compras.ap
 import { convertirseEnVendedor } from '../api/usuario.api'
 import { getProductImageUrl, handleProductImageError } from '../utils/productImage'
 import { compressImage } from '../utils/imageCompressor'
+import LocationPickerModal from '../components/LocationPickerModal'
 
 export default function VendedorPage() {
   const toast = useToast()
@@ -22,6 +23,7 @@ export default function VendedorPage() {
   const [becomingSeller, setBecomingSeller] = useState(false)
   const [joinError, setJoinError] = useState('')
   const [joinSuccess, setJoinSuccess] = useState('')
+  const [showLocationPicker, setShowLocationPicker] = useState(false)
   const [sellerForm, setSellerForm] = useState({
     descripcion: '',
     categoria_productos: 'Cosechas Frescas y Productos Locales',
@@ -124,6 +126,9 @@ export default function VendedorPage() {
       categoria: 'cosechas',
       unidad_medida: 'Kg',
       origen: user?.municipio ? `${user.municipio}, Montes de María` : 'Montes de María, Colombia',
+      ubicacion_nombre: user?.municipio ? `${user.municipio}, Montes de María` : 'El Carmen de Bolívar, Montes de María',
+      latitud: 9.7174,
+      longitud: -75.1213,
       presentacion: 'Empaque fresco de finca',
       cuidado: 'Conservar en lugar fresco y seco',
     })
@@ -144,6 +149,9 @@ export default function VendedorPage() {
       categoria: prod.categoria || 'cosechas',
       unidad_medida: prod.unidad_medida || 'Kg',
       origen: prod.origen || '',
+      ubicacion_nombre: prod.ubicacion_nombre || prod.origen || '',
+      latitud: prod.latitud !== undefined && prod.latitud !== null ? prod.latitud : '',
+      longitud: prod.longitud !== undefined && prod.longitud !== null ? prod.longitud : '',
       presentacion: prod.presentacion || '',
       cuidado: prod.cuidado || '',
     })
@@ -188,6 +196,9 @@ export default function VendedorPage() {
     formData.append('categoria', prodForm.categoria)
     formData.append('unidad_medida', prodForm.unidad_medida)
     formData.append('origen', prodForm.origen)
+    formData.append('ubicacion_nombre', prodForm.ubicacion_nombre || prodForm.origen || '')
+    if (prodForm.latitud) formData.append('latitud', prodForm.latitud)
+    if (prodForm.longitud) formData.append('longitud', prodForm.longitud)
     formData.append('presentacion', prodForm.presentacion)
     formData.append('cuidado', prodForm.cuidado)
     if (imageFile) {
@@ -788,16 +799,44 @@ export default function VendedorPage() {
 
                   <div className="form-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem', marginBottom: '1.25rem' }}>
                     <div className="form-group">
-                      <label className="form-label" style={{ fontWeight: 600 }}>
-                        <i className="fa fa-map-marker-alt text-danger" /> Municipio / Vereda de Origen
-                      </label>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                        <label className="form-label" style={{ fontWeight: 600, margin: 0 }}>
+                          <i className="fa fa-map-marker-alt text-danger" /> Municipio / Vereda de Origen
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => setShowLocationPicker(true)}
+                          className="btn btn-sm"
+                          style={{
+                            background: 'rgba(46, 125, 50, 0.1)',
+                            color: 'var(--primary-color, #2e7d32)',
+                            border: '1px solid rgba(46, 125, 50, 0.25)',
+                            padding: '0.25rem 0.55rem',
+                            fontSize: '0.78rem',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.3rem',
+                            fontWeight: '600'
+                          }}
+                        >
+                          <i className="fa fa-map-pin"></i> Fijar en Mapa (GPS)
+                        </button>
+                      </div>
                       <input
                         type="text"
-                        placeholder="Ej: El Carmen de Bolívar"
+                        placeholder="Ej: El Carmen de Bolívar, Vereda Raicero"
                         value={prodForm.origen}
                         onChange={(e) => setProdForm({ ...prodForm, origen: e.target.value })}
                         className="form-input"
                       />
+                      {prodForm.latitud && prodForm.longitud && (
+                        <div style={{ fontSize: '0.75rem', color: 'var(--primary-color, #2e7d32)', marginTop: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <i className="fa fa-check-circle"></i>
+                          <span>Coordenadas fijadas: {Number(prodForm.latitud).toFixed(4)}, {Number(prodForm.longitud).toFixed(4)}</span>
+                        </div>
+                      )}
                     </div>
 
                     <div className="form-group">
@@ -936,6 +975,25 @@ export default function VendedorPage() {
               </div>
             </div>
           )}
+
+          {/* Selector de Geolocalización en Mini Mapa */}
+          <LocationPickerModal
+            isOpen={showLocationPicker}
+            onClose={() => setShowLocationPicker(false)}
+            initialLat={prodForm.latitud}
+            initialLng={prodForm.longitud}
+            initialUbicacion={prodForm.ubicacion_nombre || prodForm.origen}
+            onConfirm={({ latitud, longitud, ubicacion_nombre }) => {
+              setProdForm((prev) => ({
+                ...prev,
+                latitud,
+                longitud,
+                ubicacion_nombre,
+                origen: ubicacion_nombre || prev.origen
+              }))
+              toast.success('¡Ubicación del producto fijada en el mapa con éxito!')
+            }}
+          />
         </div>
       </main>
 

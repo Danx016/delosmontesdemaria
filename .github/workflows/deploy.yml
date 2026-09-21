@@ -31,6 +31,7 @@ jobs:
           node -c services/order-service/server.js
           node -c services/ai-support-service/server.js
           node -c services/notification-service/server.js
+          node -c services/logistics-service/server.js
 
       - name: 🎨 Compilar Frontend React (Vite)
         run: |
@@ -56,8 +57,9 @@ jobs:
             echo "🚀 Iniciando despliegue de microservicios en Oracle Cloud..."
             cd /home/ubuntu/montesdemaria
             git pull origin main
-            npm install --production
-            npm run build:client
+            npm install
+            npm --prefix client install
+            npm --prefix client run build
             pm2 reload all --update-env
             pm2 save
             echo "✅ ¡Despliegue completado con éxito y cero tiempo de inactividad (Zero Downtime)!"

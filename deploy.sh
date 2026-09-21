@@ -6,13 +6,13 @@ git fetch origin main
 git reset --hard origin/main
 
 echo "[2/4] Instalando dependencias..."
-npm install --production=false
+npm install
+npm --prefix client install
 
 echo "[3/4] Compilando frontend..."
-npm run build
+npm --prefix client run build
 
 echo "[4/4] Iniciando ecosistema de microservicios con PM2..."
-pm2 delete montesdemaria 2>/dev/null || true
 pm2 startOrReload ecosystem.config.js
 pm2 save
 

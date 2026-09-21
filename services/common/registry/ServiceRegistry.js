@@ -17,11 +17,13 @@ class ServiceRegistry {
   getRedisClient() {
     if (!this.redis) {
       this.redis = new Redis(REDIS_URL, {
-        maxRetriesPerRequest: 3,
-        lazyConnect: false
+        maxRetriesPerRequest: null,
+        enableOfflineQueue: false,
+        lazyConnect: false,
+        retryStrategy: (times) => Math.min(times * 200, 5000)
       });
       this.redis.on('error', (err) => {
-        console.warn('⚠️ [ServiceRegistry Redis Error]:', err.message);
+        // Modo degradado silencioso cuando no hay Redis
       });
     }
     return this.redis;
@@ -37,6 +39,7 @@ class ServiceRegistry {
 
     const sendBeat = async () => {
       try {
+        if (!client || client.status !== 'ready') return;
         const payload = JSON.stringify({
           serviceName,
           instanceId: this.instanceId,

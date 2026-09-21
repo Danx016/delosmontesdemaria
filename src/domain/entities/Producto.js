@@ -27,7 +27,10 @@ class Producto {
     categoria_nombre,
     categoria_slug,
     categoria_icono,
-    categoria_color
+    categoria_color,
+    latitud,
+    longitud,
+    ubicacion_nombre
   }) {
     this.id_producto = id_producto;
     this.id_vendedor = id_vendedor || id_proveedor || null;
@@ -53,6 +56,9 @@ class Producto {
     this.categoria_slug = categoria_slug || null;
     this.categoria_icono = categoria_icono || null;
     this.categoria_color = categoria_color || null;
+    this.latitud = latitud !== undefined && latitud !== null && latitud !== '' ? parseFloat(latitud) : null;
+    this.longitud = longitud !== undefined && longitud !== null && longitud !== '' ? parseFloat(longitud) : null;
+    this.ubicacion_nombre = ubicacion_nombre || null;
   }
 
   // Métodos de negocio
@@ -144,7 +150,10 @@ class Producto {
       categoria_nombre: this.categoria_nombre,
       categoria_slug: this.categoria_slug,
       categoria_icono: this.categoria_icono,
-      categoria_color: this.categoria_color
+      categoria_color: this.categoria_color,
+      latitud: this.latitud,
+      longitud: this.longitud,
+      ubicacion_nombre: this.ubicacion_nombre
     };
   }
 }

@@ -4,6 +4,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import ProductCard from '../components/ProductCard'
 import MediaRenderer from '../components/MediaRenderer'
+import CategoryMiniMap from '../components/CategoryMiniMap'
 import { listarProductos, listarCategoriasPublicas } from '../api/productos.api'
 import { matchProductCategory, findCategoryInfo, slugify } from '../utils/categoryMatcher'
 
@@ -150,6 +151,13 @@ export default function CategoryPage() {
             </div>
           </div>
 
+          {/* Mini Mapa de Origen de Cosechas y Productores */}
+          <CategoryMiniMap
+            productos={productosFiltrados}
+            categoryName={catInfo.label || catInfo.nombre_categoria}
+            categoryColor={catInfo.color || '#2e7d32'}
+          />
+
           {/* Barra de Filtro y Orden en la Categoría */}
           <div className="catalog-toolbar" style={{ marginTop: '2rem', marginBottom: '1.5rem', background: 'var(--card-bg, #ffffff)', padding: '1rem 1.25rem', borderRadius: '12px', border: '1px solid var(--border-color, #e5e7eb)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
             <div style={{ position: 'relative', width: '280px', maxWidth: '100%' }}>
@@ -199,7 +207,9 @@ export default function CategoryPage() {
             <>
               <div className="products-grid-container fade-in">
                 {productosFiltrados.map((prod) => (
-                  <ProductCard key={prod.id_producto || prod.id} producto={prod} />
+                  <div key={prod.id_producto || prod.id} id={`prod-${prod.id_producto || prod.id}`} style={{ scrollMarginTop: '100px' }}>
+                    <ProductCard producto={prod} />
+                  </div>
                 ))}
               </div>
             </>

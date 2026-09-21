@@ -9,8 +9,8 @@ class MySQLProductoRepository extends ProductoRepository {
   async crear(producto) {
     return new Promise((resolve, reject) => {
       const sql = `INSERT INTO productos 
-        (id_vendedor, nombre_producto, descripcion, precio, stock, unidad_medida, imagen, id_categoria, id_proveedor, categoria, origen, presentacion, cuidado, disponibilidad) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        (id_vendedor, nombre_producto, descripcion, precio, stock, unidad_medida, imagen, id_categoria, id_proveedor, categoria, origen, presentacion, cuidado, disponibilidad, latitud, longitud, ubicacion_nombre) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
       db.query(sql, [
         producto.id_vendedor || producto.id_proveedor || null,
@@ -26,7 +26,10 @@ class MySQLProductoRepository extends ProductoRepository {
         producto.origen,
         producto.presentacion,
         producto.cuidado,
-        producto.disponibilidad
+        producto.disponibilidad,
+        producto.latitud !== undefined && producto.latitud !== null && producto.latitud !== '' ? parseFloat(producto.latitud) : null,
+        producto.longitud !== undefined && producto.longitud !== null && producto.longitud !== '' ? parseFloat(producto.longitud) : null,
+        producto.ubicacion_nombre || null
       ], (err, result) => {
         if (err) {
           return reject(err);
@@ -116,6 +119,18 @@ class MySQLProductoRepository extends ProductoRepository {
       if (datos.disponibilidad !== undefined) {
         campos.push('disponibilidad = ?');
         valores.push(datos.disponibilidad);
+      }
+      if (datos.latitud !== undefined) {
+        campos.push('latitud = ?');
+        valores.push(datos.latitud !== null && datos.latitud !== '' ? parseFloat(datos.latitud) : null);
+      }
+      if (datos.longitud !== undefined) {
+        campos.push('longitud = ?');
+        valores.push(datos.longitud !== null && datos.longitud !== '' ? parseFloat(datos.longitud) : null);
+      }
+      if (datos.ubicacion_nombre !== undefined) {
+        campos.push('ubicacion_nombre = ?');
+        valores.push(datos.ubicacion_nombre);
       }
 
       if (campos.length === 0) return resolve(this.buscarPorId(id));

@@ -9,6 +9,7 @@ import HeroSlideRenderer from '../components/HeroSlideRenderer'
 import { getAvatarUrl, handleAvatarError } from '../utils/avatar'
 import { getProductImageUrl, handleProductImageError } from '../utils/productImage'
 import { exportarVentasExcel, generarReportePDF } from '../utils/reportExporter'
+import LocationPickerModal from '../components/LocationPickerModal'
 import {
   obtenerEstadisticas,
   listarUsuarios,
@@ -150,6 +151,8 @@ export default function AdminPage() {
 
   // Modales de Producto (Admin Inventario Global)
   const [showCreateProdModal, setShowCreateProdModal] = useState(false)
+  const [showAdminLocationPicker, setShowAdminLocationPicker] = useState(false)
+  const [isAdminEditingLocation, setIsAdminEditingLocation] = useState(false)
   const [newProdForm, setNewProdForm] = useState({
     nombre_producto: '',
     descripcion: '',
@@ -161,6 +164,9 @@ export default function AdminPage() {
     origen: '',
     presentacion: '',
     cuidado: '',
+    latitud: 9.7174,
+    longitud: -75.1213,
+    ubicacion_nombre: 'El Carmen de Bolívar, Montes de María',
   })
   const [newProdImageFile, setNewProdImageFile] = useState(null)
   const [newProdImagePreview, setNewProdImagePreview] = useState('')
@@ -182,6 +188,9 @@ export default function AdminPage() {
     presentacion: '',
     cuidado: '',
     imagen: '',
+    latitud: '',
+    longitud: '',
+    ubicacion_nombre: '',
   })
   const [editProdImageFile, setEditProdImageFile] = useState(null)
   const [editProdImagePreview, setEditProdImagePreview] = useState('')
@@ -1131,6 +1140,9 @@ export default function AdminPage() {
       unidad_medida: 'Kg',
       id_vendedor: '',
       origen: 'Montes de María, Colombia',
+      ubicacion_nombre: 'El Carmen de Bolívar, Montes de María',
+      latitud: 9.7174,
+      longitud: -75.1213,
       presentacion: 'Empaque fresco de finca',
       cuidado: 'Conservar en lugar fresco y seco',
       imagen: '',
@@ -1155,6 +1167,9 @@ export default function AdminPage() {
       unidad_medida: prod.unidad_medida || 'Unidad',
       id_vendedor: vendorVal,
       origen: prod.origen || '',
+      ubicacion_nombre: prod.ubicacion_nombre || prod.origen || '',
+      latitud: prod.latitud !== undefined && prod.latitud !== null ? prod.latitud : '',
+      longitud: prod.longitud !== undefined && prod.longitud !== null ? prod.longitud : '',
       presentacion: prod.presentacion || '',
       cuidado: prod.cuidado || '',
       imagen: prod.imagen || '',
@@ -1195,6 +1210,9 @@ export default function AdminPage() {
       formData.append('unidad_medida', newProdForm.unidad_medida)
       formData.append('id_vendedor', newProdForm.id_vendedor || '')
       formData.append('origen', newProdForm.origen || '')
+      formData.append('ubicacion_nombre', newProdForm.ubicacion_nombre || newProdForm.origen || '')
+      if (newProdForm.latitud) formData.append('latitud', newProdForm.latitud)
+      if (newProdForm.longitud) formData.append('longitud', newProdForm.longitud)
       formData.append('presentacion', newProdForm.presentacion || '')
       formData.append('cuidado', newProdForm.cuidado || '')
       if (newProdImageFile) {
@@ -1233,6 +1251,9 @@ export default function AdminPage() {
       formData.append('unidad_medida', editProdForm.unidad_medida)
       formData.append('id_vendedor', editProdForm.id_vendedor !== undefined ? editProdForm.id_vendedor : '')
       formData.append('origen', editProdForm.origen !== undefined ? editProdForm.origen : '')
+      formData.append('ubicacion_nombre', editProdForm.ubicacion_nombre || editProdForm.origen || '')
+      if (editProdForm.latitud) formData.append('latitud', editProdForm.latitud)
+      if (editProdForm.longitud) formData.append('longitud', editProdForm.longitud)
       formData.append('presentacion', editProdForm.presentacion !== undefined ? editProdForm.presentacion : '')
       formData.append('cuidado', editProdForm.cuidado !== undefined ? editProdForm.cuidado : '')
       if (editProdImageFile) {
@@ -2203,7 +2224,32 @@ export default function AdminPage() {
 
                   <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '0.75rem' }}>
                     <div className="form-group">
-                      <label className="form-label"><i className="fa fa-map-marker-alt text-danger" /> Municipio / Origen</label>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                        <label className="form-label" style={{ margin: 0 }}><i className="fa fa-map-marker-alt text-danger" /> Municipio / Origen</label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsAdminEditingLocation(false)
+                            setShowAdminLocationPicker(true)
+                          }}
+                          className="btn btn-sm"
+                          style={{
+                            background: 'rgba(46, 125, 50, 0.1)',
+                            color: 'var(--primary-color, #2e7d32)',
+                            border: '1px solid rgba(46, 125, 50, 0.25)',
+                            padding: '0.2rem 0.5rem',
+                            fontSize: '0.75rem',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.3rem',
+                            fontWeight: '600'
+                          }}
+                        >
+                          <i className="fa fa-map-pin"></i> Fijar en Mapa (GPS)
+                        </button>
+                      </div>
                       <input
                         type="text"
                         placeholder="Ej: El Carmen de Bolívar, Montes de María"
@@ -2211,6 +2257,11 @@ export default function AdminPage() {
                         onChange={(e) => setNewProdForm({ ...newProdForm, origen: e.target.value })}
                         className="form-input"
                       />
+                      {newProdForm.latitud && newProdForm.longitud && (
+                        <div style={{ fontSize: '0.75rem', color: 'var(--primary-color, #2e7d32)', marginTop: '0.25rem' }}>
+                          <i className="fa fa-check-circle"></i> Coordenadas: {Number(newProdForm.latitud).toFixed(4)}, {Number(newProdForm.longitud).toFixed(4)}
+                        </div>
+                      )}
                     </div>
                     <div className="form-group">
                       <label className="form-label"><i className="fa fa-box text-primary" /> Presentación / Empaque</label>
@@ -2433,7 +2484,32 @@ export default function AdminPage() {
 
                   <div className="form-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '0.75rem' }}>
                     <div className="form-group">
-                      <label className="form-label"><i className="fa fa-map-marker-alt text-danger" /> Municipio / Origen</label>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.25rem' }}>
+                        <label className="form-label" style={{ margin: 0 }}><i className="fa fa-map-marker-alt text-danger" /> Municipio / Origen</label>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsAdminEditingLocation(true)
+                            setShowAdminLocationPicker(true)
+                          }}
+                          className="btn btn-sm"
+                          style={{
+                            background: 'rgba(46, 125, 50, 0.1)',
+                            color: 'var(--primary-color, #2e7d32)',
+                            border: '1px solid rgba(46, 125, 50, 0.25)',
+                            padding: '0.2rem 0.5rem',
+                            fontSize: '0.75rem',
+                            borderRadius: '6px',
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.3rem',
+                            fontWeight: '600'
+                          }}
+                        >
+                          <i className="fa fa-map-pin"></i> Fijar en Mapa (GPS)
+                        </button>
+                      </div>
                       <input
                         type="text"
                         placeholder="Ej: San Jacinto, Montes de María"
@@ -2441,6 +2517,11 @@ export default function AdminPage() {
                         onChange={(e) => setEditProdForm({ ...editProdForm, origen: e.target.value })}
                         className="form-input"
                       />
+                      {editProdForm.latitud && editProdForm.longitud && (
+                        <div style={{ fontSize: '0.75rem', color: 'var(--primary-color, #2e7d32)', marginTop: '0.25rem' }}>
+                          <i className="fa fa-check-circle"></i> Coordenadas: {Number(editProdForm.latitud).toFixed(4)}, {Number(editProdForm.longitud).toFixed(4)}
+                        </div>
+                      )}
                     </div>
                     <div className="form-group">
                       <label className="form-label"><i className="fa fa-box text-primary" /> Presentación / Empaque</label>
@@ -5477,6 +5558,34 @@ export default function AdminPage() {
               </div>
             </div>
           )}
+          {/* Modal de Selector de Ubicación en Mapa (Admin) */}
+          <LocationPickerModal
+            isOpen={showAdminLocationPicker}
+            onClose={() => setShowAdminLocationPicker(false)}
+            initialLat={isAdminEditingLocation ? editProdForm.latitud : newProdForm.latitud}
+            initialLng={isAdminEditingLocation ? editProdForm.longitud : newProdForm.longitud}
+            initialUbicacion={isAdminEditingLocation ? (editProdForm.ubicacion_nombre || editProdForm.origen) : (newProdForm.ubicacion_nombre || newProdForm.origen)}
+            onConfirm={({ latitud, longitud, ubicacion_nombre }) => {
+              if (isAdminEditingLocation) {
+                setEditProdForm((prev) => ({
+                  ...prev,
+                  latitud,
+                  longitud,
+                  ubicacion_nombre,
+                  origen: ubicacion_nombre || prev.origen
+                }))
+              } else {
+                setNewProdForm((prev) => ({
+                  ...prev,
+                  latitud,
+                  longitud,
+                  ubicacion_nombre,
+                  origen: ubicacion_nombre || prev.origen
+                }))
+              }
+              toast.success('Ubicación del producto fijada en el mapa con éxito.')
+            }}
+          />
         </div>
       </main>
 

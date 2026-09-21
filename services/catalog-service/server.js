@@ -10,7 +10,7 @@
  * Resiliencia: Heartbeat a ServiceRegistry
  */
 require('dotenv').config();
-process.env.DB_NAME = process.env.CATALOG_DB_NAME || 'db_catalog';
+process.env.DB_NAME = process.env.CATALOG_DB_NAME || process.env.DB_NAME || 'dbmontesdm';
 
 const express = require('express');
 const cors = require('cors');

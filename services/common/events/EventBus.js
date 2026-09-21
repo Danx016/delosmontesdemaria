@@ -25,19 +25,20 @@ class EventBus {
     if (this.publisher && this.subscriber && this.streamClient) return;
 
     const redisOptions = {
-      maxRetriesPerRequest: 3,
-      retryStrategy: (times) => Math.min(times * 50, 2000),
+      maxRetriesPerRequest: null,
+      enableOfflineQueue: false,
+      retryStrategy: (times) => Math.min(times * 200, 5000),
       lazyConnect: false
     };
 
     if (!this.publisher) {
       this.publisher = new Redis(REDIS_URL, redisOptions);
-      this.publisher.on('error', (err) => console.warn(`⚠️ [EventBus Publisher Error]: ${err.message}`));
+      this.publisher.on('error', () => {});
     }
 
     if (!this.subscriber) {
       this.subscriber = new Redis(REDIS_URL, redisOptions);
-      this.subscriber.on('error', (err) => console.warn(`⚠️ [EventBus Subscriber Error]: ${err.message}`));
+      this.subscriber.on('error', () => {});
       this.subscriber.on('message', (channel, message) => {
         try {
           const event = JSON.parse(message);
@@ -57,7 +58,7 @@ class EventBus {
 
     if (!this.streamClient) {
       this.streamClient = new Redis(REDIS_URL, redisOptions);
-      this.streamClient.on('error', (err) => console.warn(`⚠️ [EventBus Streams Error]: ${err.message}`));
+      this.streamClient.on('error', () => {});
     }
 
     this.isReady = true;
@@ -83,9 +84,11 @@ class EventBus {
     const payload = JSON.stringify(this._ensureCorrelation(eventData));
 
     try {
-      await this.publisher.publish(channel, payload);
+      if (this.publisher && this.publisher.status === 'ready') {
+        await this.publisher.publish(channel, payload);
+      }
     } catch (err) {
-      console.error(`⚠️ Error al publicar evento en ${channel}:`, err.message);
+      // Degradar silenciosamente si Redis no está activo
     }
   }
 
@@ -93,7 +96,13 @@ class EventBus {
     this.init();
     if (!this.subscriptions.has(channel)) {
       this.subscriptions.set(channel, []);
-      await this.subscriber.subscribe(channel);
+      try {
+        if (this.subscriber && this.subscriber.status === 'ready') {
+          await this.subscriber.subscribe(channel);
+        }
+      } catch (err) {
+        // Degradar silenciosamente si Redis no está activo
+      }
     }
     this.subscriptions.get(channel).push(handler);
   }
@@ -147,6 +156,10 @@ class EventBus {
 
     const loop = async () => {
       while (isRunning) {
+        if (!this.streamClient || this.streamClient.status !== 'ready') {
+          await new Promise(r => setTimeout(r, 2000));
+          continue;
+        }
         try {
           // Leer nuevos mensajes dirigidos al grupo
           const response = await this.streamClient.xreadgroup(

@@ -38,7 +38,7 @@ class ProductoController {
 
   async crear(req, res) {
     try {
-      const { nombre, precio, imagen, descripcion, categoria, origen, presentacion, cuidado, disponibilidad, id_vendedor, stock, unidad_medida } = req.body;
+      const { nombre, precio, imagen, descripcion, categoria, origen, presentacion, cuidado, disponibilidad, id_vendedor, stock, unidad_medida, latitud, longitud, ubicacion_nombre } = req.body;
       const finalImagen = req.file ? `/uploads/products/${req.file.filename}` : (imagen || '/img/Logo.jpg');
 
       const vendorId = req.user?.id || req.user?.id_usuario || id_vendedor || null;
@@ -56,7 +56,10 @@ class ProductoController {
         origen: origen || 'Montes de María',
         presentacion: presentacion || '',
         cuidado: cuidado || '',
-        disponibilidad: disponibilidad || 'disponible'
+        disponibilidad: disponibilidad || 'disponible',
+        latitud: latitud !== undefined && latitud !== null && latitud !== '' ? parseFloat(latitud) : null,
+        longitud: longitud !== undefined && longitud !== null && longitud !== '' ? parseFloat(longitud) : null,
+        ubicacion_nombre: ubicacion_nombre || null
       });
 
       res.status(201).json(nuevo.toJSON());
@@ -68,7 +71,7 @@ class ProductoController {
   async actualizar(req, res) {
     try {
       const productId = req.params.id_producto;
-      const { nombre, precio, imagen, descripcion, categoria, origen, presentacion, cuidado, disponibilidad, stock, unidad_medida } = req.body;
+      const { nombre, precio, imagen, descripcion, categoria, origen, presentacion, cuidado, disponibilidad, stock, unidad_medida, latitud, longitud, ubicacion_nombre } = req.body;
 
       const current = await this.productoRepository.buscarPorId(productId);
       if (!current) return res.status(404).json({ error: 'Producto no encontrado' });
@@ -96,7 +99,10 @@ class ProductoController {
         origen: origen !== undefined ? origen : current.origen,
         presentacion: presentacion !== undefined ? presentacion : current.presentacion,
         cuidado: cuidado !== undefined ? cuidado : current.cuidado,
-        disponibilidad: disponibilidad !== undefined ? disponibilidad : current.disponibilidad
+        disponibilidad: disponibilidad !== undefined ? disponibilidad : current.disponibilidad,
+        latitud: latitud !== undefined ? (latitud !== null && latitud !== '' ? parseFloat(latitud) : null) : current.latitud,
+        longitud: longitud !== undefined ? (longitud !== null && longitud !== '' ? parseFloat(longitud) : null) : current.longitud,
+        ubicacion_nombre: ubicacion_nombre !== undefined ? ubicacion_nombre : current.ubicacion_nombre
       });
 
       res.json(updated.toJSON());

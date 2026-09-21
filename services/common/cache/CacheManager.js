@@ -15,11 +15,13 @@ class CacheManager {
   getClient() {
     if (!this.redis) {
       this.redis = new Redis(REDIS_URL, {
-        maxRetriesPerRequest: 2,
-        lazyConnect: false
+        maxRetriesPerRequest: null,
+        enableOfflineQueue: false,
+        lazyConnect: false,
+        retryStrategy: (times) => Math.min(times * 200, 5000)
       });
       this.redis.on('error', (err) => {
-        console.warn(`⚠️ [CacheManager Redis Error]:`, err.message);
+        // Log solo ocasional o silencioso si offline
       });
     }
     return this.redis;
