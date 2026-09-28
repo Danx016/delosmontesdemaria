@@ -221,7 +221,7 @@ export default function CategoryPage() {
                     onChange={(e) => setOnlyInStock(e.target.checked)}
                     style={{ width: '18px', height: '18px', accentColor: catInfo.color || '#2e7d32' }}
                   />
-                  Solo en inventario (> 0)
+                  Solo en inventario (&gt; 0)
                 </label>
               </div>
 
