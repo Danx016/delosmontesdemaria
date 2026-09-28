@@ -201,7 +201,7 @@ export default function CategoryPage() {
           </div>
 
           {/* Layout de dos columnas: Filtros a la izquierda, Productos a la derecha */}
-          <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '2rem', marginTop: '1.5rem' }} className="category-layout-grid">
+          <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '2rem', marginTop: '1.5rem', position: 'relative', alignItems: 'start' }} className="category-layout-grid">
             {/* Panel lateral de filtros */}
             <div className="catalog-filters-sidebar" style={{ 
               background: 'var(--card-bg, #ffffff)', 
@@ -210,7 +210,8 @@ export default function CategoryPage() {
               border: '1px solid var(--border-color, #e5e7eb)', 
               height: 'fit-content',
               position: 'sticky',
-              top: '1rem'
+              top: '0',
+              alignSelf: 'start'
             }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '1.25rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border-color, #e5e7eb)' }}>
                 <i className="fa fa-filter" style={{ marginRight: '0.5rem', color: catInfo.color || '#2e7d32' }} />

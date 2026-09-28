@@ -316,6 +316,13 @@ h1, h2, h3, h4, h5, h6 {
   display: grid;
   grid-template-columns: 280px 1fr;
   gap: 2rem;
+  align-items: start;
+}
+
+.catalog-filters-sidebar {
+  position: sticky;
+  top: 1rem;
+  align-self: start;
 }
 
 @media (max-width: 900px) {
@@ -326,6 +333,8 @@ h1, h2, h3, h4, h5, h6 {
 
   .catalog-filters-sidebar {
     order: -1; /* Filtros arriba en móvil */
+    position: relative;
+    top: 0;
   }
 }
 
