@@ -51,6 +51,9 @@ export default function ProductCard({ producto }) {
             className="product-card-img"
             onError={handleProductImageError}
             loading="lazy"
+            decoding="async"
+            width="300"
+            height="200"
           />
           {producto.categoria && (
             <span className="product-card-category-badge">

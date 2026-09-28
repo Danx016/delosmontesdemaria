@@ -191,47 +191,31 @@ export default function Navbar() {
         </div>
 
         {/* Right Navigation Actions */}
-        <nav className={`header-nav-menu ${mobileMenuOpen ? 'mobile-active' : ''}`}>
-          <ul className="header-nav-list">
-            <li>
-              <Link to="/" className={`nav-link-item ${isActive('/') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>
+        <nav className={`header-nav-menu ${mobileMenuOpen ? 'mobile-active' : ''}`} id="header-nav-menu" aria-label="Navegación principal">
+          <ul className="header-nav-list" role="menubar">
+            <li role="none">
+              <Link to="/" className={`nav-link-item ${isActive('/') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)} role="menuitem" tabIndex="0">
                 <i className="fa fa-home" /> <span>Inicio</span>
               </Link>
             </li>
 
-            <li>
-              <Link to="/categorias" className={`nav-link-item ${isActive('/categorias') || isActive('/catalogo') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>
+            <li role="none">
+              <Link to="/categorias" className={`nav-link-item ${isActive('/categorias') || isActive('/catalogo') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)} role="menuitem" tabIndex="0">
                 <i className="fa fa-layer-group" /> <span>Categorías</span>
               </Link>
             </li>
 
-            <li>
-              <Link to="/vendedores" className={`nav-link-item ${isActive('/vendedores') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>
+            <li role="none">
+              <Link to="/vendedores" className={`nav-link-item ${isActive('/vendedores') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)} role="menuitem" tabIndex="0">
                 <i className="fa fa-users" /> <span>Vendedores</span>
               </Link>
             </li>
 
-            <li>
-              <Link to="/rastreo" className={`nav-link-item ${isActive('/rastreo') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>
-                <i className="fa fa-truck-fast" /> <span>Rastreo</span>
-              </Link>
-            </li>
-
-            <li>
-              <Link
-                to={isAdmin || isSupport ? '/admin/soporte' : '/soporte'}
-                className={`nav-link-item ${isActive('/soporte') || isActive('/admin/soporte') ? 'active' : ''}`}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                <i className="fa fa-headset" /> <span>Ayuda</span>
-              </Link>
-            </li>
-
-            <li>
-              <Link to="/carrito" className={`nav-link-item nav-cart-item ${isActive('/carrito') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)}>
+            <li role="none">
+              <Link to="/carrito" className={`nav-link-item nav-cart-item ${isActive('/carrito') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)} role="menuitem" tabIndex="0" aria-label={`Carrito de compras${count > 0 ? ` con ${count} productos` : ''}`}>
                 <i className="fa fa-shopping-cart" />
                 <span>Carrito</span>
-                {count > 0 && <span className="nav-cart-badge">{count}</span>}
+                {count > 0 && <span className="nav-cart-badge" aria-label={`${count} productos en el carrito`}>{count}</span>}
               </Link>
             </li>
 
@@ -241,6 +225,8 @@ export default function Navbar() {
                 <button
                   onClick={() => setUserDropdown(!userDropdown)}
                   className="user-dropdown-trigger"
+                  aria-expanded={userDropdown}
+                  aria-haspopup="true"
                 >
                   <img
                     src={getAvatarUrl(user)}
@@ -253,7 +239,7 @@ export default function Navbar() {
                 </button>
 
                 {userDropdown && (
-                  <div className="user-popup-menu fade-in" onMouseLeave={() => setUserDropdown(false)}>
+                  <div className="user-popup-menu fade-in" onMouseLeave={() => setUserDropdown(false)} role="menu">
                     <div className="user-popup-header">
                       <strong>{user?.nombre || user?.username}</strong>
                       <span className="user-popup-role">
@@ -261,29 +247,29 @@ export default function Navbar() {
                       </span>
                     </div>
                     <hr className="user-popup-divider" />
-                    <Link to="/perfil" onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }}>
+                    <Link to="/perfil" onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }} role="menuitem">
                       <i className="fa fa-user" /> Mi Perfil y Pedidos
                     </Link>
-                    <Link to="/rastreo" onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }}>
+                    <Link to="/rastreo" onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }} role="menuitem">
                       <i className="fa fa-truck-fast" /> Rastrear Cosecha
                     </Link>
-                    <Link to="/vendedor" onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }}>
+                    <Link to="/vendedor" onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }} role="menuitem">
                       <i className="fa fa-store" /> Centro de Ventas (Vender)
                     </Link>
                     {(isAdmin || isSupport) && (
                       <>
                         {isAdmin && (
-                          <Link to="/admin" onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }}>
+                          <Link to="/admin" onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }} role="menuitem">
                             <i className="fa fa-cogs" /> Panel Administrador
                           </Link>
                         )}
-                        <Link to="/admin/soporte" onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }}>
+                        <Link to="/admin/soporte" onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }} role="menuitem">
                           <i className="fa fa-ticket-alt" /> Centro de Soporte
                         </Link>
                       </>
                     )}
                     <hr className="user-popup-divider" />
-                    <button onClick={() => { logout(); setUserDropdown(false); navigate('/login'); }} className="user-popup-logout">
+                    <button onClick={() => { logout(); setUserDropdown(false); navigate('/login'); }} className="user-popup-logout" role="menuitem">
                       <i className="fa fa-sign-out-alt" /> Cerrar Sesión
                     </button>
                   </div>
@@ -310,7 +296,9 @@ export default function Navbar() {
         <button
           className="mobile-menu-btn"
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Abrir menú"
+          aria-label={mobileMenuOpen ? "Cerrar menú" : "Abrir menú"}
+          aria-expanded={mobileMenuOpen}
+          aria-controls="header-nav-menu"
         >
           <i className={`fa ${mobileMenuOpen ? 'fa-times' : 'fa-bars'}`} />
         </button>
@@ -324,7 +312,7 @@ export default function Navbar() {
             onClick={() => handleScrollRibbon(-260)}
             className="ribbon-arrow-btn left"
             title="Ver anteriores"
-            aria-label="Anteriores categorías"
+            aria-label="Categorías anteriores"
           >
             <i className="fa fa-chevron-left" />
           </button>
