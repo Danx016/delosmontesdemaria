@@ -4520,8 +4520,8 @@ h1, h2, h3, h4, h5, h6 {
 .vendors-rich-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 2rem;
-  margin-top: 1.5rem;
+  gap: 1.25rem;
+  margin-top: 1rem;
 }
 
 .rich-vendor-card {
@@ -8023,7 +8023,8 @@ h1, h2, h3, h4, h5, h6 {
   /* ── 11b. Vendedores & Categorías Mobile Optimization ── */
   .vendors-rich-grid {
     grid-template-columns: 1fr !important;
-    gap: 1.25rem !important;
+    gap: 1rem !important;
+    margin-top: 0.75rem !important;
   }
 
   .vendors-filter-pills {
