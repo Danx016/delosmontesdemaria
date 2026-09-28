@@ -106,44 +106,78 @@ export default function CategoryPage() {
             className="cat-hero-card fade-in"
             style={{
               '--hero-accent': catInfo.color || '#2e7d32',
-              '--hero-accent-subtle': `${catInfo.color || '#2e7d32'}18`,
-              '--hero-accent-border': `${catInfo.color || '#2e7d32'}35`,
+              '--hero-accent-subtle': `${catInfo.color || '#2e7d32'}12`,
+              '--hero-accent-border': `${catInfo.color || '#2e7d32'}25`,
+              background: `linear-gradient(135deg, ${catInfo.color || '#2e7d32'}08 0%, ${catInfo.color || '#2e7d32'}03 100%)`,
             }}
           >
             <div className="cat-hero-glow" />
 
             <div className="cat-hero-content">
               <div className="cat-hero-tag-row">
-                <span className="cat-hero-tag">
+                <span className="cat-hero-tag" style={{ 
+                  background: `linear-gradient(135deg, ${catInfo.color || '#2e7d32'}20 0%, ${catInfo.color || '#2e7d32'}10 100%)`,
+                  color: catInfo.color || '#2e7d32',
+                  border: `1px solid ${catInfo.color || '#2e7d32'}30`
+                }}>
                   <i className="fa fa-leaf" /> Mercado Campesino • Montes de María
                 </span>
-                <span className="badge badge-outline" style={{ borderColor: `${catInfo.color || '#2e7d32'}40`, color: catInfo.color || '#2e7d32', fontSize: '0.78rem' }}>
+                <span className="badge badge-outline" style={{ 
+                  borderColor: `${catInfo.color || '#2e7d32'}40`, 
+                  color: catInfo.color || '#2e7d32', 
+                  fontSize: '0.78rem',
+                  background: `${catInfo.color || '#2e7d32'}08`
+                }}>
                   Categoría Oficial
                 </span>
               </div>
 
-              <h1 className="cat-hero-title">{catInfo.label || catInfo.nombre_categoria}</h1>
-              <p className="cat-hero-desc">
+              <h1 className="cat-hero-title" style={{ 
+                background: `linear-gradient(135deg, ${catInfo.color || '#2e7d32'} 0%, #1a5c1a 100%)`,
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                textFillColor: 'transparent'
+              }}>
+                {catInfo.label || catInfo.nombre_categoria}
+              </h1>
+              <p className="cat-hero-desc" style={{ color: '#4b5563', fontSize: '1.05rem', lineHeight: '1.6' }}>
                 {catInfo.descripcion || 'Explora los mejores productos locales directamente traídos desde el campo de los Montes de María.'}
               </p>
 
               <div className="cat-hero-badges-row">
-                <div className="cat-hero-badge-pill">
+                <div className="cat-hero-badge-pill" style={{ 
+                  background: `linear-gradient(135deg, ${catInfo.color || '#2e7d32'}15 0%, ${catInfo.color || '#2e7d32'}25 100%)`,
+                  border: `1px solid ${catInfo.color || '#2e7d32'}30`,
+                  color: '#ffffff'
+                }}>
                   <i className="fa fa-boxes-stacked" />
                   <span><strong>{productosFiltrados.length}</strong> {productosFiltrados.length === 1 ? 'Producto disponible' : 'Productos disponibles'}</span>
                 </div>
-                <div className="cat-hero-badge-pill">
+                <div className="cat-hero-badge-pill" style={{ 
+                  background: '#ffffff',
+                  border: `1px solid ${catInfo.color || '#2e7d32'}20`,
+                  color: catInfo.color || '#2e7d32'
+                }}>
                   <i className="fa fa-truck-fast" />
                   <span>Envíos directos sin intermediarios</span>
                 </div>
-                <div className="cat-hero-badge-pill">
+                <div className="cat-hero-badge-pill" style={{ 
+                  background: '#ffffff',
+                  border: `1px solid ${catInfo.color || '#2e7d32'}20`,
+                  color: catInfo.color || '#2e7d32'
+                }}>
                   <i className="fa fa-award" />
                   <span>Calidad 100% Garantizada</span>
                 </div>
               </div>
             </div>
 
-            <div className="cat-hero-showcase">
+            <div className="cat-hero-showcase" style={{ 
+              background: `linear-gradient(135deg, ${catInfo.color || '#2e7d32'}15 0%, ${catInfo.color || '#2e7d32'}05 100%)`,
+              border: `2px solid ${catInfo.color || '#2e7d32'}20`,
+              boxShadow: `0 8px 32px ${catInfo.color || '#2e7d32'}25`
+            }}>
               <MediaRenderer
                 src={catInfo.imagen}
                 alt={catInfo.label || catInfo.nombre_categoria}
