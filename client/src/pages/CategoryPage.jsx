@@ -15,6 +15,7 @@ export default function CategoryPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [sortBy, setSortBy] = useState('recientes') // 'recientes' | 'precio_asc' | 'precio_desc' | 'stock'
+  const [onlyInStock, setOnlyInStock] = useState(false) // Filtro de disponibilidad
 
   useEffect(() => {
     setLoading(true)
@@ -51,7 +52,9 @@ export default function CategoryPage() {
           (p.vendedor_nombre || '').toLowerCase().includes(q) ||
           (p.origen || '').toLowerCase().includes(q)
 
-        return matchCat && matchSearch
+        const matchStock = !onlyInStock || (Number(p.stock) || 0) > 0
+
+        return matchCat && matchSearch && matchStock
       })
       .sort((a, b) => {
         const precioA = Number(a.precio) || 0
@@ -62,7 +65,7 @@ export default function CategoryPage() {
         if (sortBy === 'stock') return (Number(b.stock) || 0) - (Number(a.stock) || 0)
         return (b.id_producto || 0) - (a.id_producto || 0)
       })
-  }, [todosLosProductos, slug, categoriasLista, searchTerm, sortBy])
+  }, [todosLosProductos, slug, categoriasLista, searchTerm, sortBy, onlyInStock])
 
   // Otras categorías para navegación rápida
   const otrasCategorias = useMemo(() => {
@@ -197,86 +200,129 @@ export default function CategoryPage() {
             </div>
           </div>
 
-          {/* Products Grid */}
-          {loading ? (
-            <div className="loading-state-box">
-              <div className="spinner" />
-              <p>Cargando productos de {catInfo.label}...</p>
-            </div>
-          ) : productosFiltrados.length > 0 ? (
-            <>
-              <div className="products-grid-container fade-in">
-                {productosFiltrados.map((prod) => (
-                  <div key={prod.id_producto || prod.id} id={`prod-${prod.id_producto || prod.id}`} style={{ scrollMarginTop: '100px' }}>
-                    <ProductCard producto={prod} />
-                  </div>
-                ))}
-              </div>
-            </>
-          ) : (
-            <div className="empty-catalog-card fade-in">
-              <i className="fa fa-seedling empty-catalog-icon" />
-              <h3>{searchTerm ? 'No se encontraron resultados' : `No hay productos registrados en ${catInfo.label}`}</h3>
-              <p>{searchTerm ? `No hay productos que coincidan con "${searchTerm}" en esta sección.` : 'Nuestros agricultores están alistando la próxima cosecha.'}</p>
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.25rem', flexWrap: 'wrap' }}>
-                {searchTerm && (
-                  <button onClick={() => setSearchTerm('')} className="btn btn-secondary">
-                    <i className="fa fa-times" /> Limpiar Búsqueda
-                  </button>
-                )}
-                <Link to="/categorias" className="btn btn-primary">
-                  <i className="fa fa-boxes-stacked" /> Ver Todas las Categorías
-                </Link>
-              </div>
-            </div>
-          )}
+          {/* Layout de dos columnas: Filtros a la izquierda, Productos a la derecha */}
+          <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '2rem', marginTop: '1.5rem' }} className="category-layout-grid">
+            {/* Panel lateral de filtros */}
+            <div className="catalog-filters-sidebar" style={{ background: 'var(--card-bg, #ffffff)', padding: '1.5rem', borderRadius: '12px', border: '1px solid var(--border-color, #e5e7eb)', height: 'fit-content' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: '700', marginBottom: '1.25rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border-color, #e5e7eb)' }}>
+                <i className="fa fa-filter" style={{ marginRight: '0.5rem', color: catInfo.color || '#2e7d32' }} />
+                FILTROS
+              </h3>
 
-          {/* Explora otras categorías */}
-          {otrasCategorias.length > 0 && (
-            <div style={{ marginTop: '3.5rem' }}>
-              <div className="block-header" style={{ textAlign: 'left', marginBottom: '1.25rem' }}>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: '700' }}>Explorar Otras Categorías</h3>
+              {/* Filtro de Disponibilidad */}
+              <div style={{ marginBottom: '1.5rem' }}>
+                <h4 style={{ fontSize: '0.95rem', fontWeight: '600', marginBottom: '0.75rem', color: 'var(--text-main, #1f2937)' }}>
+                  DISPONIBILIDAD
+                </h4>
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.9rem', color: 'var(--text-muted, #6b7280)' }}>
+                  <input
+                    type="checkbox"
+                    checked={onlyInStock}
+                    onChange={(e) => setOnlyInStock(e.target.checked)}
+                    style={{ width: '18px', height: '18px', accentColor: catInfo.color || '#2e7d32' }}
+                  />
+                  Solo en inventario (> 0)
+                </label>
               </div>
-              <div className="categories-cards-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))' }}>
-                {otrasCategorias.map((c) => {
-                  const otherSlug = c.slug || slugify(c.nombre_categoria)
-                  return (
-                    <Link
-                      key={c.id_categoria || otherSlug}
-                      to={`/categoria/${otherSlug}`}
-                      className="category-item-card"
-                      style={{ padding: '1rem' }}
-                    >
-                      <div
-                        className="cat-icon-circle"
-                        style={{
-                          width: '44px',
-                          height: '44px',
-                          backgroundColor: `${c.color || '#2e7d32'}18`,
-                          color: c.color || '#2e7d32',
-                          margin: '0 auto 0.75rem auto'
-                        }}
-                      >
-                        <MediaRenderer
-                          src={c.imagen}
-                          alt={c.nombre_categoria}
-                          icon={c.icono || 'fa-box'}
-                          color={c.color || '#2e7d32'}
-                          type="category"
-                        />
-                      </div>
-                      <h4 style={{ fontSize: '0.92rem', fontWeight: '600', margin: '0 0 0.25rem 0', textAlign: 'center' }}>
-                        {c.nombre_categoria}
-                      </h4>
-                      <span style={{ fontSize: '0.78rem', color: '#16a34a', display: 'block', textAlign: 'center' }}>
-                        Ver productos <i className="fa fa-chevron-right" style={{ fontSize: '0.7rem' }} />
-                      </span>
-                    </Link>
-                  )
-                })}
+
+              {/* Información de la categoría */}
+              <div style={{ marginBottom: '1.5rem', padding: '1rem', background: `${catInfo.color || '#2e7d32'}08`, borderRadius: '8px', border: `1px solid ${catInfo.color || '#2e7d32'}20` }}>
+                <h4 style={{ fontSize: '0.9rem', fontWeight: '600', marginBottom: '0.5rem', color: catInfo.color || '#2e7d32' }}>
+                  <i className="fa fa-info-circle" /> {catInfo.label || catInfo.nombre_categoria}
+                </h4>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-muted, #6b7280)', lineHeight: '1.4', margin: 0 }}>
+                  {catInfo.descripcion || 'Productos locales de calidad directamente del campo.'}
+                </p>
               </div>
+
+              {/* Otras categorías rápidas */}
+              {otrasCategorias.length > 0 && (
+                <div>
+                  <h4 style={{ fontSize: '0.95rem', fontWeight: '600', marginBottom: '0.75rem', color: 'var(--text-main, #1f2937)' }}>
+                    OTRAS CATEGORÍAS
+                  </h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    {otrasCategorias.slice(0, 4).map((c) => {
+                      const otherSlug = c.slug || slugify(c.nombre_categoria)
+                      return (
+                        <Link
+                          key={c.id_categoria || otherSlug}
+                          to={`/categoria/${otherSlug}`}
+                          style={{ 
+                            display: 'flex', 
+                            alignItems: 'center', 
+                            gap: '0.5rem', 
+                            padding: '0.5rem', 
+                            borderRadius: '6px', 
+                            textDecoration: 'none', 
+                            color: 'var(--text-muted, #6b7280)', 
+                            fontSize: '0.85rem',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.background = 'var(--bg-color, #f9fafb)'
+                            e.target.style.color = catInfo.color || '#2e7d32'
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.background = 'transparent'
+                            e.target.style.color = 'var(--text-muted, #6b7280)'
+                          }}
+                        >
+                          <MediaRenderer
+                            src={c.imagen}
+                            alt={c.nombre_categoria}
+                            icon={c.icono || 'fa-box'}
+                            color={c.color || '#2e7d32'}
+                            type="category"
+                            style={{ width: '24px', height: '24px' }}
+                          />
+                          {c.nombre_categoria}
+                        </Link>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
+
+            {/* Columna principal de productos */}
+            <div style={{ minWidth: 0 }}>
+
+            {/* Products Grid */}
+            {loading ? (
+              <div className="loading-state-box">
+                <div className="spinner" />
+                <p>Cargando productos de {catInfo.label}...</p>
+              </div>
+            ) : productosFiltrados.length > 0 ? (
+              <>
+                <div className="products-grid-container fade-in">
+                  {productosFiltrados.map((prod) => (
+                    <div key={prod.id_producto || prod.id} id={`prod-${prod.id_producto || prod.id}`} style={{ scrollMarginTop: '100px' }}>
+                      <ProductCard producto={prod} />
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="empty-catalog-card fade-in">
+                <i className="fa fa-seedling empty-catalog-icon" />
+                <h3>{searchTerm ? 'No se encontraron resultados' : `No hay productos registrados en ${catInfo.label}`}</h3>
+                <p>{searchTerm ? `No hay productos que coincidan con "${searchTerm}" en esta sección.` : 'Nuestros agricultores están alistando la próxima cosecha.'}</p>
+                <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.25rem', flexWrap: 'wrap' }}>
+                  {searchTerm && (
+                    <button onClick={() => setSearchTerm('')} className="btn btn-secondary">
+                      <i className="fa fa-times" /> Limpiar Búsqueda
+                    </button>
+                  )}
+                  <Link to="/categorias" className="btn btn-primary">
+                    <i className="fa fa-boxes-stacked" /> Ver Todas las Categorías
+                  </Link>
+                </div>
+              </div>
+            )}
+            </div>
+          </div>
         </div>
       </main>
 

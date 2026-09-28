@@ -311,6 +311,24 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0 auto;
 }
 
+/* Category Layout Responsive */
+.category-layout-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 2rem;
+}
+
+@media (max-width: 900px) {
+  .category-layout-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .catalog-filters-sidebar {
+    order: -1; /* Filtros arriba en móvil */
+  }
+}
+
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
