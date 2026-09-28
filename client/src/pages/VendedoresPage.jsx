@@ -15,9 +15,14 @@ export default function VendedoresPage() {
   useEffect(() => {
     listarVendedores()
       .then((res) => {
-        setVendedores(res.data || [])
+        const vendedoresData = res.data || []
+        console.log('Vendedores cargados:', vendedoresData.length, vendedoresData)
+        setVendedores(vendedoresData)
       })
-      .catch((err) => console.error('Error al cargar vendedores:', err))
+      .catch((err) => {
+        console.error('Error al cargar vendedores:', err)
+        setVendedores([])
+      })
       .finally(() => setLoading(false))
   }, [])
 
@@ -28,6 +33,12 @@ export default function VendedoresPage() {
   // Filtrado reactivo de vendedores
   const filteredVendedores = useMemo(() => {
     return vendedores.filter((v) => {
+      // Validar que el vendedor tenga datos básicos
+      if (!v || (!v.id && !v.id_usuario)) {
+        console.warn('Vendedor sin ID válido:', v)
+        return false
+      }
+
       const matchSearch =
         searchTerm.trim() === '' ||
         (v.nombre && v.nombre.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -141,6 +152,9 @@ export default function VendedoresPage() {
             </div>
           ) : filteredVendedores.length > 0 ? (
             <div className="vendors-rich-grid">
+              <p style={{ marginBottom: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                Mostrando {filteredVendedores.length} de {vendedores.length} vendedores
+              </p>
               {filteredVendedores.map((vendedor) => {
                 const coverImg = vendedor.foto_portada?.startsWith('http')
                   ? vendedor.foto_portada
