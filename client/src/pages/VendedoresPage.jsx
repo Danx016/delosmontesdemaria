@@ -32,7 +32,7 @@ export default function VendedoresPage() {
 
   // Filtrado reactivo de vendedores
   const filteredVendedores = useMemo(() => {
-    return vendedores.filter((v) => {
+    const filtered = vendedores.filter((v) => {
       // Validar que el vendedor tenga datos básicos
       if (!v || (!v.id && !v.id_usuario)) {
         console.warn('Vendedor sin ID válido:', v)
@@ -53,6 +53,9 @@ export default function VendedoresPage() {
 
       return matchSearch && matchCategory
     })
+
+    console.log('Filtrado:', { total: vendedores.length, filtrados: filtered.length, termino: searchTerm, categoria: selectedCategory })
+    return filtered
   }, [vendedores, searchTerm, selectedCategory])
 
   return (
@@ -152,9 +155,6 @@ export default function VendedoresPage() {
             </div>
           ) : filteredVendedores.length > 0 ? (
             <div className="vendors-rich-grid">
-              <p style={{ marginBottom: '1rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                Mostrando {filteredVendedores.length} de {vendedores.length} vendedores
-              </p>
               {filteredVendedores.map((vendedor) => {
                 const coverImg = vendedor.foto_portada?.startsWith('http')
                   ? vendedor.foto_portada
