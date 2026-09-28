@@ -151,6 +151,8 @@ export default function ProductCard({ producto }) {
               disabled={isOutOfStock}
               className={`btn-product-add ${added ? 'added' : ''}`}
               title="Agregar al carrito"
+              aria-label={isOutOfStock ? 'Producto agotado' : added ? 'Producto agregado al carrito' : 'Agregar al carrito'}
+              style={{ minHeight: 'var(--touch-target-min)' }}
             >
               {added ? (
                 <>

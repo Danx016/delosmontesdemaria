@@ -27,10 +27,10 @@ export default function Footer() {
             Conectando el campo directamente con tu mesa y negocio. Productos agrícolas de calidad superior, cosechados con amor en el corazón de Colombia.
           </p>
           <div className="footer-socials">
-            <a href="https://t.me/montesdemariabot" target="_blank" rel="noreferrer" aria-label="Telegram Bot" title="Bot Oficial en Telegram" style={{ color: '#229ED9' }}><i className="fab fa-telegram" /></a>
-            <a href="https://facebook.com" target="_blank" rel="noreferrer" aria-label="Facebook"><i className="fab fa-facebook" /></a>
-            <a href="https://instagram.com" target="_blank" rel="noreferrer" aria-label="Instagram"><i className="fab fa-instagram" /></a>
-            <a href="https://whatsapp.com" target="_blank" rel="noreferrer" aria-label="WhatsApp"><i className="fab fa-whatsapp" /></a>
+            <a href="https://t.me/montesdemariabot" target="_blank" rel="noreferrer" aria-label="Telegram Bot" title="Bot Oficial en Telegram" style={{ color: '#229ED9', minWidth: 'var(--touch-target-sm)', minHeight: 'var(--touch-target-sm)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><i className="fab fa-telegram" /></a>
+            <a href="https://facebook.com" target="_blank" rel="noreferrer" aria-label="Facebook" style={{ minWidth: 'var(--touch-target-sm)', minHeight: 'var(--touch-target-sm)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><i className="fab fa-facebook" /></a>
+            <a href="https://instagram.com" target="_blank" rel="noreferrer" aria-label="Instagram" style={{ minWidth: 'var(--touch-target-sm)', minHeight: 'var(--touch-target-sm)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><i className="fab fa-instagram" /></a>
+            <a href="https://whatsapp.com" target="_blank" rel="noreferrer" aria-label="WhatsApp" style={{ minWidth: 'var(--touch-target-sm)', minHeight: 'var(--touch-target-sm)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}><i className="fab fa-whatsapp" /></a>
           </div>
         </div>
 

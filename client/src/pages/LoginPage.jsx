@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { GoogleLogin } from '@react-oauth/google'
 import { useAuth } from '../context/AuthContext'
 import { login as loginApi, loginGoogle as loginGoogleApi } from '../api/auth.api'
+import { normalizeEmail, getValidationMessage } from '../utils/validationHelpers'
 
 export default function LoginPage() {
   const { login } = useAuth()
@@ -31,9 +32,25 @@ export default function LoginPage() {
     e.preventDefault()
     setError('')
     setIsSuspended(false)
+
+    // Validación flexible - Ley de Postel
+    const emailValidation = getValidationMessage('email', correo)
+    if (emailValidation) {
+      setError(emailValidation)
+      return
+    }
+
+    const passwordValidation = getValidationMessage('password', contrasena)
+    if (passwordValidation) {
+      setError(passwordValidation)
+      return
+    }
+
     setLoading(true)
     try {
-      const res = await loginApi(correo, contrasena)
+      // Normalizar correo antes de enviar
+      const normalizedEmail = normalizeEmail(correo)
+      const res = await loginApi(normalizedEmail, contrasena)
       const token = res.data?.token
       const userData = res.data?.usuario || res.data?.user || res.data
       if (token) {
@@ -42,7 +59,21 @@ export default function LoginPage() {
         setError('Respuesta del servidor inválida.')
       }
     } catch (err) {
-      const errMsg = err.response?.data?.message || err.response?.data?.error || 'Credenciales incorrectas o error en el servidor.'
+      // Mensajes de error constructivos - Recuperación de errores
+      let errMsg = 'Hubo un problema al iniciar sesión. Por favor verifica tus datos.'
+
+      if (err.response?.status === 401) {
+        errMsg = 'El correo o contraseña no son correctos. Si olvidaste tu contraseña, puedes recuperarla.'
+      } else if (err.response?.status === 403) {
+        errMsg = 'Tu cuenta está temporalmente suspendida. Contacta a soporte para más información.'
+      } else if (err.response?.status === 429) {
+        errMsg = 'Has intentado demasiadas veces. Espera unos minutos antes de intentar nuevamente.'
+      } else if (err.response?.status === 500) {
+        errMsg = 'El servidor está experimentando problemas. Inténtalo nuevamente en unos minutos.'
+      } else if (err.response?.data?.message) {
+        errMsg = err.response.data.message
+      }
+
       const suspended = err.response?.data?.isSuspended || err.response?.status === 403 || errMsg.toLowerCase().includes('suspendida')
       setIsSuspended(suspended)
       setError(errMsg)
@@ -127,12 +158,16 @@ export default function LoginPage() {
             <label htmlFor="correo">Correo Electrónico o Usuario</label>
             <input
               id="correo"
-              type="text"
+              type="email"
               required
               placeholder="ejemplo@correo.com o @usuario"
               value={correo}
               onChange={(e) => setCorreo(e.target.value)}
+              autoComplete="email"
+              aria-invalid={error ? 'true' : 'false'}
+              aria-describedby={error ? 'correo-error' : undefined}
             />
+            {error && <span id="correo-error" className="field-error" role="alert">{error}</span>}
           </div>
 
           <div className="form-field">

@@ -153,6 +153,38 @@ textarea:focus-visible {
   outline-offset: 2px;
 }
 
+/* Validación de formularios - Prevención de errores */
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+  border-color: var(--danger-color);
+  background-color: #fef2f2;
+}
+
+input[aria-invalid="true"]:focus,
+select[aria-invalid="true"]:focus,
+textarea[aria-invalid="true"]:focus {
+  outline-color: var(--danger-color);
+}
+
+.field-error {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.82rem;
+  color: var(--danger-color);
+  font-weight: 500;
+  animation: fadeIn 0.2s ease;
+}
+
+.field-success {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.82rem;
+  color: var(--success-color);
+  font-weight: 500;
+  animation: fadeIn 0.2s ease;
+}
+
 button:disabled {
   cursor: not-allowed;
   opacity: 0.6;
@@ -219,6 +251,12 @@ h1, h2, h3, h4, h5, h6 {
 .btn-primary:focus-visible {
   outline: 2px solid var(--primary-color);
   outline-offset: 2px;
+}
+
+.btn-primary:disabled:not(:disabled) {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .btn-secondary {

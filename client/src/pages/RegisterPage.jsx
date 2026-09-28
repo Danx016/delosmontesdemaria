@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { GoogleLogin } from '@react-oauth/google'
 import { register, checkUsername, loginGoogle as loginGoogleApi } from '../api/auth.api'
 import { useAuth } from '../context/AuthContext'
+import { normalizeEmail, normalizePhone, normalizeName, getValidationMessage, isValidPhone } from '../utils/validationHelpers'
 
 export default function RegisterPage() {
   const { login } = useAuth()
@@ -114,16 +115,21 @@ export default function RegisterPage() {
     setError('')
     setSuccess('')
 
-    if (!formData.nombre.trim()) {
-      setError('Por favor ingresa tu nombre completo.')
+    // Validación flexible - Ley de Postel
+    const nameValidation = getValidationMessage('name', formData.nombre)
+    if (nameValidation) {
+      setError(nameValidation)
       return
     }
+
     if (!formData.apodo.trim()) {
       setError('Por favor ingresa un nombre de usuario.')
       return
     }
-    if (!formData.correo.trim()) {
-      setError('Por favor ingresa tu correo electrónico.')
+
+    const emailValidation = getValidationMessage('email', formData.correo)
+    if (emailValidation) {
+      setError(emailValidation)
       return
     }
 
@@ -149,15 +155,21 @@ export default function RegisterPage() {
       return
     }
 
+    // Validación flexible de teléfono (opcional)
+    if (formData.telefono && !isValidPhone(formData.telefono)) {
+      setError('El formato del teléfono no es válido. Ejemplo: 300 123 4567')
+      return
+    }
+
     setLoading(true)
     try {
       const res = await register({
-        nombre: formData.nombre.trim(),
+        nombre: normalizeName(formData.nombre),
         apodo: formData.apodo.trim(),
-        correo: formData.correo.trim(),
+        correo: normalizeEmail(formData.correo),
         password: formData.contrasena,
         confirmPassword: formData.confirmarContrasena,
-        telefono: formData.telefono.trim(),
+        telefono: normalizePhone(formData.telefono),
         id_rol: 3, // Rol cliente/comprador
       })
       if (res.data?.token) {
@@ -169,11 +181,22 @@ export default function RegisterPage() {
         setTimeout(() => navigate('/login'), 1500)
       }
     } catch (err) {
-      setError(
-        err.response?.data?.message ||
-          err.response?.data?.error ||
-          'Error al registrar la cuenta.'
-      )
+      // Mensajes de error constructivos - Recuperación de errores
+      let errMsg = 'Hubo un problema al crear tu cuenta. Por favor intenta nuevamente.'
+
+      if (err.response?.status === 409) {
+        errMsg = 'Este correo electrónico ya está registrado. ¿Ya tienes cuenta? Inicia sesión.'
+      } else if (err.response?.status === 400) {
+        errMsg = 'Algunos datos no son válidos. Por favor revisa la información ingresada.'
+      } else if (err.response?.status === 429) {
+        errMsg = 'Has realizado demasiados intentos. Espera unos minutos antes de continuar.'
+      } else if (err.response?.status === 500) {
+        errMsg = 'El servidor está experimentando problemas. Inténtalo nuevamente en unos minutos.'
+      } else if (err.response?.data?.message) {
+        errMsg = err.response.data.message
+      }
+
+      setError(errMsg)
     } finally {
       setLoading(false)
     }
@@ -218,6 +241,8 @@ export default function RegisterPage() {
                 placeholder="Ej: Danilo Gómez"
                 value={formData.nombre}
                 onChange={handleChange}
+                autoComplete="name"
+                aria-invalid={error ? 'true' : 'false'}
               />
             </div>
             <div className="form-field">
@@ -249,6 +274,8 @@ export default function RegisterPage() {
                 placeholder="Ej: danilo_montes"
                 value={formData.apodo}
                 onChange={handleChange}
+                autoComplete="username"
+                aria-invalid={error ? 'true' : 'false'}
               />
             </div>
           </div>
@@ -263,6 +290,8 @@ export default function RegisterPage() {
                 placeholder="ejemplo@correo.com"
                 value={formData.correo}
                 onChange={handleChange}
+                autoComplete="email"
+                aria-invalid={error ? 'true' : 'false'}
               />
             </div>
             <div className="form-field">
@@ -274,6 +303,8 @@ export default function RegisterPage() {
                 placeholder="Ej: 300 123 4567"
                 value={formData.telefono}
                 onChange={handleChange}
+                autoComplete="tel"
+                aria-invalid={error ? 'true' : 'false'}
               />
             </div>
           </div>
