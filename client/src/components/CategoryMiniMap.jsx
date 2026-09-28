@@ -84,11 +84,13 @@ export default function CategoryMiniMap({
     const map = L.map(mapContainerRef.current, {
       center: defaultCenter,
       zoom: 10,
-      scrollWheelZoom: false
+      scrollWheelZoom: true,
+      zoomControl: true
     })
 
     L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
-      maxZoom: 19,
+      maxZoom: 20,
+      minZoom: 5,
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Tiles style by <a href="https://www.hotosm.org/" target="_blank">HOT</a>'
     }).addTo(map)
 
@@ -144,7 +146,7 @@ export default function CategoryMiniMap({
       try {
         const bounds = markersGroup.getBounds()
         if (bounds.isValid()) {
-          map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 })
+          map.fitBounds(bounds, { padding: [40, 40], maxZoom: 18 })
         }
       } catch (_) {}
     }
@@ -172,7 +174,7 @@ export default function CategoryMiniMap({
       try {
         const bounds = markersLayerRef.current.getBounds()
         if (bounds.isValid()) {
-          mapInstanceRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 })
+          mapInstanceRef.current.fitBounds(bounds, { padding: [40, 40], maxZoom: 18 })
         } else {
           mapInstanceRef.current.setView([9.7174, -75.1213], 10)
         }
