@@ -314,27 +314,35 @@ h1, h2, h3, h4, h5, h6 {
 /* Category Layout Responsive */
 .category-layout-grid {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 1fr;
   gap: 2rem;
-  align-items: start;
 }
 
 .catalog-filters-sidebar {
-  position: sticky;
-  top: 1rem;
-  align-self: start;
+  position: fixed;
+  top: 80px;
+  left: calc(50% - 620px);
+  width: 280px;
+  max-height: calc(100vh - 120px);
+  overflow-y: auto;
+  z-index: 1000;
 }
 
 @media (max-width: 900px) {
   .category-layout-grid {
     grid-template-columns: 1fr;
     gap: 1.5rem;
+    margin-left: 0 !important;
   }
 
   .catalog-filters-sidebar {
     order: -1; /* Filtros arriba en móvil */
     position: relative;
     top: 0;
+    left: 0;
+    width: 100%;
+    max-height: none;
+    box-shadow: none;
   }
 }
 
