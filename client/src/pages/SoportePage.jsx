@@ -11,16 +11,43 @@ function formatMessageContent(text) {
   if (!text) return ''
   const lines = text.split('\n')
   return lines.map((line, lIdx) => {
-    const parts = line.split(/(\*\*[^*]+\*\*)/g)
+    const trimmed = line.trim()
+    if (!trimmed) {
+      return <div key={lIdx} style={{ height: '0.4rem' }} />
+    }
+
+    const isBullet = trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('• ')
+    const content = isBullet ? trimmed.replace(/^[-*•]\s+/, '') : line
+
+    // Parsear negritas **text** y código `code`
+    const parts = content.split(/(\*\*[^*]+\*\*|`[^`]+`)/g)
+    const formattedParts = parts.map((part, pIdx) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={pIdx} style={{ fontWeight: 800, color: 'inherit' }}>{part.slice(2, -2)}</strong>
+      }
+      if (part.startsWith('`') && part.endsWith('`')) {
+        return (
+          <code key={pIdx} style={{ background: 'rgba(0,0,0,0.06)', padding: '0.15rem 0.35rem', borderRadius: '4px', fontSize: '0.85em', fontFamily: 'monospace', fontWeight: 600 }}>
+            {part.slice(1, -1)}
+          </code>
+        )
+      }
+      return part
+    })
+
+    if (isBullet) {
+      return (
+        <div key={lIdx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem', margin: '0.2rem 0' }}>
+          <span style={{ color: 'var(--color-primary, #15803d)', fontSize: '0.85rem', lineHeight: '1.4' }}>•</span>
+          <span style={{ flex: 1 }}>{formattedParts}</span>
+        </div>
+      )
+    }
+
     return (
-      <span key={lIdx} style={{ display: 'block', minHeight: line.trim() === '' ? '0.5rem' : undefined, marginBottom: line.trim() === '' ? '0.2rem' : undefined }}>
-        {parts.map((part, pIdx) => {
-          if (part.startsWith('**') && part.endsWith('**')) {
-            return <strong key={pIdx} style={{ fontWeight: 800, color: 'inherit' }}>{part.slice(2, -2)}</strong>
-          }
-          return part
-        })}
-      </span>
+      <div key={lIdx} style={{ margin: '0.2rem 0', lineHeight: '1.5' }}>
+        {formattedParts}
+      </div>
     )
   })
 }
@@ -308,7 +335,31 @@ export default function SoportePage() {
         setActiveTicket((prev) => (prev ? { ...prev, estado: 'cerrado' } : null))
         localStorage.removeItem(ticketStorageKey)
       } else if (res.data?.transferido || res.data?.escalated) {
+        setIsTyping(false)
         setActiveTicket((prev) => (prev ? { ...prev, estado: 'agente' } : null))
+      }
+
+      if (res.data?.respuestaBot || res.data?.reply) {
+        const botReply = res.data.respuestaBot || res.data.reply
+        setIsTyping(false)
+        setMessages((prev) => {
+          if (prev.some((m) => m.mensaje === botReply && (m.remitente === 'bot' || m.rol === 'bot' || m.remitente === 'sistema' || m.rol === 'sistema'))) {
+            return prev
+          }
+          return [
+            ...prev,
+            {
+              id: `bot_${Date.now()}`,
+              session_id: activeTicket.session_id,
+              ticket_id: activeTicket.id,
+              remitente: res.data?.transferido ? 'sistema' : 'bot',
+              rol: res.data?.transferido ? 'sistema' : 'bot',
+              nombre_remitente: res.data?.transferido ? 'Sistema' : 'Asistente Bot',
+              mensaje: botReply,
+              fecha: new Date().toISOString(),
+            }
+          ]
+        })
       }
     } catch (err) {
       console.error('Error enviando mensaje:', err)

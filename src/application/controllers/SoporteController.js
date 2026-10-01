@@ -22,6 +22,7 @@ class SoporteController {
     this.socketHandler = socketHandler;
     this.telegramService = telegramService;
     this.processSupportAIChat = new ProcessSupportAIChat(iaService, {
+      soporteRepository,
       usuarioRepository,
       productoRepository,
       compraRepository

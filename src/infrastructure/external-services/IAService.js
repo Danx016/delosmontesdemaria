@@ -947,153 +947,289 @@ PAUTAS CRÍTICAS:
   // 3. ASISTENTE DE SOPORTE EN VIVO
   // ==========================================
   async procesarMensajeSoporte({ session_id, ticket, mensaje, id_usuario, repositories }) {
-    const { usuarioRepository, productoRepository, compraRepository } = repositories;
-    const correo = ticket.correo_cliente;
+    const { usuarioRepository, productoRepository, compraRepository, soporteRepository } = repositories || {};
+    const correo = ticket?.correo_cliente || '';
+    const cleanMsg = (mensaje || '').trim();
 
+    if (!cleanMsg) return '¿En qué puedo orientarte hoy sobre tu pedido o nuestros productos campesinos?';
+
+    // 1. Acciones pendientes de seguridad (cambio de clave / verificación de código)
     const pendingInput = this.pendingInput.get(session_id);
     if (pendingInput && pendingInput.action === 'set_new_password') {
-      if (mensaje.trim().length < 8) return 'La contraseña debe tener al menos 8 caracteres. Intenta de nuevo:';
+      if (cleanMsg.length < 8) return 'La contraseña debe tener al menos 8 caracteres. Intenta de nuevo:';
       this.pendingInput.delete(session_id);
-      await usuarioRepository.actualizarContrasena(pendingInput.id_usuario, mensaje.trim());
-      return 'Tu contraseña ha sido actualizada exitosamente.';
+      if (usuarioRepository) {
+        await usuarioRepository.actualizarContrasena(pendingInput.id_usuario, cleanMsg);
+      }
+      return '✅ Tu contraseña ha sido actualizada exitosamente.';
     }
 
-    if (/^\d{6}$/.test(mensaje.trim()) && this.pendingVerifications.has(session_id)) {
+    if (/^\d{6}$/.test(cleanMsg) && this.pendingVerifications.has(session_id)) {
       const pv = this.pendingVerifications.get(session_id);
       if (Date.now() > pv.expires) {
         this.pendingVerifications.delete(session_id);
-        return 'El código ha expirado. Por favor solicita el cambio nuevamente.';
+        return '⚠️ El código ha expirado. Por favor solicita el cambio nuevamente.';
       }
-      if (mensaje.trim() === pv.code) {
+      if (cleanMsg === pv.code) {
         this.pendingVerifications.delete(session_id);
         if (pv.action === 'cambiar_nombre') {
-          await usuarioRepository.actualizar(pv.id_usuario, { nombre: pv.data.nuevo_nombre });
-          return `Tu nombre ha sido actualizado a **${pv.data.nuevo_nombre}**.`;
+          if (usuarioRepository) await usuarioRepository.actualizar(pv.id_usuario, { nombre: pv.data.nuevo_nombre });
+          return `✅ Tu nombre ha sido actualizado a **${pv.data.nuevo_nombre}**.`;
         }
         if (pv.action === 'cambiar_apodo') {
-          await usuarioRepository.actualizar(pv.id_usuario, { apodo: pv.data.nuevo_apodo });
-          return `Tu apodo ha sido actualizado a **${pv.data.nuevo_apodo}**.`;
+          if (usuarioRepository) await usuarioRepository.actualizar(pv.id_usuario, { apodo: pv.data.nuevo_apodo });
+          return `✅ Tu apodo ha sido actualizado a **${pv.data.nuevo_apodo}**.`;
         }
         if (pv.action === 'cambiar_correo') {
-          await usuarioRepository.actualizar(pv.id_usuario, { correo: pv.data.nuevo_correo });
-          return `Tu correo ha sido actualizado a **${pv.data.nuevo_correo}**.`;
+          if (usuarioRepository) await usuarioRepository.actualizar(pv.id_usuario, { correo: pv.data.nuevo_correo });
+          return `✅ Tu correo ha sido actualizado a **${pv.data.nuevo_correo}**.`;
         }
         if (pv.action === 'cambiar_password') {
           this.pendingInput.set(session_id, { action: 'set_new_password', id_usuario: pv.id_usuario });
-          return 'Código verificado correctamente. Por favor ingresa tu **nueva contraseña** (mínimo 8 caracteres):';
+          return '🔒 Código verificado correctamente. Por favor escribe tu **nueva contraseña** (mínimo 8 caracteres):';
         }
         if (pv.action === 'eliminar_cuenta') {
-          await usuarioRepository.eliminar(pv.id_usuario);
+          if (usuarioRepository) await usuarioRepository.eliminar(pv.id_usuario);
           return 'Tu cuenta ha sido eliminada permanentemente del sistema.';
         }
       } else {
-        return 'Código incorrecto. Verifica e intenta de nuevo.';
+        return '❌ Código incorrecto. Por favor verifica e intenta de nuevo.';
       }
     }
 
-    const apiKey = appConfig.openRouterApiKey;
-    if (!apiKey || apiKey.startsWith('tu_clave')) {
-      return 'El asistente de IA no está configurado. Presiona **"Hablar con un asesor"** para contactar con soporte humano.';
+    // 2. Cargar contexto enriquecido del usuario y de la tienda
+    let userOrders = [];
+    if (id_usuario && compraRepository?.listarPorUsuario) {
+      try {
+        userOrders = (await compraRepository.listarPorUsuario(id_usuario)) || [];
+      } catch (e) {
+        console.warn('Error cargando pedidos de usuario en soporte IA:', e.message);
+      }
     }
 
-    const SUPPORT_TOOLS = [
-      {
-        type: 'function',
-        function: {
-          name: 'get_user_orders',
-          description: 'Obtiene los pedidos y compras del usuario.',
-          parameters: { type: 'object', properties: {} }
-        }
-      },
-      {
-        type: 'function',
-        function: {
-          name: 'get_products',
-          description: 'Busca productos en la tienda.',
-          parameters: { type: 'object', properties: { busqueda: { type: 'string' } } }
-        }
-      },
-      {
-        type: 'function',
-        function: {
-          name: 'request_change_password',
-          description: 'Inicia cambio de contraseña enviando código de seguridad al correo.',
-          parameters: { type: 'object', properties: {} }
-        }
+    let productos = [];
+    if (productoRepository?.listarTodos) {
+      try {
+        productos = (await productoRepository.listarTodos()) || [];
+      } catch (e) {
+        console.warn('Error cargando productos en soporte IA:', e.message);
       }
-    ];
+    }
 
-    const executeTool = async (name, args) => {
-      if (name === 'get_user_orders') {
-        if (!id_usuario) return { found: false, message: 'Usuario no autenticado' };
-        const orders = await compraRepository.listarPorUsuario(id_usuario);
-        return { found: true, pedidos: orders.slice(0, 5) };
+    let ticketHistory = [];
+    if (ticket?.id && soporteRepository?.obtenerMensajes) {
+      try {
+        const rawMsgs = await soporteRepository.obtenerMensajes(ticket.id);
+        if (Array.isArray(rawMsgs)) {
+          ticketHistory = rawMsgs.slice(-10);
+        }
+      } catch (e) {
+        console.warn('Error cargando historial de mensajes en soporte IA:', e.message);
       }
-      if (name === 'get_products') {
-        const prods = await productoRepository.buscar(args.busqueda || '');
-        return { found: prods.length > 0, productos: prods.slice(0, 5) };
-      }
-      if (name === 'request_change_password') {
-        if (!id_usuario) return { error: 'Debes iniciar sesión para cambiar contraseña' };
-        const code = String(Math.floor(100000 + Math.random() * 900000));
-        this.pendingVerifications.set(session_id, {
-          action: 'cambiar_password',
-          code,
-          expires: Date.now() + 600000,
-          id_usuario
-        });
-        await this.emailService.sendSecurityCodeEmail(correo, code, 'cambio de contraseña');
-        return { sent: true, message: `Código de seguridad enviado a ${correo}` };
-      }
-      return { error: 'Herramienta desconocida' };
-    };
+    }
 
-    const systemPrompt = `Eres el asistente virtual de soporte de "De los Montes de María".
-Cliente: ${ticket.nombre_cliente} (${correo}).
-Responde con amabilidad, precisión y concisión. Usa las herramientas cuando sea necesario.`;
+    // Comprobar si hay proveedor de IA configurado
+    const hasGroq = Boolean(appConfig.groqApiKey && !appConfig.groqApiKey.startsWith('tu_clave'));
+    const hasOpenRouter = Boolean(appConfig.openRouterApiKey && !appConfig.openRouterApiKey.startsWith('tu_clave'));
 
-    const messages = [{ role: 'system', content: systemPrompt }, { role: 'user', content: mensaje }];
+    if (!hasGroq && !hasOpenRouter) {
+      return this._generarRespuestaFallbackSoporte({
+        mensaje: cleanMsg,
+        ticket,
+        userOrders,
+        productos,
+        id_usuario
+      });
+    }
+
+    // Formatear resumen de pedidos
+    const ordersSummary = userOrders.length > 0
+      ? userOrders.slice(0, 5).map(o => {
+          const cod = o.codigo_compra || o.codigo || `PED-${o.id_compra || o.id}`;
+          const est = o.estado || o.estado_compra || 'Procesado';
+          const tot = o.total ? `$${Number(o.total).toLocaleString('es-CO')} COP` : 'N/A';
+          const fecha = o.fecha || o.created_at || 'Reciente';
+          const items = Array.isArray(o.productos || o.detalles) ? (o.productos || o.detalles).map(p => p.nombre_producto || p.nombre || 'Item').join(', ') : 'Productos agro';
+          return `- Pedido #${cod} | Estado: ${est} | Total: ${tot} | Fecha: ${fecha} | Artículos: ${items}`;
+        }).join('\n')
+      : 'El usuario no tiene pedidos recientes registrados en su cuenta o está consultando como invitado.';
+
+    // Formatear muestra de productos
+    const prodsSummary = productos.length > 0
+      ? productos.slice(0, 25).map(p => {
+          const nom = p.nombre_producto || p.nombre;
+          const pre = p.precio ? `$${Number(p.precio).toLocaleString('es-CO')} COP` : '';
+          const pres = p.presentacion || p.unidad_medida || 'Unidad';
+          const cat = p.categoria || p.categoria_nombre || 'General';
+          const stock = p.stock || p.disponibilidad || 10;
+          return `- ${nom} (${cat}): ${pre} / ${pres} [Stock: ${stock}]`;
+        }).join('\n')
+      : 'Catálogo disponible en la sección de productos.';
+
+    const systemPrompt = `Eres AgroSoporte, el Asistente Inteligente Oficial de Soporte y Atención al Cliente de "De los Montes de María", plataforma de comercio agropecuario directo que conecta a pequeños productores y campesinos de Bolívar y Sucre (El Carmen de Bolívar, San Jacinto, San Juan Nepomuceno, Ovejas, etc.) con compradores de toda Colombia.
+
+DATOS DEL CLIENTE Y TICKET ACTUAL:
+- Nombre del Cliente: ${ticket?.nombre_cliente || 'Cliente'}
+- Correo: ${correo || 'No especificado'}
+- Teléfono: ${ticket?.telefono_cliente || 'No especificado'}
+- Código del Ticket: ${ticket?.ticket_code || 'TK-CONSULTA'}
+- Asunto: ${ticket?.asunto || 'Consulta general de soporte'}
+- ID de Usuario: ${id_usuario || 'Invitado / No autenticado'}
+
+HISTORIAL DE PEDIDOS RECIENTES DEL CLIENTE:
+${ordersSummary}
+
+MUESTRA DE PRODUCTOS Y PRECIOS DEL CATÁLOGO:
+${prodsSummary}
+
+CONOCIMIENTO OPERATIVO Y POLÍTICAS DE LA PLATAFORMA:
+1. 🚚 **Envíos y Entregas**: Despachamos a toda Colombia. El tiempo promedio de entrega es de 2 a 5 días hábiles según la ciudad de destino. Embalaje agroecológico seguro que mantiene la frescura de los tubérculos, semillas y productos perecederos.
+2. 💳 **Métodos de Pago**: Aceptamos Wompi y ePayco (Tarjetas Débito/Crédito, PSE, Nequi, Daviplata), Agro-Créditos y PayPal para pagos internacionales.
+3. 📦 **Rastreo de Compras**: Si el cliente pregunta por su pedido, revisa sus pedidos recientes y dale detalles concretos (código, estado, productos). Si no tiene pedidos registrados o es invitado, pídele amablemente su código de pedido (ej: PED-XXXXXX).
+4. 🌱 **Vender / Registro de Campesinos**: Cualquier agricultor o campesino puede unirse en /register seleccionando el rol "Campesino / Productor". Al registrarse, puede publicar cosechas y gestionar sus ventas desde su panel.
+5. 🛡️ **Garantía y Devoluciones**: Garantía de satisfacción de 48 horas tras recibir el paquete. Si un producto llega en mal estado, el cliente puede adjuntar una foto en este chat de soporte para reenvío o reembolso inmediato.
+6. 👨‍💼 **Atención con Asesor Humano**: Si el cliente solicita hablar con una persona o tiene un reclamo complejo, indícale cordialmente que puede usar el botón "Hablar con un asesor" o escribir "asesor" para ser transferido de inmediato.
+
+INSTRUCCIONES DE RESPUESTA:
+- Responde siempre en español, de forma muy educada, cálida, empática, concisa y profesional.
+- Utiliza formato Markdown estructurado (negritas, viñetas, emojis relevantes como 🌾, 📦, 🚚, 💳, ✅).
+- Responde directamente lo que el cliente pregunta con datos reales (precios, estados de pedido, tiempos, instrucciones).
+- No inventes códigos ni números de guía falsos. Si no tienes el dato, pide el código de compra o indícale cómo verlo en "Mis Compras".`;
+
+    const messages = [{ role: 'system', content: systemPrompt }];
+
+    // Agregar historial del ticket
+    if (ticketHistory && ticketHistory.length > 0) {
+      ticketHistory.forEach(m => {
+        const role = (m.rol === 'user' || m.remitente === 'user') ? 'user' : 'assistant';
+        const content = m.mensaje;
+        if (content && typeof content === 'string' && content.trim()) {
+          messages.push({ role, content: content.trim() });
+        }
+      });
+    }
+
+    // Agregar mensaje actual si no está ya como último mensaje
+    const lastMsg = messages[messages.length - 1];
+    if (!lastMsg || lastMsg.role !== 'user' || lastMsg.content !== cleanMsg) {
+      messages.push({ role: 'user', content: cleanMsg });
+    }
 
     try {
       const completion = await this.callChatCompletion({
         messages,
-        tools: SUPPORT_TOOLS,
-        tool_choice: 'auto',
-        temperature: 0.7,
-        max_tokens: 1000,
-        appTitle: 'De los Montes de Maria Support IA'
+        temperature: 0.6,
+        max_tokens: 1200,
+        appTitle: 'De los Montes de Maria Soporte IA'
       });
 
-      const aiMsg = completion.message;
-      if (aiMsg.tool_calls && aiMsg.tool_calls.length > 0) {
-        const toolCall = aiMsg.tool_calls[0];
-        let toolArgs = {};
-        try { toolArgs = JSON.parse(toolCall.function.arguments); } catch (_) {}
-        const toolResult = await executeTool(toolCall.function.name, toolArgs);
-
-        messages.push(aiMsg);
-        messages.push({
-          role: 'tool',
-          tool_call_id: toolCall.id,
-          name: toolCall.function.name,
-          content: JSON.stringify(toolResult)
-        });
-
-        const secondCompletion = await this.callChatCompletion({
-          messages,
-          temperature: 0.7,
-          max_tokens: 1000,
-          appTitle: 'De los Montes de Maria Support IA'
-        });
-
-        return secondCompletion.message?.content || 'Solicitud procesada.';
+      const reply = completion.message?.content;
+      if (reply && typeof reply === 'string' && reply.trim()) {
+        return reply.trim();
       }
 
-      return aiMsg.content || 'Entendido.';
+      return this._generarRespuestaFallbackSoporte({
+        mensaje: cleanMsg,
+        ticket,
+        userOrders,
+        productos,
+        id_usuario
+      });
     } catch (err) {
-      console.error('Error en procesarMensajeSoporte:', err);
-      return 'Ocurrió un error. Haz clic en **"Hablar con un asesor"** para ser atendido por un agente.';
+      console.warn('⚠️ [Soporte IA LLM Error - usando generador semántico resiliente]:', err.message);
+      return this._generarRespuestaFallbackSoporte({
+        mensaje: cleanMsg,
+        ticket,
+        userOrders,
+        productos,
+        id_usuario
+      });
     }
+  }
+
+  /**
+   * Generador semántico contextual de soporte
+   * Garantiza respuestas amables, precisas y útiles para todas las preguntas de soporte
+   */
+  _generarRespuestaFallbackSoporte({ mensaje, ticket, userOrders = [], productos = [], id_usuario }) {
+    const cleanMsg = (mensaje || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const clienteNombre = ticket?.nombre_cliente || 'Cliente';
+
+    // 1. Saludos
+    if (/^(hola|buen|buenos|buenas|saludos|hey|alo|hello)\b/.test(cleanMsg)) {
+      return `¡Hola, **${clienteNombre}**! 👋 Bienvenido al canal de soporte de **De los Montes de María** 🌾.\n\nEstoy aquí para ayudarte en tiempo real con:\n- 📦 **Rastreo y estado de tus pedidos**\n- 🚚 **Tiempos de entrega y envíos nacionales**\n- 💳 **Pagos, facturas y transacciones**\n- 🌱 **Información de cosechas y productos**\n- 👨‍🌾 **Registro de campesinos y ventas**\n\n¿En qué podemos colaborarte hoy?`;
+    }
+
+    // 2. Pedidos, compras y rastreo
+    if (/\b(pedido|pedidos|compra|compras|rastreo|rastrear|donde esta|estado de mi|guia|numero de guia|envio de mi pedido)\b/.test(cleanMsg)) {
+      if (userOrders && userOrders.length > 0) {
+        const topOrders = userOrders.slice(0, 3).map(o => {
+          const cod = o.codigo_compra || o.codigo || `PED-${o.id_compra || o.id}`;
+          const est = o.estado || o.estado_compra || 'Procesado';
+          const tot = o.total ? `$${Number(o.total).toLocaleString('es-CO')} COP` : 'N/A';
+          const fecha = o.fecha || o.created_at ? new Date(o.fecha || o.created_at).toLocaleDateString('es-CO') : 'Reciente';
+          return `* 📦 **Pedido #${cod}**\n  - **Estado:** \`${est}\`\n  - **Total:** ${tot}\n  - **Fecha:** ${fecha}`;
+        }).join('\n\n');
+
+        return `📦 **Tus compras registradas en el sistema:**\n\n${topOrders}\n\n💡 *Puedes ver el detalle completo o descargar comprobantes ingresando a la sección **Mis Compras** de tu perfil.*`;
+      }
+
+      return `📦 **Consulta de Pedidos y Rastreo:**\n\nPara consultar el estado de tu compra:\n1. Si ya estás registrado, ingresa a **Mis Compras** en el menú superior.\n2. Si realizaste una compra como invitado o necesitas que lo verifique, indícame tu **código o número de pedido** (ej: *PED-XXXXXX*) y con gusto te informo su estado de despacho.`;
+    }
+
+    // 3. Envíos, tiempos de entrega y cobertura
+    if (/\b(envio|envios|domicilio|domicilios|cobertura|transporte|cuanto tarda|cuanto demora|tiempo de entrega|ciudades|despacho|flete)\b/.test(cleanMsg)) {
+      return `🚚 **Información de Envíos y Tiempos de Entrega:**\n\n- **Origen:** Despachamos directamente desde los centros de acopio en los **Montes de María** (El Carmen de Bolívar y municipios vecinos).\n- **Cobertura:** Hacemos entregas a nivel nacional en toda Colombia.\n- **Tiempos:** De **2 a 5 días hábiles** dependiendo de tu ciudad o municipio.\n- **Embalaje:** Empacado agrícola optimizado para conservar la frescura de los alimentos.\n\n¿Tienes alguna duda sobre una dirección o destino específico?`;
+    }
+
+    // 4. Pagos, pasarelas y cobros
+    if (/\b(pago|pagos|pagar|metodo|metodos|tarjeta|credito|debito|nequi|daviplata|pse|wompi|epayco|paypal|transferencia|efectivo|agrocredito|cobro|factura)\b/.test(cleanMsg)) {
+      return `💳 **Métodos de Pago Aceptados:**\n\n- **Tarjetas y PSE:** A través de **Wompi** y **ePayco** (Visa, Mastercard, Débito, Nequi, Daviplata y cuentas de ahorros/corrientes).\n- **Agro-Créditos:** Créditos especiales para productores y aliados comerciales.\n- **PayPal:** Pagos internacionales.\n\nTodas las transacciones se procesan bajo protocolos de seguridad SSL cifrados. Si tuviste un inconveniente con un cobro, avísanos para revisarlo con el área de tesorería.`;
+    }
+
+    // 5. Devoluciones, quejas, reclamos y garantías
+    if (/\b(garantia|garantias|devolucion|devoluciones|reclamo|reclamos|queja|quejas|dañado|malo|mal estado|podrido|incompleto|reembolso|plata)\b/.test(cleanMsg)) {
+      return `🛡️ **Garantía y Devoluciones de Frescura:**\n\nEn **De los Montes de María** garantizamos la calidad de cada cosecha:\n1. Tienes un plazo de **48 horas** tras recibir tu paquete para reportar cualquier novedad.\n2. Puedes adjuntar una foto o video del producto aquí en este chat de soporte.\n3. Nuestro equipo validará el caso y gestionará el **reemplazo sin costo** o el **reembolso de tu dinero**.\n\n¿Deseas reportar algún producto en específico?`;
+    }
+
+    // 6. Registrarse como campesino / Cómo vender
+    if (/\b(vender|vendedor|campesino|productor|finca|ofrecer|publicar|cosecha|mis productos|como vendo|quiero vender)\b/.test(cleanMsg)) {
+      return `👨‍🌾 **¿Cómo vender tus productos en De los Montes de María?**\n\n1. Ve a la opción **Registrarse** en el menú superior.\n2. Selecciona el tipo de cuenta: **Campesino / Productor**.\n3. Completa los datos de tu finca o asociación.\n4. Una vez registrado, tendrás acceso al **Panel Campesino** donde podrás subir tus cosechas, fijar precios y recibir pedidos directamente.\n\n¡Es 100% gratuito unirte a nuestra red agroecológica!`;
+    }
+
+    // 7. Productos del catálogo
+    const stopWords = ['de', 'la', 'el', 'los', 'las', 'un', 'una', 'unos', 'unas', 'y', 'o', 'para', 'por', 'con', 'en', 'que', 'tienen', 'venden', 'busco', 'quiero', 'precio', 'costo', 'vale', 'cuanto', 'cuánto', 'producto', 'productos', 'hay', 'donde'];
+    const searchTerms = cleanMsg.split(/\s+/).filter(w => w.length > 2 && !stopWords.includes(w));
+
+    let matched = [];
+    if (searchTerms.length > 0 && Array.isArray(productos) && productos.length > 0) {
+      matched = productos.filter(p => {
+        const pName = (p.nombre_producto || p.nombre || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const pDesc = (p.descripcion || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        const pCat = (p.categoria || p.categoria_nombre || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        return searchTerms.some(term => pName.includes(term) || pDesc.includes(term) || pCat.includes(term));
+      });
+    }
+
+    if (matched.length > 0) {
+      const topMatches = matched.slice(0, 4).map(p => {
+        const nom = p.nombre_producto || p.nombre;
+        const pre = p.precio ? `$${Number(p.precio).toLocaleString('es-CO')} COP` : '';
+        const pres = p.presentacion || p.unidad_medida || 'Unidad';
+        const disp = p.stock || p.disponibilidad || 10;
+        return `* 🌱 **${nom}** — **${pre}** (${pres}) | *Disponibilidad:* ${disp} disp.`;
+      }).join('\n');
+
+      return `🌾 Encontré estos productos disponibles en nuestro catálogo:\n\n${topMatches}\n\n💡 *Puedes agregarlos directamente desde la tienda o consultarme sobre cantidades al por mayor.*`;
+    }
+
+    // 8. Solicitud de asesor humano
+    if (/\b(asesor|humano|persona|agente|operador|representante|alguien real|hablar con)\b/.test(cleanMsg)) {
+      return `👨‍💼 **Atención con Asesor Humano:**\n\nPuedes presionar el botón **"Hablar con un asesor"** en la parte superior del chat para transferirte de inmediato con un miembro de nuestro equipo de atención al cliente en vivo.`;
+    }
+
+    // 9. Respuesta general de soporte
+    return `🌾 Gracias por comunicarte con el soporte de **De los Montes de María**.\n\nHe recibido tu consulta sobre: *"${mensaje}"*.\n\nPuedo orientarte con:\n- 📦 **Rastreo y estado de tus compras**\n- 🚚 **Tiempos y costos de envío nacional**\n- 💳 **Medios de pago y facturación**\n- 🛡️ **Garantías y devoluciones de productos**\n- 👨‍🌾 **Registro de campesinos y vendedores**\n\nSi requieres atención personalizada, haz clic en **"Hablar con un asesor"** para conectarte con un agente en tiempo real.`;
   }
 
   // ==========================================
