@@ -97,57 +97,38 @@ export default function CategoryPage() {
           </div>
         </div>
 
-        <div className="app-container" style={{ paddingTop: '1.5rem', paddingBottom: '4rem' }}>
-          {/* Category Hero Banner Rediseñado & Elegante */}
-          <div
-            className="cat-hero-card fade-in"
-            style={{
-              '--hero-accent': catInfo.color || '#2e7d32',
-              '--hero-accent-subtle': `${catInfo.color || '#2e7d32'}18`,
-              '--hero-accent-border': `${catInfo.color || '#2e7d32'}35`,
-            }}
-          >
-            <div className="cat-hero-glow" />
-
-            <div className="cat-hero-content">
-              <div className="cat-hero-tag-row">
-                <span className="cat-hero-tag">
-                  <i className="fa fa-leaf" /> Mercado Campesino • Montes de María
-                </span>
-                <span className="badge badge-outline" style={{ borderColor: `${catInfo.color || '#2e7d32'}40`, color: catInfo.color || '#2e7d32', fontSize: '0.78rem' }}>
-                  Categoría Oficial
-                </span>
+        <div className="app-container" style={{ paddingTop: '1.25rem', paddingBottom: '4rem' }}>
+          {/* Category Header - Limpio, Moderno y Profesional */}
+          <div className="cat-page-header">
+            <div className="cat-page-header-body">
+              <div
+                className="cat-page-icon-wrapper"
+                style={{
+                  backgroundColor: `${catInfo.color || '#2e7d32'}12`,
+                  color: catInfo.color || '#2e7d32',
+                  borderColor: `${catInfo.color || '#2e7d32'}25`,
+                }}
+              >
+                <MediaRenderer
+                  src={catInfo.imagen}
+                  alt={catInfo.label || catInfo.nombre_categoria}
+                  icon={catInfo.icono || catInfo.icon || 'fa-box'}
+                  color={catInfo.color || '#2e7d32'}
+                  type="category"
+                />
               </div>
 
-              <h1 className="cat-hero-title">{catInfo.label || catInfo.nombre_categoria}</h1>
-              <p className="cat-hero-desc">
-                {catInfo.descripcion || 'Explora los mejores productos locales directamente traídos desde el campo de los Montes de María.'}
-              </p>
-
-              <div className="cat-hero-badges-row">
-                <div className="cat-hero-badge-pill">
-                  <i className="fa fa-boxes-stacked" />
-                  <span><strong>{productosFiltrados.length}</strong> {productosFiltrados.length === 1 ? 'Producto disponible' : 'Productos disponibles'}</span>
+              <div className="cat-page-info">
+                <div className="cat-page-title-row">
+                  <h1 className="cat-page-title">{catInfo.label || catInfo.nombre_categoria}</h1>
+                  <span className="cat-page-count-badge">
+                    {productosFiltrados.length} {productosFiltrados.length === 1 ? 'producto' : 'productos'}
+                  </span>
                 </div>
-                <div className="cat-hero-badge-pill">
-                  <i className="fa fa-truck-fast" />
-                  <span>Envíos directos sin intermediarios</span>
-                </div>
-                <div className="cat-hero-badge-pill">
-                  <i className="fa fa-award" />
-                  <span>Calidad 100% Garantizada</span>
-                </div>
+                <p className="cat-page-description">
+                  {catInfo.descripcion || 'Productos campesinos frescos y directos de los productores de los Montes de María.'}
+                </p>
               </div>
-            </div>
-
-            <div className="cat-hero-showcase">
-              <MediaRenderer
-                src={catInfo.imagen}
-                alt={catInfo.label || catInfo.nombre_categoria}
-                icon={catInfo.icono || catInfo.icon || 'fa-box'}
-                color={catInfo.color || '#2e7d32'}
-                type="category"
-              />
             </div>
           </div>
 
