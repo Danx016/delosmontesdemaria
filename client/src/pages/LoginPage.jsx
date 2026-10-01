@@ -171,10 +171,7 @@ export default function LoginPage() {
           </div>
 
           <div className="form-field">
-            <div className="auth-label-row">
-              <label htmlFor="contrasena">Contraseña</label>
-              <Link to="/recuperar" className="auth-forgot-link">¿Olvidaste tu contraseña?</Link>
-            </div>
+            <label htmlFor="contrasena">Contraseña</label>
             <div className="auth-password-wrap">
               <input
                 id="contrasena"
@@ -192,6 +189,9 @@ export default function LoginPage() {
               >
                 <i className={`fa ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`} />
               </button>
+            </div>
+            <div className="auth-forgot-wrap">
+              <Link to="/recuperar" className="auth-forgot-link">¿Olvidaste tu contraseña?</Link>
             </div>
           </div>
 

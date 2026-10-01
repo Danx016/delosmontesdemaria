@@ -2940,11 +2940,24 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
 }
 
+.auth-forgot-wrap {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.4rem;
+  margin-bottom: 0.25rem;
+}
+
 .auth-forgot-link {
   font-size: 0.82rem;
   color: var(--primary-color, #2e7d32);
   text-decoration: none;
   font-weight: 600;
+  transition: color 0.15s ease, text-decoration 0.15s ease;
+}
+
+.auth-forgot-link:hover {
+  text-decoration: underline;
+  color: #1b5e20;
 }
 
 .auth-password-wrap {
