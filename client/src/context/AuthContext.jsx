@@ -47,6 +47,10 @@ export function AuthProvider({ children }) {
   const logout = useCallback(() => {
     localStorage.removeItem('jwt')
     localStorage.removeItem('user')
+    localStorage.removeItem('cart')
+    localStorage.removeItem('cart_guest')
+    localStorage.removeItem('agro_active_ticket')
+    localStorage.removeItem('agro_active_ticket_guest')
     setUser(null)
   }, [])
 

@@ -37,7 +37,9 @@ export default function GlobalSupportNotifier() {
       } else {
         // 2. Si es Cliente -> Verificar si tiene una sesión de ticket activa en localStorage
         try {
-          const rawTicket = localStorage.getItem('agro_active_ticket')
+          const userId = user?.id_usuario || user?.id
+          const ticketKey = userId ? `agro_active_ticket_user_${userId}` : 'agro_active_ticket_guest'
+          const rawTicket = localStorage.getItem(ticketKey) || localStorage.getItem('agro_active_ticket')
           if (rawTicket) {
             const ticket = JSON.parse(rawTicket)
             if (ticket?.session_id && ticket.estado !== 'cerrado') {
@@ -45,7 +47,7 @@ export default function GlobalSupportNotifier() {
             }
           }
         } catch (e) {
-          console.error('Error leyendo agro_active_ticket en GlobalSupportNotifier:', e)
+          console.error('Error leyendo ticket en GlobalSupportNotifier:', e)
         }
       }
     })

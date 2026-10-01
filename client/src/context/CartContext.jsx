@@ -1,12 +1,15 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
+import { useAuth } from './AuthContext'
 
 const CartContext = createContext(null)
 
-const CART_KEY = 'cart'
+function getCartStorageKey(user) {
+  const userId = user?.id_usuario || user?.id
+  return userId ? `cart_user_${userId}` : 'cart_guest'
+}
 
-function loadCart() {
+function parseCartItems(raw) {
   try {
-    const raw = JSON.parse(localStorage.getItem(CART_KEY)) || []
     if (!Array.isArray(raw)) return []
     return raw
       .filter((i) => i && (i.id_producto || i.id))
@@ -29,13 +32,50 @@ function loadCart() {
   }
 }
 
-export function CartProvider({ children }) {
-  const [items, setItems] = useState(loadCart)
+function loadCart(storageKey) {
+  try {
+    const raw = JSON.parse(localStorage.getItem(storageKey))
+    if (raw && Array.isArray(raw)) {
+      return parseCartItems(raw)
+    }
+    // Si no hay bajo la clave de usuario pero hay legacy 'cart', migrarlo solo si es guest
+    if (storageKey === 'cart_guest') {
+      const legacyRaw = JSON.parse(localStorage.getItem('cart'))
+      if (legacyRaw && Array.isArray(legacyRaw)) {
+        return parseCartItems(legacyRaw)
+      }
+    }
+    return []
+  } catch {
+    return []
+  }
+}
 
-  // Persistir en localStorage cada vez que cambie
+export function CartProvider({ children }) {
+  const { user } = useAuth()
+  const storageKey = getCartStorageKey(user)
+  const isInitialMount = useRef(true)
+
+  const [items, setItems] = useState(() => loadCart(storageKey))
+
+  // Sincronizar y recargar el carrito cuando el usuario cambia (login, logout, cambio de cuenta)
   useEffect(() => {
-    localStorage.setItem(CART_KEY, JSON.stringify(items))
-  }, [items])
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      return
+    }
+    const userCart = loadCart(storageKey)
+    setItems(userCart)
+  }, [storageKey])
+
+  // Persistir en localStorage bajo la clave del usuario activo
+  useEffect(() => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(items))
+    } catch (e) {
+      console.warn('Error al guardar carrito en localStorage:', e)
+    }
+  }, [items, storageKey])
 
   const addItem = useCallback((producto, cantidad = 1) => {
     if (!producto) return

@@ -25,10 +25,17 @@ function formatMessageContent(text) {
   })
 }
 
+function getTicketStorageKey(u) {
+  const userId = u?.id_usuario || u?.id
+  return userId ? `agro_active_ticket_user_${userId}` : 'agro_active_ticket_guest'
+}
+
 export default function SoportePage() {
   const toast = useToast()
   const { user } = useAuth()
   const isAdminOrSupport = user?.id_rol === 1 || user?.id_rol === 4 || user?.username === 'admin'
+
+  const ticketStorageKey = getTicketStorageKey(user)
 
   const [activeTab, setActiveTab] = useState('nuevo') // 'nuevo' | 'buscar'
   const [activeTicket, setActiveTicket] = useState(null)
@@ -49,32 +56,42 @@ export default function SoportePage() {
 
   const chatFeedRef = useRef(null)
 
-  // Restaurar ticket activo desde localStorage si existe
+  // Restaurar ticket activo desde localStorage para el usuario actual (aislado por cuenta)
   useEffect(() => {
     try {
-      const saved = localStorage.getItem('agro_active_ticket')
+      // Limpiar residuo legacy si existía
+      localStorage.removeItem('agro_active_ticket')
+
+      const saved = localStorage.getItem(ticketStorageKey)
       if (saved) {
         const parsed = JSON.parse(saved)
         if (parsed && parsed.session_id && parsed.estado !== 'cerrado') {
           setActiveTicket(parsed)
           if (parsed.mensajes && parsed.mensajes.length > 0) {
             setMessages(parsed.mensajes)
+          } else {
+            setMessages([])
           }
+          return
         }
       }
+      setActiveTicket(null)
+      setMessages([])
     } catch (e) {
       console.error('Error restaurando agro_active_ticket:', e)
+      setActiveTicket(null)
+      setMessages([])
     }
-  }, [])
+  }, [ticketStorageKey])
 
-  // Sincronizar activeTicket con localStorage
+  // Sincronizar activeTicket con localStorage bajo la clave del usuario actual
   useEffect(() => {
     if (activeTicket && activeTicket.estado !== 'cerrado') {
-      localStorage.setItem('agro_active_ticket', JSON.stringify(activeTicket))
+      localStorage.setItem(ticketStorageKey, JSON.stringify(activeTicket))
     } else if (activeTicket?.estado === 'cerrado') {
-      localStorage.removeItem('agro_active_ticket')
+      localStorage.removeItem(ticketStorageKey)
     }
-  }, [activeTicket])
+  }, [activeTicket, ticketStorageKey])
 
   // Sincronizar periódicamente con la base de datos para detectar cambios de estado (ej: cierre o asesor asignado)
   useEffect(() => {
@@ -90,7 +107,7 @@ export default function SoportePage() {
         if (current) {
           if (current.estado === 'cerrado') {
             setActiveTicket((prev) => (prev ? { ...prev, estado: 'cerrado' } : null))
-            localStorage.removeItem('agro_active_ticket')
+            localStorage.removeItem(ticketStorageKey)
           } else if (current.estado !== activeTicket.estado || current.nombre_agente !== activeTicket.nombre_agente) {
             setActiveTicket((prev) => (prev ? { ...prev, ...current } : null))
           }
@@ -104,26 +121,22 @@ export default function SoportePage() {
     syncTicketStatus()
     const interval = setInterval(syncTicketStatus, 3000)
     return () => clearInterval(interval)
-  }, [activeTicket?.id, activeTicket?.session_id, activeTicket?.estado, messages.length])
+  }, [activeTicket?.id, activeTicket?.session_id, activeTicket?.estado, messages.length, ticketStorageKey])
 
-  // Sincronizar datos si el usuario inicia sesión o ya está en sesión
+  // Sincronizar datos si el usuario inicia sesión, cierra sesión o cambia de cuenta
   useEffect(() => {
-    let u = user
-    if (!u) {
-      try {
-        const stored = localStorage.getItem('user')
-        if (stored) u = JSON.parse(stored)
-      } catch (_) {}
-    }
+    if (user) {
+      const uNombre = user.nombre || user.nombre_completo || user.name || user.username || ''
+      const uCorreo = user.correo || user.email || ''
+      const uTelefono = user.telefono || user.celular || user.phone || ''
 
-    if (u) {
-      const uNombre = u.nombre || u.nombre_completo || u.name || u.username || ''
-      const uCorreo = u.correo || u.email || ''
-      const uTelefono = u.telefono || u.celular || u.phone || ''
-
-      if (uNombre) setNombre(uNombre)
-      if (uCorreo) setCorreo(uCorreo)
-      if (uTelefono) setTelefono(uTelefono)
+      setNombre(uNombre)
+      setCorreo(uCorreo)
+      setTelefono(uTelefono)
+    } else {
+      setNombre('')
+      setCorreo('')
+      setTelefono('')
     }
   }, [user])
 
@@ -169,7 +182,7 @@ export default function SoportePage() {
       },
       onTicketCerrado: (data) => {
         setActiveTicket((prev) => (prev ? { ...prev, estado: 'cerrado' } : null))
-        localStorage.removeItem('agro_active_ticket')
+        localStorage.removeItem(ticketStorageKey)
         setMessages((prev) => [
           ...prev,
           {
@@ -280,7 +293,7 @@ export default function SoportePage() {
 
       if (res.data?.closed) {
         setActiveTicket((prev) => (prev ? { ...prev, estado: 'cerrado' } : null))
-        localStorage.removeItem('agro_active_ticket')
+        localStorage.removeItem(ticketStorageKey)
       } else if (res.data?.transferido || res.data?.escalated) {
         setActiveTicket((prev) => (prev ? { ...prev, estado: 'agente' } : null))
       }
@@ -288,7 +301,7 @@ export default function SoportePage() {
       console.error('Error enviando mensaje:', err)
       if (err.response?.data?.closed) {
         setActiveTicket((prev) => (prev ? { ...prev, estado: 'cerrado' } : null))
-        localStorage.removeItem('agro_active_ticket')
+        localStorage.removeItem(ticketStorageKey)
       }
     }
   }

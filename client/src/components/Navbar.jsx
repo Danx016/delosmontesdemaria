@@ -219,6 +219,12 @@ export default function Navbar() {
               </Link>
             </li>
 
+            <li role="none">
+              <Link to="/soporte" className={`nav-link-item ${isActive('/soporte') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)} role="menuitem" tabIndex="0">
+                <i className="fa fa-life-ring" /> <span>Ayuda</span>
+              </Link>
+            </li>
+
             {/* User Account / Profile */}
             {isAuthenticated ? (
               <li className="user-dropdown-container">
@@ -256,6 +262,9 @@ export default function Navbar() {
                     <Link to="/vendedor" onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }} role="menuitem">
                       <i className="fa fa-store" /> Centro de Ventas (Vender)
                     </Link>
+                    <Link to="/soporte" onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }} role="menuitem">
+                      <i className="fa fa-life-ring" /> Centro de Ayuda
+                    </Link>
                     {(isAdmin || isSupport) && (
                       <>
                         {isAdmin && (
@@ -264,7 +273,7 @@ export default function Navbar() {
                           </Link>
                         )}
                         <Link to="/admin/soporte" onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }} role="menuitem">
-                          <i className="fa fa-ticket-alt" /> Centro de Soporte
+                          <i className="fa fa-ticket-alt" /> Panel de Soporte
                         </Link>
                       </>
                     )}
