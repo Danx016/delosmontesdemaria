@@ -221,7 +221,7 @@ export default function Navbar() {
 
             <li role="none">
               <Link to="/soporte" className={`nav-link-item ${isActive('/soporte') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)} role="menuitem" tabIndex="0">
-                <i className="fa fa-life-ring" /> <span>Ayuda</span>
+                <i className="fa fa-headset" /> <span>Ayuda</span>
               </Link>
             </li>
 
@@ -263,7 +263,7 @@ export default function Navbar() {
                       <i className="fa fa-store" /> Centro de Ventas (Vender)
                     </Link>
                     <Link to="/soporte" onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }} role="menuitem">
-                      <i className="fa fa-life-ring" /> Centro de Ayuda
+                      <i className="fa fa-headset" /> Centro de Ayuda
                     </Link>
                     {(isAdmin || isSupport) && (
                       <>
