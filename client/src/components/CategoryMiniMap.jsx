@@ -184,6 +184,10 @@ export default function CategoryMiniMap({
     }
   }
 
+  if (!productosConGeo || productosConGeo.length === 0) {
+    return null
+  }
+
   return (
     <div
       style={{

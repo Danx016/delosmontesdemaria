@@ -211,39 +211,6 @@ export default function CategoryPage() {
                 </div>
               </div>
             )}
-          {/* Products Grid */}
-          {loading ? (
-            <div className="loading-state-box">
-              <div className="spinner" />
-              <p>Cargando productos de {catInfo.label}...</p>
-            </div>
-          ) : productosFiltrados.length > 0 ? (
-            <>
-              <div className="products-grid-container fade-in">
-                {productosFiltrados.map((prod) => (
-                  <div key={prod.id_producto || prod.id} id={`prod-${prod.id_producto || prod.id}`} style={{ scrollMarginTop: '100px' }}>
-                    <ProductCard producto={prod} />
-                  </div>
-                ))}
-              </div>
-            </>
-          ) : (
-            <div className="empty-catalog-card fade-in">
-              <i className="fa fa-seedling empty-catalog-icon" />
-              <h3>{searchTerm ? 'No se encontraron resultados' : `No hay productos registrados en ${catInfo.label}`}</h3>
-              <p>{searchTerm ? `No hay productos que coincidan con "${searchTerm}" en esta sección.` : 'Nuestros agricultores están alistando la próxima cosecha.'}</p>
-              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '1.25rem', flexWrap: 'wrap' }}>
-                {searchTerm && (
-                  <button onClick={() => setSearchTerm('')} className="btn btn-secondary">
-                    <i className="fa fa-times" /> Limpiar Búsqueda
-                  </button>
-                )}
-                <Link to="/categorias" className="btn btn-primary">
-                  <i className="fa fa-boxes-stacked" /> Ver Todas las Categorías
-                </Link>
-              </div>
-            </div>
-          )}
 
           {/* Explora otras categorías */}
           {otrasCategorias.length > 0 && (
