@@ -53,8 +53,10 @@ export default function SoportePage() {
   const [rated, setRated] = useState(false)
   const [ticketSearchCode, setTicketSearchCode] = useState('')
   const [searchError, setSearchError] = useState('')
+  const [isTyping, setIsTyping] = useState(false)
 
   const chatFeedRef = useRef(null)
+  const typingTimeoutRef = useRef(null)
 
   // Restaurar ticket activo desde localStorage para el usuario actual (aislado por cuenta)
   useEffect(() => {
@@ -146,6 +148,9 @@ export default function SoportePage() {
     'cliente',
     {
       onNuevoMensaje: (msg) => {
+        setIsTyping(false)
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
+
         // Si el mensaje proviene de un asesor, actualizar estado a asesor en línea
         if (msg.remitente === 'agente' || msg.rol === 'agente') {
           setActiveTicket((prev) => (prev ? {
@@ -158,7 +163,7 @@ export default function SoportePage() {
         // Si es mensaje del sistema indicando cierre
         if (msg.rol === 'sistema' && (msg.mensaje?.toLowerCase().includes('cerrado') || msg.mensaje?.toLowerCase().includes('resuelto'))) {
           setActiveTicket((prev) => (prev ? { ...prev, estado: 'cerrado' } : null))
-          localStorage.removeItem('agro_active_ticket')
+          localStorage.removeItem(ticketStorageKey)
         }
 
         setMessages((prev) => {
@@ -180,7 +185,13 @@ export default function SoportePage() {
           return [...prev, msg]
         })
       },
+      onAgenteEscribiendo: () => {
+        setIsTyping(true)
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current)
+        typingTimeoutRef.current = setTimeout(() => setIsTyping(false), 5000)
+      },
       onTicketCerrado: (data) => {
+        setIsTyping(false)
         setActiveTicket((prev) => (prev ? { ...prev, estado: 'cerrado' } : null))
         localStorage.removeItem(ticketStorageKey)
         setMessages((prev) => [
@@ -201,7 +212,7 @@ export default function SoportePage() {
     if (chatFeedRef.current) {
       chatFeedRef.current.scrollTop = chatFeedRef.current.scrollHeight
     }
-  }, [messages])
+  }, [messages, isTyping])
 
   // Redirigir al Admin / Asesor a su panel de gestión si corresponde
   if (isAdminOrSupport) {
@@ -282,6 +293,7 @@ export default function SoportePage() {
       fecha: new Date().toISOString(),
     }
     setMessages((prev) => [...prev, localMsg])
+    setIsTyping(true)
 
     try {
       const res = await enviarMensaje({
@@ -292,6 +304,7 @@ export default function SoportePage() {
       })
 
       if (res.data?.closed) {
+        setIsTyping(false)
         setActiveTicket((prev) => (prev ? { ...prev, estado: 'cerrado' } : null))
         localStorage.removeItem(ticketStorageKey)
       } else if (res.data?.transferido || res.data?.escalated) {
@@ -299,6 +312,7 @@ export default function SoportePage() {
       }
     } catch (err) {
       console.error('Error enviando mensaje:', err)
+      setIsTyping(false)
       if (err.response?.data?.closed) {
         setActiveTicket((prev) => (prev ? { ...prev, estado: 'cerrado' } : null))
         localStorage.removeItem(ticketStorageKey)
@@ -521,6 +535,38 @@ export default function SoportePage() {
                       </div>
                     )
                   })}
+
+                  {/* Indicador animado de respuesta / escritura del Asistente o Asesor */}
+                  {isTyping && (
+                    <div
+                      className="bubble-agent-bot fade-in"
+                      style={{
+                        alignSelf: 'flex-start',
+                        maxWidth: '90%',
+                        width: 'fit-content',
+                        background: '#ffffff',
+                        color: '#0f172a',
+                        border: '1px solid #e2e8f0',
+                        padding: '0.65rem 0.95rem',
+                        borderRadius: '16px 16px 16px 4px',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.04)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.55rem',
+                      }}
+                    >
+                      <div style={{ fontSize: '0.74rem', fontWeight: 700, color: '#15803d', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <i className={`fa ${activeTicket?.estado === 'agente' ? 'fa-headset' : 'fa-robot'}`} />
+                        <span>{activeTicket?.nombre_agente || (activeTicket?.estado === 'agente' ? 'Asesor Humano' : 'Asistente Virtual')}</span>
+                      </div>
+                      <div className="ai-typing-indicator" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <span className="ai-typing-dot" />
+                        <span className="ai-typing-dot" />
+                        <span className="ai-typing-dot" />
+                        <span className="ai-typing-text" style={{ fontStyle: 'italic', fontSize: '0.78rem', color: '#64748b' }}>está respondiendo...</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Message Input or Rating Screen */}
