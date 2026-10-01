@@ -65,8 +65,6 @@ const adminController = new AdminController({
 app.use('/api/auth', createAuthRoutes(authController));
 app.use('/api/user', createUsuarioRoutes(usuarioController));
 app.use('/api/admin', createAdminRoutes(adminController));
-app.use('/register', createAuthRoutes(authController));
-app.use('/login', createAuthRoutes(authController));
 app.use('/api/recover', createAuthRoutes(authController));
 
 // Lógica de procesamiento de recompensas por compra

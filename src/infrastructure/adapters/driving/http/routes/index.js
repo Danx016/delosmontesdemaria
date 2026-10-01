@@ -40,8 +40,6 @@ function setupRoutes(app, controllers) {
   }
 
   // Rutas de compatibilidad directa
-  app.use('/register', createAuthRoutes(authController));
-  app.use('/login', createAuthRoutes(authController));
   app.use('/api/recover', createAuthRoutes(authController));
 }
 

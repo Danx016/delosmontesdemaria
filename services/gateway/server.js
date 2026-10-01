@@ -297,7 +297,7 @@ function createResilientProxy(circuit, targetUrl, pathFilterRule, options = {}) 
 app.use(createResilientProxy(
   circuits.auth,
   SERVICES.auth,
-  (p) => p.startsWith('/api/auth') || p.startsWith('/api/user') || p.startsWith('/register') || p.startsWith('/login') || p.startsWith('/api/recover') || p.startsWith('/api/admin/usuarios')
+  (p) => p.startsWith('/api/auth') || p.startsWith('/api/user') || p.startsWith('/api/recover') || p.startsWith('/api/admin/usuarios')
 ));
 
 // 2. Catalog Service (3002)
@@ -343,7 +343,7 @@ app.use((req, res, next) => {
     return next();
   }
   const indexPath = path.join(clientDistPath, 'index.html');
-  if (req.accepts('html') && fs.existsSync(indexPath)) {
+  if (fs.existsSync(indexPath)) {
     return res.sendFile(indexPath);
   }
   next();

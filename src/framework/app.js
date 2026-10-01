@@ -214,7 +214,7 @@ app.use((req, res, next) => {
     return next();
   }
   const indexPath = path.join(clientDistPath, 'index.html');
-  if (req.accepts('html') && require('fs').existsSync(indexPath)) {
+  if (require('fs').existsSync(indexPath)) {
     return res.sendFile(indexPath);
   }
   next();
