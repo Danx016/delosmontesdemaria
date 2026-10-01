@@ -97,39 +97,15 @@ export default function CategoryPage() {
           </div>
         </div>
 
-        <div className="app-container" style={{ paddingTop: '1.25rem', paddingBottom: '4rem' }}>
-          {/* Category Header - Limpio, Moderno y Profesional */}
-          <div className="cat-page-header">
-            <div className="cat-page-header-body">
-              <div
-                className="cat-page-icon-wrapper"
-                style={{
-                  backgroundColor: `${catInfo.color || '#2e7d32'}12`,
-                  color: catInfo.color || '#2e7d32',
-                  borderColor: `${catInfo.color || '#2e7d32'}25`,
-                }}
-              >
-                <MediaRenderer
-                  src={catInfo.imagen}
-                  alt={catInfo.label || catInfo.nombre_categoria}
-                  icon={catInfo.icono || catInfo.icon || 'fa-box'}
-                  color={catInfo.color || '#2e7d32'}
-                  type="category"
-                />
-              </div>
-
-              <div className="cat-page-info">
-                <div className="cat-page-title-row">
-                  <h1 className="cat-page-title">{catInfo.label || catInfo.nombre_categoria}</h1>
-                  <span className="cat-page-count-badge">
-                    {productosFiltrados.length} {productosFiltrados.length === 1 ? 'producto' : 'productos'}
-                  </span>
-                </div>
-                <p className="cat-page-description">
-                  {catInfo.descripcion || 'Productos campesinos frescos y directos de los productores de los Montes de María.'}
-                </p>
-              </div>
-            </div>
+        <div className="app-container" style={{ paddingTop: '1.5rem', paddingBottom: '4rem' }}>
+          {/* Encabezado Natural y Limpio de la Categoría */}
+          <div style={{ marginBottom: '1.75rem' }}>
+            <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: 'var(--text-main, #0f172a)', margin: '0 0 0.35rem 0', letterSpacing: '-0.02em' }}>
+              {catInfo.label || catInfo.nombre_categoria}
+            </h1>
+            <p style={{ margin: 0, color: 'var(--text-muted, #64748b)', fontSize: '0.95rem', lineHeight: 1.5 }}>
+              {catInfo.descripcion || 'Productos campesinos frescos y directos de los productores de los Montes de María.'}
+            </p>
           </div>
 
           {/* Mini Mapa de Origen de Cosechas y Productores */}
