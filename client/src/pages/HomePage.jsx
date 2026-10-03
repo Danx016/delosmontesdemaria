@@ -9,6 +9,7 @@ import { listarProductos, listarCategoriasPublicas } from '../api/productos.api'
 import { listarBannersPublicos } from '../api/banners.api'
 import { useToast } from '../context/ToastContext'
 import { matchProductCategory, countProductsByCategory, slugify } from '../utils/categoryMatcher'
+import { getAvatarUrl } from '../utils/avatar'
 
 export default function HomePage() {
   const toast = useToast()
@@ -61,7 +62,7 @@ export default function HomePage() {
       showcaseImage: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=600&q=80',
       showcaseOrigin: '🇨🇴 San Juan Nepomuceno, Bolívar',
       showcasePrice: '$6.000 COP / Kilo',
-      farmerAvatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=150&q=80',
+      farmerAvatar: null,
       farmerName: 'Roberto Carlos Salcedo',
       farmerLocation: 'Productor Verificado • Montes de María',
       showcaseTitle: 'Ñame Criollo Espino',
@@ -89,7 +90,7 @@ export default function HomePage() {
       showcaseImage: 'https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&w=600&q=80',
       showcaseOrigin: '🇨🇴 El Carmen de Bolívar',
       showcasePrice: '$8.000 COP / Libra',
-      farmerAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
+      farmerAvatar: null,
       farmerName: 'Roberto Carlos Salcedo',
       farmerLocation: 'Vereda La Esperanza • Bolívar',
       showcaseTitle: 'Semilla de Maíz Amarillo',
@@ -147,7 +148,7 @@ export default function HomePage() {
       showcaseImage: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80',
       showcaseOrigin: '🇨🇴 Montes de María',
       showcasePrice: '$250.000 COP',
-      farmerAvatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=150&q=80',
+      farmerAvatar: null,
       farmerName: 'Roberto Carlos Salcedo',
       farmerLocation: 'Distribución Montes de María',
       showcaseTitle: 'Fumigadora Manual RoyalCondor',
@@ -175,7 +176,7 @@ export default function HomePage() {
       showcaseImage: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=600&q=80',
       showcaseOrigin: '🇨🇴 San Jacinto & El Carmen de Bolívar',
       showcasePrice: '$6.000 COP / Kilo',
-      farmerAvatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=150&q=80',
+      farmerAvatar: null,
       farmerName: 'Roberto Carlos Salcedo',
       farmerLocation: 'Productor de Montes de María',
       showcaseTitle: 'Cosechas Agroecológicas',
@@ -214,8 +215,9 @@ export default function HomePage() {
         showcaseImage: b.tarjeta_imagen || '/img/Ñame.avif',
         showcaseOrigin: '🇨🇴 Montes de María',
         showcasePrice: b.tarjeta_precio || '$6.000 COP',
-        farmerAvatar: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=150&q=80',
-        farmerName: b.tarjeta_vendedor_nombre || 'Roberto Carlos Salcedo',
+        vendedor_avatar: b.vendedor_avatar || null,
+        farmerAvatar: b.vendedor_avatar || null,
+        farmerName: b.tarjeta_vendedor_nombre || 'Productor Verificado',
         farmerLocation: 'Productor Verificado • Montes de María',
         showcaseTitle: b.tarjeta_titulo || b.titulo,
         showcaseDesc: b.subtitulo,

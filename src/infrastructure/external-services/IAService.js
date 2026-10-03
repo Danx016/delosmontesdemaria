@@ -117,7 +117,7 @@ class IAService {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${apiKey}`,
-            'HTTP-Referer': appConfig.baseUrl || 'https://delosmontesdemaria.duckdns.org',
+            'HTTP-Referer': appConfig.baseUrl || 'https://delosmontesdemaria.dev',
             'X-Title': appTitle
           },
           body: JSON.stringify(bodyPayload)
@@ -148,7 +148,7 @@ class IAService {
                 headers: {
                   'Content-Type': 'application/json',
                   'Authorization': `Bearer ${apiKey}`,
-                  'HTTP-Referer': appConfig.baseUrl || 'https://delosmontesdemaria.duckdns.org',
+                  'HTTP-Referer': appConfig.baseUrl || 'https://delosmontesdemaria.dev',
                   'X-Title': appTitle
                 },
                 body: JSON.stringify(fallbackPayload)

@@ -4,7 +4,7 @@
 [![React Version](https://img.shields.io/badge/React-18.x-61DAFB?logo=react)](https://react.dev)
 [![Vite](https://img.shields.io/badge/Vite-5.x-646CFF?logo=vite)](https://vitejs.dev)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?logo=mysql)](https://www.mysql.com)
-[![Self Hosted Server](https://img.shields.io/badge/Ubuntu%20Linux-Nginx%20%2B%20PM2-E95420?logo=ubuntu)](http://delosmontesdemaria.duckdns.org)
+[![Self Hosted Server](https://img.shields.io/badge/Ubuntu%20Linux-Nginx%20%2B%20PM2-E95420?logo=ubuntu)](https://delosmontesdemaria.dev)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 > **De los Montes de María** es una plataforma tecnológica integral de comercio electrónico y gestión agropecuaria diseñada para conectar de forma directa y sin intermediarios a los productores campesinos de la subregión de los **Montes de María** (El Carmen de Bolívar, San Jacinto, Ovejas, San Juan Nepomuceno, etc.) con consumidores y compradores de toda Colombia.
@@ -13,7 +13,7 @@
 
 ## 🌐 Enlaces del Proyecto
 
-- **Sitio Web en Producción (Servidor Propio):** [http://delosmontesdemaria.duckdns.org](http://delosmontesdemaria.duckdns.org)
+- **Sitio Web en Producción (Servidor Propio):** [https://delosmontesdemaria.dev](https://delosmontesdemaria.dev)
 - **Repositorio Oficial en GitHub:** [https://github.com/Danx016/delosmontesdemaria](https://github.com/Danx016/delosmontesdemaria)
 
 ---

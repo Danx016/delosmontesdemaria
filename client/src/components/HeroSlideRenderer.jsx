@@ -582,7 +582,12 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: isPreview ? '0.45rem' : '0.75rem', marginBottom: isPreview ? '0.45rem' : '1rem' }}>
                   <div style={{ width: isPreview ? '30px' : '46px', height: isPreview ? '30px' : '46px', borderRadius: '50%', border: '2px solid #facc15', backgroundColor: '#15803d', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0, boxShadow: '0 4px 10px rgba(0,0,0,0.2)' }}>
                     <img
-                      src={slide.farmerAvatar || slide.vendedor_avatar || getAvatarUrl(vendorName, vendorName)}
+                      src={(() => {
+                        const raw = slide.vendedor_avatar || slide.farmerAvatar;
+                        const isFake = typeof raw === 'string' && (raw.includes('photo-1544717305') || raw.includes('photo-1507003211'));
+                        if (raw && !isFake) return getAvatarUrl(raw, vendorName);
+                        return getAvatarUrl(vendorName, vendorName);
+                      })()}
                       alt={vendorName}
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       onError={(e) => handleAvatarError(e, vendorName)}

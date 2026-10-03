@@ -4370,6 +4370,7 @@ export default function AdminPage() {
                                   tarjeta_vendedor_nombre: vName,
                                   tarjeta_vendedor_id: uId,
                                   tarjeta_vendedor_rating: vRating,
+                                  vendedor_avatar: foundUser.avatar || null,
                                 }))
                               }
                             }}
@@ -4400,6 +4401,7 @@ export default function AdminPage() {
                                       tarjeta_vendedor_nombre: vName,
                                       tarjeta_vendedor_id: uId,
                                       tarjeta_vendedor_rating: vRating,
+                                      vendedor_avatar: u.avatar || null,
                                     }))
                                   }}
                                   style={{
@@ -4958,6 +4960,8 @@ export default function AdminPage() {
                           tarjeta_precio: bannerForm.tarjeta_precio || '$6.000 COP',
                           farmerName: bannerForm.tarjeta_vendedor_nombre !== undefined ? bannerForm.tarjeta_vendedor_nombre : '',
                           tarjeta_vendedor_nombre: bannerForm.tarjeta_vendedor_nombre !== undefined ? bannerForm.tarjeta_vendedor_nombre : '',
+                          vendedor_avatar: bannerForm.vendedor_avatar || usuarios.find(u => (u.id_usuario || u.id) === Number(bannerForm.tarjeta_vendedor_id))?.avatar || null,
+                          farmerAvatar: bannerForm.vendedor_avatar || usuarios.find(u => (u.id_usuario || u.id) === Number(bannerForm.tarjeta_vendedor_id))?.avatar || null,
                           floatPillTop: bannerForm.tarjeta_badge_top !== undefined ? bannerForm.tarjeta_badge_top : '',
                           tarjeta_badge_top: bannerForm.tarjeta_badge_top !== undefined ? bannerForm.tarjeta_badge_top : '',
                           floatPillBottom: bannerForm.tarjeta_vendedor_rating !== undefined ? bannerForm.tarjeta_vendedor_rating : '',

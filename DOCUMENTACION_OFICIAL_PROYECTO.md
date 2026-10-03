@@ -18,7 +18,7 @@
 | **Versión del Documento** | 2.5.0 |
 | **Estado del Proyecto** | Producción / Operación en Servidor Propio |
 | **Repositorio Oficial** | [GitHub - Danx016/delosmontesdemaria](https://github.com/Danx016/delosmontesdemaria) |
-| **URL Producción** | [delosmontesdemaria.duckdns.org](http://delosmontesdemaria.duckdns.org) |
+| **URL Producción** | [delosmontesdemaria.dev](https://delosmontesdemaria.dev) |
 
 ### Registro de Cambios (Changelog)
 
@@ -515,7 +515,7 @@ npm start
    server {
        listen 80;
        listen [::]:80;
-       server_name delosmontesdemaria.duckdns.org;
+       server_name delosmontesdemaria.dev www.delosmontesdemaria.dev;
 
        client_max_body_size 50M;
 
@@ -556,7 +556,7 @@ npm start
 
 6. **Registro del Webhook de Telegram:**
    El webhook oficial se sincroniza apuntando a:
-   `http://delosmontesdemaria.duckdns.org/api/telegram/webhook`
+   `https://delosmontesdemaria.dev/api/telegram/webhook`
 
 ### 3. Manual de Usuario por Roles
 
@@ -623,7 +623,7 @@ classDiagram
 
 ### Anexo B: Directorio de Enlaces y Recursos
 
-* **Sitio Web Oficial en Producción (Servidor Propio):** [http://delosmontesdemaria.duckdns.org](http://delosmontesdemaria.duckdns.org)
+* **Sitio Web Oficial en Producción (Servidor Propio):** [https://delosmontesdemaria.dev](https://delosmontesdemaria.dev)
 * **Repositorio de Código Fuente:** [https://github.com/Danx016/delosmontesdemaria](https://github.com/Danx016/delosmontesdemaria)
 * **Bot Oficial de Telegram:** `@montesdemariabot` en la aplicación móvil/desktop de Telegram.
 * **Documentación Técnica del Código:** [DOCUMENTACION.md](file:///c:/Users/danil/Downloads/De%20los%20montesdemaria/DOCUMENTACION.md)

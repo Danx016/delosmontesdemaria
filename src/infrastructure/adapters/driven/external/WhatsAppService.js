@@ -179,7 +179,7 @@ class WhatsAppService extends WhatsAppServicePort {
                     `📦 *Orden:* #${orderId}\n` +
                     `💰 *Total Pagado:* $${Number(total || 0).toLocaleString('es-CO')} COP\n\n` +
                     `Nuestros campesinos ya están alistando tus cosechas frescas del campo. Puedes ver tu factura y estado aquí:\n` +
-                    `👉 https://delosmontesdemaria.duckdns.org/perfil`;
+                    `👉 https://delosmontesdemaria.dev/perfil`;
 
     try {
       return await this.sendMessage(to, message);

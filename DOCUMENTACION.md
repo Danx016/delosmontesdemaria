@@ -336,7 +336,7 @@ Ejemplo de configuración en `.env` o en el entorno del servidor o VPS:
 # Servidor
 PORT=3000
 NODE_ENV=production
-BASE_URL=https://delosmontesdemaria.duckdns.org
+BASE_URL=https://delosmontesdemaria.dev
 JWT_SECRET=tu_clave_secreta_jwt_muy_segura
 
 # Base de Datos MySQL (Aiven Cloud)
@@ -397,7 +397,7 @@ pm2 startup
 server {
     listen 80;
     listen [::]:80;
-    server_name delosmontesdemaria.duckdns.org;
+    server_name delosmontesdemaria.dev www.delosmontesdemaria.dev;
     client_max_body_size 50M;
 
     location / {
@@ -419,7 +419,7 @@ server {
 chmod +x deploy.sh
 ./deploy.sh
 ```
-*El Webhook de Telegram apunta a:* `http://delosmontesdemaria.duckdns.org/api/telegram/webhook`
+*El Webhook de Telegram apunta a:* `https://delosmontesdemaria.dev/api/telegram/webhook`
 
 ---
 

@@ -39,7 +39,7 @@ class TelegramService {
     this.compraRepository = compraRepository;
     this.emailService = emailService;
     this.socketHandler = null;
-    this.baseUrl = (process.env.BASE_URL || 'https://delosmontesdemaria.duckdns.org').replace(/\/+$/, '');
+    this.baseUrl = (process.env.BASE_URL || 'https://delosmontesdemaria.dev').replace(/\/+$/, '');
 
     // Memoria de sesiones conversacionales por chatId
     // { state: 'IDLE' | 'FORM_NOMBRE' | 'FORM_CORREO' | 'FORM_TELEFONO' | 'FORM_CATEGORIA' | 'FORM_MENSAJE' | 'CHAT_ACTIVO' | 'LOGIN_WAIT_EMAIL' | 'LOGIN_WAIT_AUTH' | 'WAITING_TICKET_REPLY', data: {}, activeTicket: null, replyTicketCode: null }

@@ -599,7 +599,7 @@ El proyecto "De los Montes de María" ahora implementa completamente las leyes f
 7. **Accesibilidad completa** (WCAG 2.1)
 8. **Performance optimizado** (Mejoras técnicas)
 
-Todas las mejoras están en producción en **http://delosmontesdemaria.duckdns.org**.
+Todas las mejoras están en producción en **https://delosmontesdemaria.dev**.
 
 ---
 

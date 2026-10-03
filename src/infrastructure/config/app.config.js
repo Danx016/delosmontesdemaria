@@ -15,7 +15,7 @@ module.exports = {
   openRouterModel: process.env.OPENROUTER_MODEL || 'openai/gpt-4o-mini',
   groqApiKey: sanitize(process.env.GROQ_API_KEY) || '',
   groqModel: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
-  baseUrl: process.env.BASE_URL || 'https://delosmontesdemaria.duckdns.org',
+  baseUrl: process.env.BASE_URL || 'https://delosmontesdemaria.dev',
   company: {
     name: 'DE LOS MONTES DE MARÍA S.A.S',
     nit: '1050277880',
@@ -23,7 +23,7 @@ module.exports = {
     formattedPhone: '+57 300 872 3989',
     email: sanitize(process.env.SMTP_USER) || 'danilorodelo355@gmail.com',
     address: 'El Carmen de Bolívar, Bolívar, Colombia',
-    website: process.env.BASE_URL || 'https://delosmontesdemaria.duckdns.org'
+    website: process.env.BASE_URL || 'https://delosmontesdemaria.dev'
   },
   wompi: {
     publicKey: process.env.WOMPI_PUBLIC_KEY || '',

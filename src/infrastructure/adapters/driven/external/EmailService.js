@@ -274,7 +274,7 @@ class EmailService {
    * Layout maestro HTML con la identidad gráfica oficial de De los Montes de María
    */
   buildEmailLayout({ badge, title, subtitle, contentHtml, ctaText, ctaLink, footerNote }) {
-    const baseUrl = (appConfig.baseUrl || 'https://delosmontesdemaria.duckdns.org').replace(/\/+$/, '');
+    const baseUrl = (appConfig.baseUrl || 'https://delosmontesdemaria.dev').replace(/\/+$/, '');
     const link = ctaLink ? (ctaLink.startsWith('http') ? ctaLink : `${baseUrl}${ctaLink}`) : null;
     const logoFallback = `${baseUrl}/img/Logo.jpg`;
 
@@ -381,7 +381,7 @@ class EmailService {
               <div style="border-top: 1px dashed #d1d5db; padding-top: 12px; font-size: 11.5px; color: #8c8c8c; line-height: 1.6;">
                 El Carmen de Bolívar • San Jacinto • María La Baja • Ovejas • San Juan Nepomuceno<br/>
                 📞 Soporte y WhatsApp: <strong style="color: #242424;">+57 300 872 3989</strong> &nbsp;|&nbsp; ✉️ <strong style="color: #242424;">danilorodelo355@gmail.com</strong><br/>
-                🌐 <a href="${baseUrl}" style="color: #438E44; text-decoration: none; font-weight: 600;">delosmontesdemaria.duckdns.org</a>
+                🌐 <a href="${baseUrl}" style="color: #438E44; text-decoration: none; font-weight: 600;">delosmontesdemaria.dev</a>
               </div>
             </td>
           </tr>
@@ -454,7 +454,7 @@ class EmailService {
     const otpCard = this.buildOtpCodeCard({
       code,
       label: 'Código para Restablecer Contraseña',
-      actionUrl: `${appConfig.baseUrl || 'https://delosmontesdemaria.duckdns.org'}/recuperar-contrasena`,
+      actionUrl: `${appConfig.baseUrl || 'https://delosmontesdemaria.dev'}/recuperar-contrasena`,
       actionText: 'Ir a Restablecer Contraseña',
       note: 'Este código vence en 10 minutos. Por tu seguridad, nunca lo compartas.'
     });

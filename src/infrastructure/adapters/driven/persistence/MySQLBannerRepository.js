@@ -4,7 +4,13 @@ const BannerRepository = require('../../../../domain/ports/outbound/repositories
 class MySQLBannerRepository extends BannerRepository {
   async obtenerActivos() {
     return new Promise((resolve, reject) => {
-      const sql = 'SELECT * FROM banners_hero WHERE activo = 1 ORDER BY orden ASC, id_banner ASC';
+      const sql = `
+        SELECT b.*, u.avatar AS vendedor_avatar 
+        FROM banners_hero b 
+        LEFT JOIN usuarios u ON b.tarjeta_vendedor_id = u.id_usuario 
+        WHERE b.activo = 1 
+        ORDER BY b.orden ASC, b.id_banner ASC
+      `;
       db.query(sql, (err, rows) => {
         if (err) return reject(err);
         resolve(rows || []);
@@ -14,7 +20,12 @@ class MySQLBannerRepository extends BannerRepository {
 
   async obtenerTodos() {
     return new Promise((resolve, reject) => {
-      const sql = 'SELECT * FROM banners_hero ORDER BY orden ASC, id_banner ASC';
+      const sql = `
+        SELECT b.*, u.avatar AS vendedor_avatar 
+        FROM banners_hero b 
+        LEFT JOIN usuarios u ON b.tarjeta_vendedor_id = u.id_usuario 
+        ORDER BY b.orden ASC, b.id_banner ASC
+      `;
       db.query(sql, (err, rows) => {
         if (err) return reject(err);
         resolve(rows || []);
@@ -24,7 +35,12 @@ class MySQLBannerRepository extends BannerRepository {
 
   async obtenerPorId(id) {
     return new Promise((resolve, reject) => {
-      const sql = 'SELECT * FROM banners_hero WHERE id_banner = ?';
+      const sql = `
+        SELECT b.*, u.avatar AS vendedor_avatar 
+        FROM banners_hero b 
+        LEFT JOIN usuarios u ON b.tarjeta_vendedor_id = u.id_usuario 
+        WHERE b.id_banner = ?
+      `;
       db.query(sql, [id], (err, rows) => {
         if (err) return reject(err);
         resolve(rows[0] || null);

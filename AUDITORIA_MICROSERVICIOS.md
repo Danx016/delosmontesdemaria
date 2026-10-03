@@ -1,7 +1,7 @@
 # Auditoría Técnica y Manual de Arquitectura: Microservicios y Arquitectura Hexagonal
 
 **Proyecto:** Plataforma Agropecuaria "De los Montes de María"  
-**Entorno de Producción:** Servidor Ubuntu en Oracle Cloud (`https://delosmontesdemaria.duckdns.org`)  
+**Entorno de Producción:** Servidor Ubuntu en Oracle Cloud (`https://delosmontesdemaria.dev`)  
 **Estándar Arquitectónico:** Arquitectura Hexagonal (Ports & Adapters) + Microservicios Autónomos Event-Driven Enterprise  
 **Fecha de Auditoría:** Septiembre 2026  
 **Auditor / Ingeniero:** Equipo de Arquitectura & DevOps  
@@ -427,7 +427,7 @@ Para auditar la resistencia real del sistema, se ejecutaron pruebas de carga y c
 
 ### 6.1. Prueba de Rendimiento Óptimo (50 Conexiones Concurrentes)
 * **Herramienta:** `autocannon`
-* **Destino:** `https://delosmontesdemaria.duckdns.org/api/productos`
+* **Destino:** `https://delosmontesdemaria.dev/api/productos`
 * **Resultados:**
   * **Peticiones procesadas:** 4,000 requests en 5.02 segundos.
   * **Throughput:** **733.6 req/segundo**.
