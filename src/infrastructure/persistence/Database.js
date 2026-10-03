@@ -29,7 +29,7 @@ const dbConfig = {
   password: dbPass,
   database: dbName,
   waitForConnections: true,
-  connectionLimit: 25,
+  connectionLimit: 10,
   queueLimit: 0,
   connectTimeout: 20000,
   enableKeepAlive: true,
