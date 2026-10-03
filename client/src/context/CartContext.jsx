@@ -4,7 +4,7 @@ import { useAuth } from './AuthContext'
 const CartContext = createContext(null)
 
 function getCartStorageKey(user) {
-  const userId = user?.id_usuario || user?.id
+  const userId = user?.id_usuario || user?.id || user?.idUser
   return userId ? `cart_user_${userId}` : 'cart_guest'
 }
 
@@ -54,22 +54,20 @@ function loadCart(storageKey) {
 export function CartProvider({ children }) {
   const { user } = useAuth()
   const storageKey = getCartStorageKey(user)
-  const isInitialMount = useRef(true)
+  const currentKeyRef = useRef(storageKey)
 
   const [items, setItems] = useState(() => loadCart(storageKey))
 
   // Sincronizar y recargar el carrito cuando el usuario cambia (login, logout, cambio de cuenta)
   useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false
-      return
-    }
+    currentKeyRef.current = storageKey
     const userCart = loadCart(storageKey)
     setItems(userCart)
   }, [storageKey])
 
-  // Persistir en localStorage bajo la clave del usuario activo
+  // Persistir en localStorage bajo la clave del usuario activo SOLAMENTE si no está en transición de usuario
   useEffect(() => {
+    if (currentKeyRef.current !== storageKey) return
     try {
       localStorage.setItem(storageKey, JSON.stringify(items))
     } catch (e) {

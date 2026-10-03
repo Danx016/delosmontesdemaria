@@ -10,6 +10,8 @@ export const loginGoogle = (tokenOrCredential) => {
   return api.post('/auth/login/google', { credential, token: credential })
 }
 
+export const logout = () => api.post('/auth/logout')
+
 export const register = (data) =>
   api.post('/auth/register', {
     name: data.nombre || data.name,

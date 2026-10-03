@@ -9,17 +9,18 @@ if (!process.env.JWT_SECRET) {
 function verifyToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   
-  // Triple fallback para extraer el token:
-  // 1. Cookie parseada por cookie-parser
-  // 2. Leer el header cookie directamente con regex (fallback Cloudflare Tunnel)
-  // 3. Authorization: Bearer header
-  let token = req.cookies?.jwt;
-  if (!token && req.headers.cookie) {
+  // Prioridad de extracción del token:
+  // 1. Authorization: Bearer header (enviado explícitamente por el cliente activo)
+  // 2. Cookie parseada por cookie-parser
+  // 3. Header cookie directamente con regex (fallback Cloudflare Tunnel)
+  let token = null;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.split(' ')[1];
+  } else if (req.cookies?.jwt) {
+    token = req.cookies.jwt;
+  } else if (req.headers.cookie) {
     const match = req.headers.cookie.match(/(?:^|;\s*)jwt=([^;]+)/);
     if (match) token = decodeURIComponent(match[1]);
-  }
-  if (!token && authHeader && authHeader.startsWith('Bearer ')) {
-    token = authHeader.split(' ')[1];
   }
 
   if (!token) {
@@ -91,13 +92,14 @@ function verifyVendedor(req, res, next) {
 // Middleware opcional: si hay token lo decodifica en req.user, si no, continúa
 function optionalAuth(req, res, next) {
   const authHeader = req.headers['authorization'];
-  let token = req.cookies?.jwt;
-  if (!token && req.headers.cookie) {
+  let token = null;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.split(' ')[1];
+  } else if (req.cookies?.jwt) {
+    token = req.cookies.jwt;
+  } else if (req.headers.cookie) {
     const match = req.headers.cookie.match(/(?:^|;\s*)jwt=([^;]+)/);
     if (match) token = decodeURIComponent(match[1]);
-  }
-  if (!token && authHeader && authHeader.startsWith('Bearer ')) {
-    token = authHeader.split(' ')[1];
   }
 
   if (token) {

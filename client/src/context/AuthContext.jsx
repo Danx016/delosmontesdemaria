@@ -1,13 +1,35 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { getMe } from '../api/usuario.api'
+import { logout as logoutApi } from '../api/auth.api'
 
 const AuthContext = createContext(null)
+
+function normalizeUserData(raw) {
+  if (!raw) return null
+  const userId = raw.id || raw.id_usuario || raw.idUser
+  const rolId = raw.id_rol ?? raw.rol ?? raw.rolUser ?? 3
+  return {
+    ...raw,
+    id: userId,
+    id_usuario: userId,
+    idUser: userId,
+    nombre: raw.nombre || raw.nombreUser || raw.name || '',
+    nombreUser: raw.nombreUser || raw.nombre || raw.name || '',
+    correo: raw.correo || raw.emailUser || raw.email || '',
+    emailUser: raw.emailUser || raw.correo || raw.email || '',
+    username: raw.username || raw.apodo || '',
+    apodo: raw.apodo || raw.username || '',
+    id_rol: Number(rolId),
+    rol: Number(rolId),
+    rolUser: Number(rolId)
+  }
+}
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     try {
       const saved = localStorage.getItem('user')
-      return saved ? JSON.parse(saved) : null
+      return saved ? normalizeUserData(JSON.parse(saved)) : null
     } catch (_) {
       return null
     }
@@ -23,7 +45,7 @@ export function AuthProvider({ children }) {
     }
     getMe()
       .then((res) => {
-        const userData = res.data?.usuario || res.data
+        const userData = normalizeUserData(res.data?.usuario || res.data)
         setUser(userData)
         localStorage.setItem('user', JSON.stringify(userData))
       })
@@ -38,20 +60,55 @@ export function AuthProvider({ children }) {
       .finally(() => setLoading(false))
   }, [])
 
-  const login = useCallback((token, userData) => {
+  const login = useCallback((token, rawUserData) => {
+    const userData = normalizeUserData(rawUserData)
     localStorage.setItem('jwt', token)
     localStorage.setItem('user', JSON.stringify(userData))
     setUser(userData)
+
+    // Actualizar perfil completo en segundo plano
+    getMe()
+      .then((res) => {
+        const fullUser = normalizeUserData(res.data?.usuario || res.data)
+        if (fullUser) {
+          localStorage.setItem('user', JSON.stringify(fullUser))
+          setUser(fullUser)
+        }
+      })
+      .catch(() => {})
   }, [])
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    try {
+      await logoutApi().catch(() => {})
+    } catch (_) {}
+
+    // Eliminar credenciales
     localStorage.removeItem('jwt')
     localStorage.removeItem('user')
+
+    // Eliminar todo rastro de carritos, soporte o formularios de cualquier usuario
+    const keysToRemove = []
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i)
+      if (k && (
+        k.startsWith('cart_') ||
+        k.startsWith('agro_active_ticket') ||
+        k.startsWith('form_draft_') ||
+        k.startsWith('checkout_')
+      )) {
+        keysToRemove.push(k)
+      }
+    }
+    keysToRemove.forEach((k) => localStorage.removeItem(k))
     localStorage.removeItem('cart')
     localStorage.removeItem('cart_guest')
     localStorage.removeItem('agro_active_ticket')
     localStorage.removeItem('agro_active_ticket_guest')
+
     setUser(null)
+    // Redirección completa para reiniciar cualquier estado en memoria de React
+    window.location.href = '/login'
   }, [])
 
   const refreshUser = useCallback(async () => {

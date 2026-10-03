@@ -43,12 +43,26 @@ class AuthController {
 
       res.status(200).json({
         idUser: user.id_usuario,
+        id: user.id_usuario,
+        id_usuario: user.id_usuario,
         nombreUser: user.nombre,
+        nombre: user.nombre,
         emailUser: user.correo,
+        correo: user.correo,
         username: user.apodo,
+        apodo: user.apodo,
+        telefono: user.telefono,
         id_rol: rolId,
         rolUser: rolId,
+        rol: rolId,
         avatar: user.avatar || null,
+        usuario: {
+          ...user,
+          id: user.id_usuario,
+          id_usuario: user.id_usuario,
+          id_rol: rolId,
+          rol: rolId
+        },
         token: result.token,
         message: 'Inicio de sesión exitoso'
       });
@@ -291,6 +305,17 @@ class AuthController {
     } catch (error) {
       res.status(400).json({ message: error.message });
     }
+  }
+
+  logout(req, res) {
+    const isHttps = req.secure || req.headers['x-forwarded-proto'] === 'https' || req.protocol === 'https';
+    res.clearCookie('jwt', {
+      httpOnly: true,
+      secure: isHttps,
+      sameSite: isHttps ? 'none' : 'lax',
+      path: '/'
+    });
+    return res.status(200).json({ message: 'Sesión cerrada exitosamente' });
   }
 }
 

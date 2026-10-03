@@ -53,7 +53,7 @@ function formatMessageContent(text) {
 }
 
 function getTicketStorageKey(u) {
-  const userId = u?.id_usuario || u?.id
+  const userId = u?.id_usuario || u?.id || u?.idUser
   return userId ? `agro_active_ticket_user_${userId}` : 'agro_active_ticket_guest'
 }
 

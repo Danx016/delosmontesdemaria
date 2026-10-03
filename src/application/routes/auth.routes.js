@@ -10,6 +10,7 @@ function createAuthRoutes(authController) {
 
   router.post('/login', loginLimiter, loginRules, handleValidation, (req, res) => authController.login(req, res));
   router.post('/login/google', (req, res) => authController.loginGoogle(req, res));
+  router.post('/logout', (req, res) => authController.logout(req, res));
   router.post('/register', registerLimiter, registerRules, handleValidation, (req, res) => authController.registrar(req, res));
   router.get('/check-username', (req, res) => authController.verificarUsername(req, res));
   router.post('/admin-register', adminRegisterRules, handleValidation, (req, res) => authController.adminRegister(req, res));
