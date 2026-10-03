@@ -501,7 +501,7 @@ export default function HomePage() {
               <div className="benefit-icon-box"><i className="fa fa-shield-alt" /></div>
               <div className="benefit-text">
                 <h4>Pagos 100% Protegidos</h4>
-                <p>Paga con Contra Entrega, Wompi o ePayco con total tranquilidad.</p>
+                <p>Paga con Contra Entrega en efectivo al recibir tus productos con total tranquilidad.</p>
               </div>
             </div>
 

@@ -427,7 +427,7 @@ class EmailService {
         <p style="margin: 0 0 10px 0; font-weight: 800; color: #0f172a; font-size: 14px;">✨ Beneficios en nuestra plataforma:</p>
         <ul style="margin: 0; padding-left: 20px; font-size: 13.5px; color: #475569; line-height: 1.7;">
           <li>Cosechas frescas directas de campesinos y productores locales.</li>
-          <li>Pagos seguros con Wompi, PSE, tarjetas y contra entrega.</li>
+          <li>Pago seguro 100% Contra Entrega en efectivo al recibir tu pedido.</li>
           <li>Atención y asistencia inteligente personalizada 24/7 vía Telegram.</li>
         </ul>
       </div>

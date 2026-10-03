@@ -210,12 +210,11 @@ export default function TerminosPage() {
             <section id="pagos" className="legal-section">
               <h2>6. Transacciones y Métodos de Pago</h2>
               <p>
-                La plataforma implementa estándares de seguridad bancaria y procesamiento cifrado a través de pasarelas de pago certificadas:
+                La plataforma opera bajo el modelo de máxima seguridad, cercanía y confianza con el campo montemariano:
               </p>
               <ul>
-                <li><strong>Métodos Electrónicos:</strong> PSE (Cuentas de Ahorro y Corriente), Tarjetas de Crédito/Débito (Visa, Mastercard, American Express), Nequi y Daviplata.</li>
-                <li><strong>Pago Contra Entrega / En Efectivo:</strong> Sujeto a cobertura logística y validación previa de la dirección de entrega en las zonas habilitadas.</li>
-                <li>Los fondos recaudados son distribuidos conforme a los acuerdos de comercio justo pactados con cada productor.</li>
+                <li><strong>Pago Contra Entrega (Efectivo):</strong> Pagas tus cosechas y alimentos directamente en efectivo únicamente al momento de recibirlos en la puerta de tu domicilio o finca.</li>
+                <li>Los fondos recaudados son entregados directamente a cada campesino y productor bajo estrictos principios de comercio justo sin intermediarios especulativos.</li>
               </ul>
             </section>
 

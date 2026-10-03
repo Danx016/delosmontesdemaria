@@ -243,7 +243,7 @@ class IAService {
 Conoces a fondo todos los productos del catálogo:
 ${JSON.stringify(productos)}
 
-Medios de pago: Tarjeta de Crédito/Débito, Agro-Créditos, Wompi, ePayco y PayPal.
+Medios de pago: Únicamente Pago Contra Entrega (Efectivo) al recibir tus productos.
 Envíos a toda Colombia.
 
 REGLAS DE FORMATO:
@@ -319,8 +319,8 @@ REGLAS DE FORMATO:
     }
 
     // 3. Pagos y métodos de compra
-    if (/\b(pago|pagos|pagar|metodo|metodos|tarjeta|credito|debito|nequi|daviplata|pse|wompi|epayco|paypal|transferencia|efectivo|agrocredito)\b/.test(cleanMsg)) {
-      return `💳 **Métodos de Pago Disponibles:**\n\n- **Pasarelas Seguras:** Wompi y ePayco (admiten Tarjetas Visa, Mastercard, American Express, PSE, Nequi y Daviplata).\n- **Agro-Créditos:** Facilidad de financiamiento para productores y clientes frecuentes.\n- **PayPal:** Disponible para compras internacionales o en moneda extranjera.\n\nTodas las transacciones están cifradas y respaldadas para tu total seguridad.`;
+    if (/\b(pago|pagos|pagar|metodo|metodos|tarjeta|credito|debito|nequi|daviplata|pse|wompi|epayco|paypal|transferencia|efectivo|contraentrega|contra entrega)\b/.test(cleanMsg)) {
+      return `💵 **Método de Pago Oficial:**\n\n- **Pago Contra Entrega (Efectivo):** En **De los Montes de María** manejamos exclusivamente pago contra entrega. Pagas en efectivo directamente al domiciliario o transportador únicamente cuando recibas tus cosechas frescas y productos en la puerta de tu hogar o finca.\n\n¡Cero riesgos, pagas al verificar tu producto!`;
     }
 
     // 4. Ubicación / Sobre Montes de María
@@ -1084,7 +1084,7 @@ ${prodsSummary}
 
 CONOCIMIENTO OPERATIVO Y POLÍTICAS DE LA PLATAFORMA:
 1. 🚚 **Envíos y Entregas**: Despachamos a toda Colombia. El tiempo promedio de entrega es de 2 a 5 días hábiles según la ciudad de destino. Embalaje agroecológico seguro que mantiene la frescura de los tubérculos, semillas y productos perecederos.
-2. 💳 **Métodos de Pago**: Aceptamos Wompi y ePayco (Tarjetas Débito/Crédito, PSE, Nequi, Daviplata), Agro-Créditos y PayPal para pagos internacionales.
+2. 💵 **Método de Pago**: Exclusivamente **Pago Contra Entrega (Efectivo)**. Los clientes pagan únicamente en efectivo al recibir sus cosechas en la puerta de su domicilio.
 3. 📦 **Rastreo de Compras**: Si el cliente pregunta por su pedido, revisa sus pedidos recientes y dale detalles concretos (código, estado, productos). Si no tiene pedidos registrados o es invitado, pídele amablemente su código de pedido (ej: PED-XXXXXX).
 4. 🌱 **Vender / Registro de Campesinos**: Cualquier agricultor o campesino puede unirse en /register seleccionando el rol "Campesino / Productor". Al registrarse, puede publicar cosechas y gestionar sus ventas desde su panel.
 5. 🛡️ **Garantía y Devoluciones**: Garantía de satisfacción de 48 horas tras recibir el paquete. Si un producto llega en mal estado, el cliente puede adjuntar una foto en este chat de soporte para reenvío o reembolso inmediato.
@@ -1183,8 +1183,8 @@ INSTRUCCIONES DE RESPUESTA:
     }
 
     // 4. Pagos, pasarelas y cobros
-    if (/\b(pago|pagos|pagar|metodo|metodos|tarjeta|credito|debito|nequi|daviplata|pse|wompi|epayco|paypal|transferencia|efectivo|agrocredito|cobro|factura)\b/.test(cleanMsg)) {
-      return `💳 **Métodos de Pago Aceptados:**\n\n- **Tarjetas y PSE:** A través de **Wompi** y **ePayco** (Visa, Mastercard, Débito, Nequi, Daviplata y cuentas de ahorros/corrientes).\n- **Agro-Créditos:** Créditos especiales para productores y aliados comerciales.\n- **PayPal:** Pagos internacionales.\n\nTodas las transacciones se procesan bajo protocolos de seguridad SSL cifrados. Si tuviste un inconveniente con un cobro, avísanos para revisarlo con el área de tesorería.`;
+    if (/\b(pago|pagos|pagar|metodo|metodos|tarjeta|credito|debito|nequi|daviplata|pse|wompi|epayco|paypal|transferencia|efectivo|contraentrega|contra entrega|cobro|factura)\b/.test(cleanMsg)) {
+      return `💵 **Método de Pago Exclusivo:**\n\n- **Pago Contra Entrega (Efectivo):** Pagas en efectivo al momento de recibir tu pedido directamente en tu puerta o finca.\n- No solicitamos transferencias previas ni números de tarjeta. Garantizamos que recibas tus productos frescos antes de pagar.`;
     }
 
     // 5. Devoluciones, quejas, reclamos y garantías
