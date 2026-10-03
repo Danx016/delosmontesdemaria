@@ -3,7 +3,7 @@
  */
 const express = require('express');
 const { loginRules, registerRules, adminRegisterRules, handleValidation } = require('../middleware/validate');
-const { loginLimiter, registerLimiter } = require('../middleware/rateLimiter');
+const { loginLimiter, registerLimiter, passwordResetLimiter } = require('../middleware/rateLimiter');
 
 function createAuthRoutes(authController) {
   const router = express.Router();
@@ -13,9 +13,9 @@ function createAuthRoutes(authController) {
   router.post('/logout', (req, res) => authController.logout(req, res));
   router.post('/register', registerLimiter, registerRules, handleValidation, (req, res) => authController.registrar(req, res));
   router.get('/check-username', (req, res) => authController.verificarUsername(req, res));
-  router.post('/admin-register', adminRegisterRules, handleValidation, (req, res) => authController.adminRegister(req, res));
-  router.post('/recover/request', (req, res) => authController.solicitarRecuperacion(req, res));
-  router.post('/recover/reset', (req, res) => authController.resetearContrasena(req, res));
+  router.post('/admin-register', registerLimiter, adminRegisterRules, handleValidation, (req, res) => authController.adminRegister(req, res));
+  router.post('/recover/request', passwordResetLimiter, (req, res) => authController.solicitarRecuperacion(req, res));
+  router.post('/recover/reset', passwordResetLimiter, (req, res) => authController.resetearContrasena(req, res));
 
   return router;
 }

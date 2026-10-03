@@ -45,7 +45,8 @@ class MySQLTokenRepository extends TokenRepository {
     const expiresAt = Date.now() + durationMinutes * 60 * 1000;
     this.inMemoryOtps.set(email.toLowerCase().trim(), {
       codigo: String(codigo),
-      expiresAt
+      expiresAt,
+      intentos: 0
     });
     return true;
   }
@@ -58,8 +59,14 @@ class MySQLTokenRepository extends TokenRepository {
       this.inMemoryOtps.delete(key);
       return { valid: false, message: 'El código ha expirado. Solicita uno nuevo.' };
     }
+    record.intentos = (record.intentos || 0) + 1;
+    if (record.intentos > 5) {
+      this.inMemoryOtps.delete(key);
+      return { valid: false, message: 'Demasiados intentos fallidos. Por seguridad, solicita un nuevo código.' };
+    }
     if (record.codigo !== String(codigo).trim()) {
-      return { valid: false, message: 'Código incorrecto. Verifica el correo.' };
+      const restantes = Math.max(0, 5 - record.intentos);
+      return { valid: false, message: `Código incorrecto. Te quedan ${restantes} ${restantes === 1 ? 'intento' : 'intentos'}.` };
     }
     this.inMemoryOtps.delete(key);
     return { valid: true };

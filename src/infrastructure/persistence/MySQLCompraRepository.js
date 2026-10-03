@@ -258,6 +258,19 @@ class MySQLCompraRepository extends CompraRepository {
     });
   }
 
+  async verificarVendedorDeOrden(idCompra, sellerId) {
+    return new Promise((resolve, reject) => {
+      const sql = `SELECT 1 FROM compra_detalles cd
+                   JOIN productos p ON cd.id_producto = p.id_producto
+                   WHERE cd.id_compra = ? AND (p.id_vendedor = ? OR p.id_proveedor = ?)
+                   LIMIT 1`;
+      db.query(sql, [idCompra, sellerId, sellerId], (err, rows) => {
+        if (err) return reject(err);
+        resolve(rows && rows.length > 0);
+      });
+    });
+  }
+
   async obtenerEstadisticasGlobales() {
     return new Promise((resolve, reject) => {
       const sql = `

@@ -408,7 +408,29 @@ class SoporteController {
 
   async buscar(req, res) {
     try {
-      const q = req.query.q || '';
+      const q = (req.query.q || '').trim();
+      const role = Number(req.user?.role || req.user?.id_rol);
+      const isAdminOrSupport = role === 1 || role === 4 || req.user?.username === 'admin';
+
+      if (!isAdminOrSupport) {
+        if (!q || q.length < 5) {
+          return res.json({ tickets: [] });
+        }
+        let ticket = await this.soporteRepository.buscarTicketPorCodigo(q);
+        if (!ticket && q.startsWith('sess_')) {
+          ticket = await this.soporteRepository.buscarTicketPorSessionId(q);
+        }
+        if (!ticket) return res.json({ tickets: [] });
+
+        const currentUserId = req.user?.id || req.user?.id_usuario;
+        if (ticket.id_usuario && currentUserId && Number(ticket.id_usuario) !== Number(currentUserId)) {
+          return res.json({ tickets: [] });
+        }
+
+        ticket.mensajes = await this.soporteRepository.obtenerMensajes(ticket.id);
+        return res.json({ tickets: [ticket] });
+      }
+
       const resultados = await this.soporteRepository.buscarTickets(q);
       for (const t of resultados) {
         t.mensajes = await this.soporteRepository.obtenerMensajes(t.id);

@@ -60,31 +60,88 @@ class CompraController {
 
   async crear(req, res) {
     try {
-      let { idUser, id_usuario, productos, total, metodoPago, metodo_pago, direccion, direccion_envio, shippingInfo } = req.body;
+      let { productos, total, metodoPago, metodo_pago, direccion, direccion_envio, shippingInfo } = req.body;
 
-      const userId = req.user?.id || req.user?.id_usuario || idUser || id_usuario;
-
-      if (!userId || !productos || productos.length === 0 || !total) {
-        return res.status(400).json({ error: 'Datos de compra incompletos (usuario, productos o total requerido).' });
+      const userId = Number(req.user?.id || req.user?.id_usuario);
+      if (!userId || !productos || productos.length === 0) {
+        return res.status(400).json({ error: 'Datos de compra incompletos (usuario o productos requeridos).' });
       }
 
       const paymentMethod = metodoPago || metodo_pago || 'Contra Entrega (Efectivo)';
       const shippingAddress = formatShippingAddress(direccion || direccion_envio, shippingInfo);
 
+      // Verificación de integridad de precios y stock contra la base de datos
+      let calculatedSubtotal = 0;
+      const verifiedProducts = [];
+
+      for (const item of productos) {
+        const prodId = item.idProducto || item.id_producto || item.id;
+        const cantidad = Math.max(1, parseInt(item.cantidad, 10) || 1);
+        if (!prodId) continue;
+
+        const dbProd = await this.productoRepository.buscarPorId(prodId);
+        if (!dbProd) {
+          return res.status(400).json({ error: `El producto ID ${prodId} no está disponible.` });
+        }
+
+        const precioReal = parseFloat(dbProd.precio);
+        calculatedSubtotal += precioReal * cantidad;
+
+        verifiedProducts.push({
+          ...item,
+          id_producto: dbProd.id_producto,
+          idProducto: dbProd.id_producto,
+          id: dbProd.id_producto,
+          nombre: dbProd.nombre_producto,
+          precio: precioReal,
+          precio_unitario: precioReal,
+          cantidad
+        });
+      }
+
+      if (verifiedProducts.length === 0) {
+        return res.status(400).json({ error: 'No se encontraron productos válidos para procesar la orden.' });
+      }
+
+      // Validar cupón en servidor si fue provisto
+      let descuento = 0;
+      const cuponCodigo = req.body.codigo_cupon || req.body.cupon || req.body.codigoCupon;
+      if (cuponCodigo && this.couponRepository) {
+        try {
+          const cup = await this.couponRepository.buscarPorCodigo(cuponCodigo);
+          if (cup && cup.activo && (!cup.valido_hasta || new Date(cup.valido_hasta) >= new Date())) {
+            if (cup.tipo_descuento === 'porcentaje') {
+              descuento = Math.round((calculatedSubtotal * parseFloat(cup.valor_descuento)) / 100);
+            } else {
+              descuento = parseFloat(cup.valor_descuento);
+            }
+            if (cup.descuento_maximo && descuento > parseFloat(cup.descuento_maximo)) {
+              descuento = parseFloat(cup.descuento_maximo);
+            }
+          }
+        } catch (cErr) {
+          console.warn('Advertencia al verificar cupón en compra:', cErr.message);
+        }
+      }
+
+      const shippingCost = Math.max(0, parseFloat(req.body.shippingCost || req.body.costo_envio || 0));
+      const calculatedTotal = Math.max(0, calculatedSubtotal - descuento + shippingCost);
+      const finalTotal = calculatedTotal > 0 ? calculatedTotal : (parseFloat(total) || calculatedSubtotal);
+
       if (paymentMethod === 'Agro-Créditos') {
         const user = await this.usuarioRepository.buscarPorId(userId);
-        if (!user || user.creditos < parseFloat(total)) {
+        if (!user || user.creditos < finalTotal) {
           return res.status(400).json({ error: 'Créditos insuficientes en tu cuenta.' });
         }
-        await this.usuarioRepository.descontarCreditos(userId, parseFloat(total));
+        await this.usuarioRepository.descontarCreditos(userId, finalTotal);
       }
 
       const compraCreada = await this.compraRepository.crear({
         id_usuario: userId,
-        total: parseFloat(total),
+        total: finalTotal,
         metodo_pago: paymentMethod,
         direccion_envio: shippingAddress,
-        productos
+        productos: verifiedProducts
       });
 
       // Incrementar uso de cupón si fue aplicado
@@ -174,9 +231,11 @@ class CompraController {
   async historialUsuario(req, res) {
     try {
       const idUsuario = parseInt(req.params.id_usuario, 10);
-      const role = req.user.role;
+      const role = Number(req.user.role || req.user.id_rol);
+      const userId = Number(req.user.id || req.user.id_usuario);
+      const isAdmin = role === 1 || req.user.username === 'admin';
 
-      if (parseInt(req.user.id, 10) !== idUsuario && role !== 1 && role !== 2) {
+      if (userId !== idUsuario && !isAdmin) {
         return res.status(403).json({ error: 'No tienes permiso para ver el historial de otro usuario.' });
       }
 
@@ -193,8 +252,17 @@ class CompraController {
       const recibo = await this.compraRepository.obtenerReciboCompleto(idCompra);
       if (!recibo) return res.status(404).json({ error: 'Recibo no encontrado' });
 
-      const role = req.user.role;
-      if (parseInt(req.user.id, 10) !== parseInt(recibo.id_usuario, 10) && role !== 1 && role !== 2) {
+      const role = Number(req.user.role || req.user.id_rol);
+      const userId = Number(req.user.id || req.user.id_usuario);
+      const isOwner = userId === Number(recibo.id_usuario);
+      const isAdmin = role === 1 || req.user.username === 'admin';
+
+      let isSellerOfOrder = false;
+      if (role === 2) {
+        isSellerOfOrder = await this.compraRepository.verificarVendedorDeOrden(idCompra, userId);
+      }
+
+      if (!isOwner && !isAdmin && !isSellerOfOrder) {
         return res.status(403).json({ error: 'No tienes permiso para acceder a este recibo.' });
       }
 
@@ -210,8 +278,17 @@ class CompraController {
       const recibo = await this.compraRepository.obtenerReciboCompleto(idCompra);
       if (!recibo) return res.status(404).json({ error: 'Compra no encontrada' });
 
-      const role = req.user.role;
-      if (parseInt(req.user.id, 10) !== parseInt(recibo.id_usuario, 10) && role !== 1 && role !== 2) {
+      const role = Number(req.user.role || req.user.id_rol);
+      const userId = Number(req.user.id || req.user.id_usuario);
+      const isOwner = userId === Number(recibo.id_usuario);
+      const isAdmin = role === 1 || req.user.username === 'admin';
+
+      let isSellerOfOrder = false;
+      if (role === 2) {
+        isSellerOfOrder = await this.compraRepository.verificarVendedorDeOrden(idCompra, userId);
+      }
+
+      if (!isOwner && !isAdmin && !isSellerOfOrder) {
         return res.status(403).json({ error: 'No tienes permiso para enviar este recibo.' });
       }
 
@@ -230,6 +307,17 @@ class CompraController {
       const { id_compra } = req.params;
       const { estado } = req.body;
       if (!estado) return res.status(400).json({ error: 'Falta especificar el estado de despacho' });
+
+      const role = Number(req.user.role || req.user.id_rol);
+      const userId = Number(req.user.id || req.user.id_usuario);
+      const isAdmin = role === 1 || req.user.username === 'admin';
+
+      if (!isAdmin) {
+        const canManage = await this.compraRepository.verificarVendedorDeOrden(id_compra, userId);
+        if (!canManage) {
+          return res.status(403).json({ error: 'No tienes permiso para modificar un pedido que no contiene tus productos.' });
+        }
+      }
 
       const result = await this.updateOrderStatus.execute(id_compra, estado);
 

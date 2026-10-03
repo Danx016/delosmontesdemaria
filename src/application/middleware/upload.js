@@ -32,32 +32,37 @@ if (!fs.existsSync(bannersUploadDir)) {
   fs.mkdirSync(bannersUploadDir, { recursive: true });
 }
 
-const imageFilter = (req, file, cb) => {
-  const allowedExts = /\.(jpg|jpeg|png|webp|gif|svg|bmp|avif|heic|heif|jfif)$/i;
-  const isImageMime =
-    file.mimetype &&
-    (file.mimetype.startsWith('image/') ||
-     file.mimetype === 'application/octet-stream' ||
-     file.mimetype === 'binary/octet-stream');
-  const isImageExt = allowedExts.test(file.originalname || '');
+const SAFE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif', '.heic', '.heif', '.jfif']);
+const DANGEROUS_EXTS = /\.(php|phtml|phar|cgi|pl|py|jsp|asp|aspx|sh|bash|exe|bat|cmd|dll|bin|js|ts|jsx|tsx|html|htm|xhtml|svg|xml)$/i;
 
-  if (isImageMime || isImageExt || !file.originalname) {
+const imageFilter = (req, file, cb) => {
+  const original = (file.originalname || '').toLowerCase();
+  const ext = path.extname(original).toLowerCase();
+
+  if (DANGEROUS_EXTS.test(original) || DANGEROUS_EXTS.test(ext)) {
+    return cb(new Error('Tipo de archivo peligroso o no permitido.'));
+  }
+
+  const isAllowedExt = SAFE_EXTENSIONS.has(ext);
+  const isImageMime = file.mimetype && (file.mimetype.startsWith('image/') || file.mimetype === 'application/octet-stream');
+
+  if (isAllowedExt || (isImageMime && !ext)) {
     cb(null, true);
   } else {
-    cb(new Error('Formato no soportado. Sube una imagen (JPEG, PNG, WEBP, GIF, SVG, AVIF, HEIC).'));
+    cb(new Error('Formato no soportado. Solo se permiten imágenes (JPG, PNG, WEBP, GIF, AVIF, HEIC).'));
   }
 };
 
 const getCleanExtension = (originalname, mimetype) => {
   let ext = path.extname(originalname || '').toLowerCase();
-  if (!ext || ext.length <= 1) {
-    if (mimetype === 'image/png') ext = '.png';
-    else if (mimetype === 'image/webp') ext = '.webp';
-    else if (mimetype === 'image/gif') ext = '.gif';
-    else if (mimetype === 'image/svg+xml') ext = '.svg';
-    else ext = '.jpg';
+  if (SAFE_EXTENSIONS.has(ext)) {
+    return ext;
   }
-  return ext;
+  if (mimetype === 'image/png') return '.png';
+  if (mimetype === 'image/webp') return '.webp';
+  if (mimetype === 'image/gif') return '.gif';
+  if (mimetype === 'image/avif') return '.avif';
+  return '.jpg';
 };
 
 const productStorage = multer.diskStorage({

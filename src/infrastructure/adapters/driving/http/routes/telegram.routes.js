@@ -1,4 +1,5 @@
 const express = require('express');
+const { verifyToken, verifyAdmin } = require('../middleware/auth');
 
 function createTelegramRoutes(telegramService) {
   const router = express.Router();
@@ -6,6 +7,14 @@ function createTelegramRoutes(telegramService) {
   // Webhook para recibir mensajes y comandos de Telegram
   router.post('/webhook', async (req, res) => {
     try {
+      const webhookSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
+      if (webhookSecret) {
+        const receivedSecret = req.headers['x-telegram-bot-api-secret-token'];
+        if (receivedSecret !== webhookSecret) {
+          return res.status(401).json({ error: 'Acceso no autorizado al webhook' });
+        }
+      }
+
       const update = req.body;
       const result = await telegramService.procesarUpdate(update);
       res.json(result);
@@ -15,8 +24,8 @@ function createTelegramRoutes(telegramService) {
     }
   });
 
-  // Estado del bot y prueba de conexión
-  router.get('/status', async (req, res) => {
+  // Estado del bot y prueba de conexión (Solo administradores)
+  router.get('/status', verifyToken, verifyAdmin, async (req, res) => {
     try {
       const me = await telegramService.request('getMe');
       res.json({
@@ -30,8 +39,8 @@ function createTelegramRoutes(telegramService) {
     }
   });
 
-  // Enviar mensaje de prueba a suscriptores
-  router.post('/test', async (req, res) => {
+  // Enviar mensaje de prueba a suscriptores (Solo administradores)
+  router.post('/test', verifyToken, verifyAdmin, async (req, res) => {
     try {
       const { text } = req.body;
       const msg = text || '🌾 <b>Mensaje de prueba</b> desde el servidor de <i>De los Montes de María</i>.';

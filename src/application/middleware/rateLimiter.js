@@ -35,4 +35,20 @@ const registerLimiter = rateLimit({
   legacyHeaders: false
 });
 
-module.exports = { globalLimiter, loginLimiter, registerLimiter };
+const passwordResetLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { message: 'Demasiadas solicitudes de recuperación de contraseña. Intenta de nuevo en 15 minutos.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+const uploadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 50,
+  message: { message: 'Demasiadas subidas de archivos. Por favor espera unos minutos.' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+module.exports = { globalLimiter, loginLimiter, registerLimiter, passwordResetLimiter, uploadLimiter };

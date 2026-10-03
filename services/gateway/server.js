@@ -152,8 +152,39 @@ app.get('/api/ping/:service', async (req, res) => {
   }
 });
 
+const jwt = require('jsonwebtoken');
+const JWT_SECRET = process.env.JWT_SECRET || 'dev_change_this_secret';
+
+function verifyGatewayAdmin(req, res, next) {
+  let token = null;
+  const authHeader = req.headers['authorization'];
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.split(' ')[1];
+  } else if (req.headers.cookie) {
+    const match = req.headers.cookie.match(/(?:^|;\s*)jwt=([^;]+)/);
+    if (match) token = decodeURIComponent(match[1]);
+  }
+
+  if (!token) {
+    return res.status(401).json({ error: 'Acceso denegado. Se requiere autenticación de administrador.' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const role = Number(decoded.rol || decoded.role || decoded.id_rol);
+    const username = decoded.username || decoded.apodo;
+    if (role !== 1 && username !== 'admin') {
+      return res.status(403).json({ error: 'Acceso denegado. Se requieren permisos de administrador.' });
+    }
+    req.user = decoded;
+    next();
+  } catch (err) {
+    return res.status(403).json({ error: 'Token de administrador inválido o expirado.' });
+  }
+}
+
 // Service Registry en vivo (instancias vivas descubiertas en Redis)
-app.get('/api/registry', async (req, res) => {
+app.get('/api/registry', verifyGatewayAdmin, async (req, res) => {
   const services = await registry.getAllServices();
   res.json({
     correlationId: req.correlationId,
@@ -163,7 +194,7 @@ app.get('/api/registry', async (req, res) => {
 });
 
 // Inspección de Dead Letter Queue (DLQ)
-app.get('/api/dlq', async (req, res) => {
+app.get('/api/dlq', verifyGatewayAdmin, async (req, res) => {
   const messages = await eventBus.getDLQMessages(20);
   res.json({
     correlationId: req.correlationId,
@@ -173,7 +204,7 @@ app.get('/api/dlq', async (req, res) => {
 });
 
 // Resetear un Circuit Breaker manualmente desde el panel de control
-app.post('/api/circuit-status/reset/:service', (req, res) => {
+app.post('/api/circuit-status/reset/:service', verifyGatewayAdmin, (req, res) => {
   const { service } = req.params;
   const circuit = circuits[service];
   if (!circuit) {
@@ -185,7 +216,7 @@ app.post('/api/circuit-status/reset/:service', (req, res) => {
 });
 
 // Limpiar mensajes acumulados de la DLQ
-app.post('/api/dlq/clear', async (req, res) => {
+app.post('/api/dlq/clear', verifyGatewayAdmin, async (req, res) => {
   try {
     const redis = registry.getRedisClient();
     await redis.del('stream:dlq');
@@ -196,7 +227,7 @@ app.post('/api/dlq/clear', async (req, res) => {
 });
 
 // Purgar caché distribuida de Redis (catálogo, productos, banners)
-app.post(['/api/cache/clear', '/api/catalog/cache/clear'], async (req, res) => {
+app.post(['/api/cache/clear', '/api/catalog/cache/clear'], verifyGatewayAdmin, async (req, res) => {
   try {
     const redis = registry.getRedisClient();
     const keys = await redis.keys('catalog:*');
