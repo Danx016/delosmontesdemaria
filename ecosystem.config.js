@@ -66,7 +66,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         AI_SUPPORT_SERVICE_PORT: 3004,
-        DB_NAME: 'db_support'
+        DB_NAME: 'dbmontesdm'
       }
     },
     {
