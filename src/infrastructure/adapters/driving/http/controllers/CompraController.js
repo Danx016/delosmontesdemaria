@@ -249,9 +249,12 @@ class CompraController {
 
   async listarTodasVendedor(req, res) {
     try {
-      const compras = await this.compraRepository.listarParaVendedores();
+      const sellerId = req.user?.id || req.user?.id_usuario;
+      const isAdmin = req.user?.rol === 1 || req.user?.id_rol === 1 || req.user?.username === 'admin';
+      const compras = await this.compraRepository.listarParaVendedores(isAdmin ? null : sellerId);
       res.json(compras);
     } catch (error) {
+      console.error('Error al recuperar registros de pedidos:', error);
       res.status(500).json({ error: 'Error al recuperar registros de pedidos' });
     }
   }

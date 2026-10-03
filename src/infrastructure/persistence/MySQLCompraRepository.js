@@ -201,26 +201,46 @@ class MySQLCompraRepository extends CompraRepository {
     });
   }
 
-  async listarParaVendedores() {
+  async listarParaVendedores(sellerId = null) {
     return new Promise((resolve, reject) => {
-      const sqlHeader = `SELECT c.id_compra, c.fecha, c.total, c.estado, c.direccion_envio, 
-                                u.nombre AS nombre_cliente, u.correo AS correo_cliente 
+      let sqlHeader = `SELECT DISTINCT c.id_compra, c.fecha, c.total, c.estado, c.direccion_envio, 
+                                u.nombre AS nombre_cliente, u.correo AS correo_cliente,
+                                u.nombre AS cliente_nombre, u.correo AS cliente_correo
                          FROM compras c 
-                         JOIN usuarios u ON c.id_usuario = u.id_usuario 
-                         ORDER BY c.fecha DESC`;
+                         JOIN usuarios u ON c.id_usuario = u.id_usuario `;
+      const headerParams = [];
 
-      db.query(sqlHeader, (err, compras) => {
+      if (sellerId) {
+        sqlHeader += `JOIN compra_detalles cd ON cd.id_compra = c.id_compra
+                      JOIN productos p ON cd.id_producto = p.id_producto
+                      WHERE (p.id_vendedor = ? OR p.id_proveedor = ?) `;
+        headerParams.push(sellerId, sellerId);
+      }
+
+      sqlHeader += `ORDER BY c.fecha DESC`;
+
+      db.query(sqlHeader, headerParams, (err, compras) => {
         if (err) return reject(err);
         if (!compras || compras.length === 0) return resolve([]);
 
-        const sqlDetails = `SELECT cd.id_compra, cd.cantidad, cd.precio_unitario, p.nombre_producto 
+        let sqlDetails = `SELECT cd.id_compra, cd.cantidad, cd.precio_unitario, p.nombre_producto, p.id_vendedor, p.id_proveedor 
                             FROM compra_detalles cd 
                             JOIN productos p ON cd.id_producto = p.id_producto`;
+        const detailsParams = [];
 
-        db.query(sqlDetails, (errD, details) => {
+        if (sellerId) {
+          sqlDetails += ` WHERE (p.id_vendedor = ? OR p.id_proveedor = ?)`;
+          detailsParams.push(sellerId, sellerId);
+        }
+
+        db.query(sqlDetails, detailsParams, (errD, details) => {
           if (errD) return reject(errD);
           const map = compras.map(c => {
-            c.detalles = (details || []).filter(d => d.id_compra === c.id_compra);
+            const myDetails = (details || []).filter(d => d.id_compra === c.id_compra);
+            c.detalles = myDetails;
+            if (sellerId && myDetails.length > 0) {
+              c.total = myDetails.reduce((sum, d) => sum + (Number(d.cantidad || 1) * Number(d.precio_unitario || 0)), 0);
+            }
             return c;
           });
           resolve(map);

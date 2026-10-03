@@ -87,7 +87,8 @@ export default function VendedorPage() {
 
   const loadData = () => {
     setLoading(true)
-    const currentUserId = user?.id || user?.id_usuario
+    const currentUserId = user?.id || user?.id_usuario || user?.idUser
+    const isAdminUser = user?.id_rol === 1 || user?.rol === 1 || user?.username === 'admin'
 
     Promise.allSettled([
       listarProductos(),
@@ -97,13 +98,27 @@ export default function VendedorPage() {
       if (prodRes.status === 'fulfilled') {
         const todos = prodRes.value.data?.productos || prodRes.value.data || []
         // Filtrar estrictamente los productos de este vendedor individual
-        const misProductos = todos.filter(
-          (p) => String(p.id_vendedor) === String(currentUserId) || String(p.id_proveedor) === String(currentUserId)
-        )
+        const misProductos = isAdminUser
+          ? todos
+          : todos.filter(
+              (p) => String(p.id_vendedor) === String(currentUserId) || String(p.id_proveedor) === String(currentUserId)
+            )
         setProductos(misProductos)
       }
       if (ventRes.status === 'fulfilled') {
-        setVentas(ventRes.value.data?.compras || ventRes.value.data || [])
+        const rawVentas = Array.isArray(ventRes.value.data)
+          ? ventRes.value.data
+          : ventRes.value.data?.compras || []
+        // Aislamiento estricto de ventas: si es vendedor, solo sus pedidos
+        const misVentas = isAdminUser
+          ? rawVentas
+          : rawVentas.filter((v) => {
+              if (!v.detalles || v.detalles.length === 0) return false
+              return v.detalles.some(
+                (d) => String(d.id_vendedor) === String(currentUserId) || String(d.id_proveedor) === String(currentUserId)
+              )
+            })
+        setVentas(misVentas)
       }
       if (catRes.status === 'fulfilled') {
         setCategoriasList(catRes.value.data || [])
@@ -113,6 +128,13 @@ export default function VendedorPage() {
   }
 
   useEffect(() => {
+    if (user) {
+      setSellerForm((prev) => ({
+        ...prev,
+        telefono: user.telefono || '',
+        direccion: user.direccion || '',
+      }))
+    }
     loadData()
   }, [user])
 
