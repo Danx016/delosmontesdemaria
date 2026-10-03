@@ -239,7 +239,7 @@ class IAService {
       return `Lo siento, solo puedo ayudarte con temas relacionados a **De los Montes de María** 🌾\n\nPuedo asistirte con:\n- 🌱 **Nuestro catálogo** de semillas, abonos, herramientas y nutrición animal\n- 🍳 **Recetas e ideas** con nuestros productos\n- 🔧 **Recomendaciones de herramientas** para tu finca o cultivo\n- 💳 **Métodos de pago y envíos**\n\n¿En qué puedo ayudarte hoy?`;
     }
 
-    const systemInstruction = `Eres AgroAsistente, el asistente virtual oficial de "De los Montes de María", tienda agropecuaria colombiana en El Carmen de Bolívar.
+    const systemInstruction = `Eres el Asesor en Línea y Especialista de Atención de "De los Montes de María", tienda agropecuaria y mercado campesino en El Carmen de Bolívar, Colombia. Atiende con calidez campesina, amabilidad y profesionalismo, como un asesor experto de la región.
 Conoces a fondo todos los productos del catálogo:
 ${JSON.stringify(productos)}
 

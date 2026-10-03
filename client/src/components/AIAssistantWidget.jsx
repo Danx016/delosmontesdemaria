@@ -19,7 +19,7 @@ export default function AIAssistantWidget() {
   const [messages, setMessages] = useState([
     {
       sender: 'bot',
-      text: '¡Hola! 👋 Soy **AgroAsistente**, tu guía virtual agropecuario 🌾.\n\nPuedo recomendarte cosechas frescas (ñame, yuca, plátano), semillas, fertilizantes, calcular costos de envío o asesorarte en tus compras. ¿En qué te colaboro hoy?',
+      text: '¡Hola! 👋 Te damos la bienvenida a **De los Montes de María** 🌾.\n\n¿En qué podemos ayudarte hoy? Podemos orientarte sobre nuestras cosechas campesinas, semillas nativas, fertilizantes o resolver cualquier duda sobre envíos y compras.',
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     },
   ])
@@ -270,20 +270,21 @@ export default function AIAssistantWidget() {
 
   return (
     <div className="ai-agro-assistant-root">
-      {/* Botón flotante estilo Agro-Campo */}
+      {/* Botón flotante estilo Asesor del Campo */}
       {!open && (
         <button
           className="ai-agro-launcher-btn"
           onClick={() => setOpen(true)}
-          title="Abrir AgroAsistente Virtual"
-          aria-label="Abrir Asistente de IA"
+          title="¿Necesitas ayuda? Chatea con un asesor"
+          aria-label="Abrir chat con asesor en línea"
         >
           <div className="ai-launcher-icon-wrap">
-            <i className="fa fa-robot ai-icon-robot" />
+            <i className="fa fa-comment-dots ai-launcher-chat-icon" />
+            <span className="ai-launcher-pulse-ring" />
           </div>
           <div className="ai-launcher-text-col">
-            <span className="ai-launcher-title">Asistente IA</span>
-            <span className="ai-launcher-sub"><span className="ai-status-dot" /> En línea</span>
+            <span className="ai-launcher-title">¿Necesitas ayuda?</span>
+            <span className="ai-launcher-sub"><span className="ai-status-dot" /> Asesor en línea</span>
           </div>
         </button>
       )}
@@ -295,16 +296,16 @@ export default function AIAssistantWidget() {
           <div className="ai-dialog-header">
             <div className="ai-header-brand">
               <div className="ai-header-avatar">
-                <i className="fa fa-robot" />
+                <i className="fa fa-comment-dots" />
                 <span className="ai-avatar-leaf">🌾</span>
               </div>
               <div>
                 <h3 id="ai-dialog-title" className="ai-header-name">
-                  AgroAsistente
+                  Asesor Montes de María
                 </h3>
                 <span className="ai-header-status">
                   <span className="ai-live-dot" />
-                  Asesor de cultivos & compras en vivo
+                  Atención y asesoría en vivo
                 </span>
               </div>
             </div>
@@ -353,14 +354,14 @@ export default function AIAssistantWidget() {
                 >
                   {!isUser && (
                     <div className="ai-msg-avatar">
-                      <i className="fa fa-seedling" />
+                      <i className="fa fa-leaf" />
                     </div>
                   )}
 
                   <div className={`ai-bubble ${isUser ? 'user-bubble' : 'bot-bubble'}`}>
                     <div className="ai-bubble-header">
                       <span className="ai-bubble-author">
-                        {isUser ? 'Tú' : '🤖 AgroAsistente'}
+                        {isUser ? 'Tú' : '🌾 Asesor Montes de María'}
                       </span>
                       <span className="ai-bubble-time">{m.time}</span>
                     </div>
@@ -385,7 +386,7 @@ export default function AIAssistantWidget() {
                     <span className="ai-typing-dot" />
                     <span className="ai-typing-dot" />
                     <span className="ai-typing-dot" />
-                    <span className="ai-typing-text">Consultando el campo...</span>
+                    <span className="ai-typing-text">Buscando información...</span>
                   </div>
                 </div>
               </div>
@@ -417,7 +418,7 @@ export default function AIAssistantWidget() {
               <input
                 ref={chatInputRef}
                 type="text"
-                placeholder="Pregunta por cosechas, semillas, precios o envíos..."
+                placeholder="Escribe tu consulta o duda sobre cosechas, pedidos, envíos..."
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 disabled={loading}
@@ -447,7 +448,7 @@ export default function AIAssistantWidget() {
 
           {/* Micro-footer con sello */}
           <div className="ai-dialog-microbar">
-            <span>🌾 Asistente Virtual • Inteligencia Agropecuaria en Vivo</span>
+            <span>🌾 Centro de Atención y Asesoría • Montes de María</span>
           </div>
         </div>
       )}

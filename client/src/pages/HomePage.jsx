@@ -508,8 +508,8 @@ export default function HomePage() {
             <div className="benefit-item">
               <div className="benefit-icon-box"><i className="fa fa-headset" /></div>
               <div className="benefit-text">
-                <h4>Soporte & Asistente IA</h4>
-                <p>Asesoría en línea y respuesta inmediata a tus consultas.</p>
+                <h4>Soporte & Asesoría</h4>
+                <p>Atención en línea y respuesta inmediata a tus consultas.</p>
               </div>
             </div>
           </div>
