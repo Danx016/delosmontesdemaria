@@ -1,3 +1,4 @@
+const express = require('express');
 const { uploadSupportImage } = require('../middleware/upload');
 const { verifyToken, verifyAdmin, verifyAdminOrSupport, optionalAuth } = require('../middleware/auth');
 const { uploadLimiter } = require('../middleware/rateLimiter');
