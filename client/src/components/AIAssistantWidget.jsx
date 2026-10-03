@@ -280,7 +280,6 @@ export default function AIAssistantWidget() {
         >
           <div className="ai-launcher-icon-wrap">
             <i className="fa fa-comment-dots ai-launcher-chat-icon" />
-            <span className="ai-launcher-pulse-ring" />
           </div>
           <div className="ai-launcher-text-col">
             <span className="ai-launcher-title">¿Necesitas ayuda?</span>
