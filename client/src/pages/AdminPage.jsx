@@ -79,6 +79,202 @@ export default function AdminPage() {
     { id: 'dark', label: 'Carbón Elegante', hex: '#0f172a', bgLight: '#f8fafc', textDark: '#0f172a', border: '#334155' },
   ]
 
+  // Catálogo de Diseños Previos y Plantillas de Banners Hero
+  const PRESET_HERO_DESIGNS = [
+    {
+      id: 'queso_costeno',
+      titulo_preset: 'Queso Costeño y Lácteos Campesinos',
+      desc_corta: 'Diseño artesanal auténtico de San Jacinto con queso fresco, suero costeño y productor verificado.',
+      tag: '⭐ Más Popular',
+      tagColor: '#16a34a',
+      estilo_plantilla: 'clasico',
+      categoria_nombre: 'Lácteos Artesanales',
+      categoria_slug: 'lacteos',
+      categoria_thumb: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?auto=format&fit=crop&w=600&q=80',
+      color_acento: '#15803d',
+      filtro_blur: 3,
+      imagen_fondo: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1600&q=80',
+      titulo: 'Queso Costeño y Lácteos Campesinos',
+      subtitulo: '"Queso costeño fresco, cuajada y suero tradicional elaborado artesanalmente con leche 100% pura en San Jacinto."',
+      features: ['Queso Costeño Fresco', 'Suero Tradicional Costeño', 'Leche Pura de Ordeño'],
+      boton_principal_texto: 'Comprar Cosecha',
+      boton_principal_link: '/categoria/lacteos',
+      boton_principal_icono: 'fa-shopping-basket',
+      boton_secundario_texto: 'Conocer Productor',
+      boton_secundario_link: '/vendedores',
+      boton_secundario_icono: 'fa-store',
+      tarjeta_badge_top: '🧀 100% Artesanal',
+      tarjeta_imagen: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?auto=format&fit=crop&w=600&q=80',
+      tarjeta_titulo: 'Queso Costeño',
+      tarjeta_precio: '$25.000 COP / Venta por kg',
+      tarjeta_vendedor_nombre: 'Montes de María • Productor Local',
+      tarjeta_vendedor_rating: '🧀 100% Artesanal • 🚚 Envío Inmediato',
+      tarjeta_vendedor_id: 47,
+      cupon_codigo: 'QUESO15',
+      cupon_texto: '⚡ ¡Usa el cupón QUESO15 y obtén 15% OFF en lácteos artesanales!',
+    },
+    {
+      id: 'aguacate_lorena',
+      titulo_preset: 'Aguacate Lorena Criollo (Inmersivo)',
+      desc_corta: 'Tipografía de alto impacto, aguacate cremoso de El Carmen de Bolívar con diseño centrado.',
+      tag: '🌌 Inmersivo',
+      tagColor: '#8b5cf6',
+      estilo_plantilla: 'inmersivo',
+      categoria_nombre: 'Frutas y Verduras',
+      categoria_slug: 'frutas',
+      categoria_thumb: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?auto=format&fit=crop&w=600&q=80',
+      color_acento: '#22c55e',
+      filtro_blur: 6,
+      imagen_fondo: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1600&q=80',
+      titulo: 'Aguacate Lorena Criollo de Exportación',
+      subtitulo: 'Cosechado en las laderas fértiles del Carmen de Bolívar: cremoso, nutritivo y 100% natural.',
+      features: ['Cero Agroquímicos', 'Cosecha del Día', 'Envío Seguro a Tu Puerta'],
+      boton_principal_texto: 'Pedir Aguacates',
+      boton_principal_link: '/categoria/frutas',
+      boton_principal_icono: 'fa-shopping-basket',
+      boton_secundario_texto: 'Explorar Catálogo',
+      boton_secundario_link: '/catalogo',
+      boton_secundario_icono: 'fa-store',
+      tarjeta_badge_top: '🥑 Cosecha Fresca',
+      tarjeta_imagen: 'https://images.unsplash.com/photo-1523049673857-eb18f1d7b578?auto=format&fit=crop&w=600&q=80',
+      tarjeta_titulo: 'Aguacate Lorena Extra',
+      tarjeta_precio: '$4.500 COP / Unidad',
+      tarjeta_vendedor_nombre: 'Don Pedro Montes • Agricultor',
+      tarjeta_vendedor_rating: '⭐ 4.9 • El Carmen de Bolívar',
+      tarjeta_vendedor_id: 47,
+      cupon_codigo: 'AGUACATE10',
+      cupon_texto: '⚡ ¡Usa AGUACATE10 y recibe 10% de descuento en tu compra!',
+    },
+    {
+      id: 'name_diamante',
+      titulo_preset: 'Ñame Diamante & Tubérculos (Clásico)',
+      desc_corta: 'Tradición montemariana por excelencia de San Juan Nepomuceno.',
+      tag: '🌱 Tradición',
+      tagColor: '#b45309',
+      estilo_plantilla: 'clasico',
+      categoria_nombre: 'Tubérculos & Raíces',
+      categoria_slug: 'cosechas',
+      categoria_thumb: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=600&q=80',
+      color_acento: '#f59e0b',
+      filtro_blur: 2,
+      imagen_fondo: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=1600&q=80',
+      titulo: 'Ñame Diamante y Espino Tradicional',
+      subtitulo: '"El auténtico sabor y la fuerza de los Montes de María directamente del campesino a tu mesa."',
+      features: ['Selección de Primera Calidad', 'Venta por Kilos y Bultos', '100% San Juan Nepomuceno'],
+      boton_principal_texto: 'Comprar Cosecha',
+      boton_principal_link: '/catalogo',
+      boton_principal_icono: 'fa-shopping-basket',
+      boton_secundario_texto: 'Conocer Asociación',
+      boton_secundario_link: '/vendedores',
+      boton_secundario_icono: 'fa-users',
+      tarjeta_badge_top: '🌱 Raíz Criolla',
+      tarjeta_imagen: 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=600&q=80',
+      tarjeta_titulo: 'Ñame Diamante x Kilo',
+      tarjeta_precio: '$6.000 COP / Kilo',
+      tarjeta_vendedor_nombre: 'Roberto Carlos Salcedo',
+      tarjeta_vendedor_rating: '⭐ 4.9 • Productor Verificado',
+      tarjeta_vendedor_id: 47,
+      cupon_codigo: 'CAMPO20',
+      cupon_texto: '⚡ ¡Usa CAMPO20 para 20% OFF en pedidos mayores a $50.000!',
+    },
+    {
+      id: 'cafe_serrano',
+      titulo_preset: 'Café de la Sierra y Altura (Historia)',
+      desc_corta: 'Presentación testimonial que destaca la familia caficultora y su proceso artesanal.',
+      tag: '☕ Historia',
+      tagColor: '#78350f',
+      estilo_plantilla: 'historia_campesina',
+      categoria_nombre: 'Café & Cacao Artesanal',
+      categoria_slug: 'cafe',
+      categoria_thumb: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80',
+      color_acento: '#78350f',
+      filtro_blur: 4,
+      imagen_fondo: 'https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?auto=format&fit=crop&w=1600&q=80',
+      titulo: 'Café Especial Tostado en Origen',
+      subtitulo: '"Cultivado bajo sombra por tres generaciones de familias campesinas en las alturas de San Jacinto."',
+      features: ['Variedad Castillo y Tabi', 'Tostión Media Fresca', 'Aroma a Panela y Chocolate'],
+      boton_principal_texto: 'Comprar Café',
+      boton_principal_link: '/catalogo',
+      boton_principal_icono: 'fa-coffee',
+      boton_secundario_texto: 'Leer Historia',
+      boton_secundario_link: '/vendedores',
+      boton_secundario_icono: 'fa-book-open',
+      tarjeta_badge_top: '☕ Café de Origen',
+      tarjeta_imagen: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=600&q=80',
+      tarjeta_titulo: 'Café Serrano 500g',
+      tarjeta_precio: '$18.000 COP / Libra',
+      tarjeta_vendedor_nombre: 'Familia Gómez • San Jacinto',
+      tarjeta_vendedor_rating: '⭐ 5.0 • Caficultores Locales',
+      tarjeta_vendedor_id: 47,
+      cupon_codigo: 'CAFE10',
+      cupon_texto: '⚡ ¡Usa CAFE10 y disfruta de 10% de descuento en café montemariano!',
+    },
+    {
+      id: 'oferta_flash_campo',
+      titulo_preset: 'Oferta Relámpago con Cupón (Flash)',
+      desc_corta: 'Cinta llamativa con cupón interactivo de 1 clic para incentivar ventas de temporada.',
+      tag: '⚡ Oferta Flash',
+      tagColor: '#ea580c',
+      estilo_plantilla: 'oferta_flash',
+      categoria_nombre: 'Promociones del Mes',
+      categoria_slug: 'cosechas',
+      categoria_thumb: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=600&q=80',
+      color_acento: '#ea580c',
+      filtro_blur: 6,
+      imagen_fondo: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?auto=format&fit=crop&w=1600&q=80',
+      titulo: 'Gran Cosecha Montemariana con Descuento',
+      subtitulo: '¡Aprovecha precios directos de cosecha sin intermediarios y recibe en tu hogar con flete subsidiado!',
+      features: ['20% Descuento Especial', 'Directo de la Finca', 'Envíos Express Regionales'],
+      boton_principal_texto: '¡Aprovechar Oferta!',
+      boton_principal_link: '/catalogo',
+      boton_principal_icono: 'fa-bolt',
+      boton_secundario_texto: 'Ver Catálogo',
+      boton_secundario_link: '/catalogo',
+      boton_secundario_icono: 'fa-shopping-basket',
+      tarjeta_badge_top: '🔥 OFERTA LIMITADA',
+      tarjeta_imagen: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=600&q=80',
+      tarjeta_titulo: 'Canasta Campesina Mixta',
+      tarjeta_precio: '$48.000 COP (Antes $60.000)',
+      tarjeta_vendedor_nombre: 'Cooperativa Agrícola Regional',
+      tarjeta_vendedor_rating: '⭐ 4.9 • Despachos Diarios',
+      tarjeta_vendedor_id: 47,
+      cupon_codigo: 'CAMPO20',
+      cupon_texto: '⚡ ¡Usa el cupón CAMPO20 y obtén 20% OFF en toda tu compra!',
+    },
+    {
+      id: 'miel_silvestre',
+      titulo_preset: 'Miel Pura de Abejas del Bosque (Mosaico)',
+      desc_corta: '3 tarjetas de pilares ecológicos destacando apicultura sostenible en María la Baja.',
+      tag: '🏛️ Mosaico',
+      tagColor: '#0284c7',
+      estilo_plantilla: 'mosaico',
+      categoria_nombre: 'Apicultura y Miel',
+      categoria_slug: 'miel',
+      categoria_thumb: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&w=600&q=80',
+      color_acento: '#d97706',
+      filtro_blur: 3,
+      imagen_fondo: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1600&q=80',
+      titulo: 'Miel 100% Pura de Abejas Nativas',
+      subtitulo: '"Cosechada artesanalmente en los bosques secos tropicales de María la Baja protegiendo la biodiversidad."',
+      features: ['Sin Aditivos ni Azúcar', '100% Cruda y Filtrada', 'Apicultura Comunitaria'],
+      boton_principal_texto: 'Comprar Miel',
+      boton_principal_link: '/catalogo',
+      boton_principal_icono: 'fa-shopping-basket',
+      boton_secundario_texto: 'Conocer Apicultores',
+      boton_secundario_link: '/vendedores',
+      boton_secundario_icono: 'fa-users',
+      tarjeta_badge_top: '🐝 100% Pura',
+      tarjeta_imagen: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&w=600&q=80',
+      tarjeta_titulo: 'Miel Silvestre 750ml',
+      tarjeta_precio: '$22.000 COP / Botella',
+      tarjeta_vendedor_nombre: 'Apiarios del Carmen',
+      tarjeta_vendedor_rating: '⭐ 5.0 • Productor Ecológico',
+      tarjeta_vendedor_id: 47,
+      cupon_codigo: 'MIEL15',
+      cupon_texto: '⚡ ¡Usa MIEL15 y disfruta 15% OFF en productos apícolas!',
+    },
+  ]
+
   const [showCreateCouponModal, setShowCreateCouponModal] = useState(false)
   const [editingCoupon, setEditingCoupon] = useState(null)
   const [couponSearch, setCouponSearch] = useState('')
@@ -203,6 +399,8 @@ export default function AdminPage() {
   const [bannerFilterStatus, setBannerFilterStatus] = useState('todos') // 'todos' | 'activos' | 'inactivos'
   const [bannerFilterStyle, setBannerFilterStyle] = useState('todos')
   const [showBannerModal, setShowBannerModal] = useState(false)
+  const [showPresetPickerModal, setShowPresetPickerModal] = useState(false)
+  const [bannerPresetFilter, setBannerPresetFilter] = useState('todos')
   const [editingBanner, setEditingBanner] = useState(null)
   const [showCarouselSettingsModal, setShowCarouselSettingsModal] = useState(false)
   const [carouselGlobalConfig, setCarouselGlobalConfig] = useState(() => {
@@ -333,64 +531,166 @@ export default function AdminPage() {
     loadData()
   }, [])
 
-  // ── Banner Handlers ──
-  const handleOpenCreateBanner = () => {
-    setEditingBanner(null)
-    const defaultCat = categorias && categorias.length > 0 ? categorias[0] : null
-    const defaultProd = productos && productos.length > 0 ? productos[0] : null
+  // ── Helper para Cargar Cualquier Diseño / Preset en el Formulario ──
+  const aplicarDisenoEnFormulario = (p) => {
+    let feats = []
+    if (Array.isArray(p.features)) {
+      feats = p.features
+    } else if (typeof p.features === 'string') {
+      try {
+        const parsed = JSON.parse(p.features)
+        feats = Array.isArray(parsed) ? parsed : p.features.split('\n').map((f) => f.trim()).filter(Boolean)
+      } catch {
+        feats = p.features.split('\n').map((f) => f.trim()).filter(Boolean)
+      }
+    }
 
-    const catSlug = defaultCat ? (defaultCat.slug || defaultCat.nombre_categoria?.toLowerCase().replace(/\s+/g, '-')) : 'cosechas'
-    const catName = defaultCat ? (defaultCat.nombre_categoria || defaultCat.nombre) : 'Cosechas Frescas'
-    const catImg = defaultCat?.imagen ? (defaultCat.imagen.startsWith('http') || defaultCat.imagen.startsWith('/') ? defaultCat.imagen : `/uploads/categories/${defaultCat.imagen}`) : 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=600&q=80'
-
-    const prodTitle = defaultProd ? (defaultProd.nombre_producto || defaultProd.nombre) : 'Ñame Criollo Espino'
-    const prodPrice = defaultProd?.precio ? `$${Number(defaultProd.precio).toLocaleString('es-CO')} COP / ${defaultProd.unidad_medida || 'Kilo'}` : '$6.000 COP / Kilo'
-    const prodImg = defaultProd?.imagen ? (defaultProd.imagen.startsWith('http') || defaultProd.imagen.startsWith('/') ? defaultProd.imagen : `/uploads/products/${defaultProd.imagen}`) : 'https://images.unsplash.com/photo-1596040033229-a9821ebd058d?auto=format&fit=crop&w=600&q=80'
-    const vendorName = defaultProd?.origen ? `${defaultProd.origen} • Productor Local` : (defaultProd?.vendedor_nombre || 'Roberto Carlos Salcedo')
+    const fondo = p.imagen_fondo || 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1600&q=80'
+    const catThumb = p.categoria_thumb || ''
+    const prodImg = p.tarjeta_imagen || ''
 
     setBannerForm({
-      titulo: `Cosechas Frescas: ${prodTitle}`,
-      subtitulo: `Directamente desde las parcelas y fincas de los Montes de María a tu mesa.`,
-      categoria_nombre: catName,
-      categoria_slug: catSlug,
-      categoria_thumb: catImg,
-      imagen_fondo: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1600&q=80',
-      color_acento: defaultCat?.color || '#22c55e',
-      estilo_plantilla: 'clasico',
-      filtro_blur: 0,
-      features: ['100% Campo Colombiano Directo', 'Pago 100% Directo al Productor', 'Envíos Seguros a Bolívar y Sucre'],
-      boton_principal_texto: 'Explorar Catálogo',
-      boton_principal_link: `/categoria/${catSlug}`,
-      boton_principal_icono: 'fa-shopping-basket',
-      boton_secundario_texto: 'Vender mis Productos',
-      boton_secundario_link: '/vendedor',
-      boton_secundario_icono: 'fa-store',
-      tarjeta_badge_top: '🌿 100% Campo',
+      titulo: p.titulo || '',
+      subtitulo: p.subtitulo !== undefined ? p.subtitulo : '',
+      categoria_nombre: p.categoria_nombre || '',
+      categoria_slug: p.categoria_slug || '',
+      categoria_thumb: catThumb,
+      imagen_fondo: fondo,
+      color_acento: p.color_acento || '#22c55e',
+      estilo_plantilla: p.estilo_plantilla || 'clasico',
+      filtro_blur: p.filtro_blur !== undefined ? Number(p.filtro_blur) : 0,
+      features: feats,
+      boton_principal_texto: p.boton_principal_texto || 'Ver Catálogo',
+      boton_principal_link: p.boton_principal_link || '/catalogo',
+      boton_principal_icono: p.boton_principal_icono || 'fa-shopping-basket',
+      boton_secundario_texto: p.boton_secundario_texto || '',
+      boton_secundario_link: p.boton_secundario_link || '',
+      boton_secundario_icono: p.boton_secundario_icono || 'fa-store',
+      tarjeta_badge_top: p.tarjeta_badge_top || '',
       tarjeta_imagen: prodImg,
-      tarjeta_titulo: prodTitle,
-      tarjeta_precio: prodPrice,
-      tarjeta_vendedor_nombre: vendorName,
-      tarjeta_vendedor_rating: '⭐ 4.9/5 Calidad',
-      tarjeta_vendedor_id: defaultProd?.id_vendedor || 47,
-      cupon_codigo: 'CAMPO20',
-      cupon_texto: '⚡ ¡Usa el cupón CAMPO20 y obtén 20% OFF en tu compra!',
-      orden: banners.length + 1,
-      activo: 1,
+      tarjeta_titulo: p.tarjeta_titulo || '',
+      tarjeta_precio: p.tarjeta_precio || '',
+      tarjeta_vendedor_nombre: p.tarjeta_vendedor_nombre || '',
+      tarjeta_vendedor_rating: p.tarjeta_vendedor_rating || '',
+      tarjeta_vendedor_id: p.tarjeta_vendedor_id || 47,
+      cupon_codigo: p.cupon_codigo || '',
+      cupon_texto: p.cupon_texto || '',
+      orden: p.orden !== undefined ? p.orden : banners.length + 1,
+      activo: p.activo !== undefined ? p.activo : 1,
     })
-    setFeaturesInput('100% Campo Colombiano Directo\nPago 100% Directo al Productor\nEnvíos Seguros a Bolívar y Sucre')
+
+    setFeaturesInput(feats.join('\n'))
     setBannerThumbFile(null)
-    setBannerThumbPreview(catImg)
-    setBannerCustomCatThumbUrl(catImg)
+    setBannerThumbPreview(catThumb)
+    setBannerCustomCatThumbUrl(catThumb)
     setBannerBgFile(null)
-    setBannerBgPreview('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1600&q=80')
-    setBannerCustomBgUrl('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1600&q=80')
+    setBannerBgPreview(fondo)
+    setBannerCustomBgUrl(fondo)
     setBannerProdImgFile(null)
     setBannerProdImgPreview(prodImg)
     setBannerCustomProdImgUrl(prodImg)
     setBannerError('')
-    setBannerModalTab('estilo')
+  }
+
+  // 1. Diseñar Totalmente Desde Cero (Lienzo en Blanco)
+  const handleOpenCreateBlankBanner = () => {
+    setEditingBanner(null)
+    setBannerForm({
+      titulo: '',
+      subtitulo: '',
+      categoria_nombre: '',
+      categoria_slug: '',
+      categoria_thumb: '',
+      imagen_fondo: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1600&q=80',
+      color_acento: '#16a34a',
+      estilo_plantilla: 'clasico',
+      filtro_blur: 0,
+      features: [],
+      boton_principal_texto: 'Ver Catálogo',
+      boton_principal_link: '/catalogo',
+      boton_principal_icono: 'fa-shopping-basket',
+      boton_secundario_texto: '',
+      boton_secundario_link: '',
+      boton_secundario_icono: 'fa-store',
+      tarjeta_badge_top: '',
+      tarjeta_imagen: '',
+      tarjeta_titulo: '',
+      tarjeta_precio: '',
+      tarjeta_vendedor_nombre: '',
+      tarjeta_vendedor_rating: '',
+      tarjeta_vendedor_id: 47,
+      cupon_codigo: '',
+      cupon_texto: '',
+      orden: banners.length + 1,
+      activo: 1,
+    })
+    setFeaturesInput('')
+    setBannerThumbFile(null)
+    setBannerThumbPreview('')
+    setBannerCustomCatThumbUrl('')
+    setBannerBgFile(null)
+    setBannerBgPreview('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1600&q=80')
+    setBannerCustomBgUrl('https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1600&q=80')
+    setBannerProdImgFile(null)
+    setBannerProdImgPreview('')
+    setBannerCustomProdImgUrl('')
+    setBannerError('')
+    setBannerModalTab('textos')
     setBannerPreviewDevice('desktop')
     setShowBannerModal(true)
+    toast.info('Lienzo en blanco listo: escribe tus propios títulos y configura tu banner desde cero.')
+  }
+
+  // 2. Abrir Modal de Galería de Diseños Previos
+  const handleOpenPresetPicker = () => {
+    setShowPresetPickerModal(true)
+  }
+
+  // 3. Seleccionar Diseño Previo desde la Galería
+  const handleSelectPresetFromPicker = (preset) => {
+    setEditingBanner(null)
+    aplicarDisenoEnFormulario(preset)
+    setShowPresetPickerModal(false)
+    setBannerModalTab('textos')
+    setShowBannerModal(true)
+    toast.success(`¡Plantilla "${preset.titulo_preset || preset.titulo}" cargada! Puedes personalizarla en tiempo real.`)
+  }
+
+  // 4. Limpiar Formulario dentro del Editor Abierto (Empezar de Cero)
+  const handleResetToBlankInsideModal = () => {
+    setBannerForm((prev) => ({
+      ...prev,
+      titulo: '',
+      subtitulo: '',
+      categoria_nombre: '',
+      categoria_slug: '',
+      categoria_thumb: '',
+      features: [],
+      boton_secundario_texto: '',
+      boton_secundario_link: '',
+      tarjeta_badge_top: '',
+      tarjeta_imagen: '',
+      tarjeta_titulo: '',
+      tarjeta_precio: '',
+      tarjeta_vendedor_nombre: '',
+      tarjeta_vendedor_rating: '',
+      cupon_codigo: '',
+      cupon_texto: '',
+    }))
+    setFeaturesInput('')
+    setBannerThumbFile(null)
+    setBannerThumbPreview('')
+    setBannerCustomCatThumbUrl('')
+    setBannerProdImgFile(null)
+    setBannerProdImgPreview('')
+    setBannerCustomProdImgUrl('')
+    setBannerError('')
+    toast.info('Formulario limpiado. Estás diseñando desde cero.')
+  }
+
+  // 5. Creador Predeterminado Clásico
+  const handleOpenCreateBanner = () => {
+    handleOpenCreateBlankBanner()
   }
 
   const handleOpenEditBanner = (b) => {
@@ -3152,10 +3452,23 @@ export default function AdminPage() {
                     className="btn btn-secondary btn-sm"
                     title="Configuración de tiempos, animación y controles del carrusel"
                   >
-                    <i className="fa fa-cog" /> Ajustes Globales del Carrusel
+                    <i className="fa fa-cog" /> Ajustes Globales
                   </button>
-                  <button onClick={handleOpenCreateBanner} className="btn btn-primary btn-sm">
-                    <i className="fa fa-plus-circle" /> Registrar Nuevo Banner
+                  <button
+                    onClick={handleOpenPresetPicker}
+                    className="btn btn-secondary btn-sm"
+                    style={{ fontWeight: 700, backgroundColor: 'var(--card-bg)', border: '1.5px solid var(--border-color)', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+                    title="Elegir entre diseños previos regionales y plantillas listas"
+                  >
+                    <i className="fa fa-th-large" style={{ color: '#2563eb' }} /> ✨ Elegir Diseño Previo
+                  </button>
+                  <button
+                    onClick={handleOpenCreateBlankBanner}
+                    className="btn btn-primary btn-sm"
+                    style={{ fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '0.4rem', boxShadow: '0 2px 8px rgba(34,197,94,0.3)' }}
+                    title="Diseñar un banner totalmente desde cero en un lienzo limpio"
+                  >
+                    <i className="fa fa-paint-brush" /> 🎨 Diseñar Desde Cero
                   </button>
                 </div>
               </div>
@@ -3401,13 +3714,20 @@ export default function AdminPage() {
                   </table>
                 </div>
               ) : (
-                <div className="empty-state">
-                  <i className="fa fa-images empty-state-icon" />
-                  <h4>No hay banners registrados</h4>
-                  <p>Crea tu primer banner interactivo para el carrusel de la página de inicio.</p>
-                  <button onClick={handleOpenCreateBanner} className="btn btn-primary" style={{ marginTop: '1rem' }}>
-                    <i className="fa fa-plus" /> Crear Primer Banner
-                  </button>
+                <div className="empty-state" style={{ padding: '3.5rem 1.5rem', textAlign: 'center' }}>
+                  <i className="fa fa-images empty-state-icon" style={{ fontSize: '3.5rem', color: '#94a3b8', marginBottom: '1rem' }} />
+                  <h4 style={{ fontSize: '1.25rem', fontWeight: 800 }}>No hay banners registrados en el carrusel</h4>
+                  <p className="text-muted" style={{ maxWidth: '520px', margin: '0.4rem auto 1.5rem auto' }}>
+                    Puedes elegir un diseño prediseñado de nuestra galería con fotos y textos listos, o empezar a diseñar totalmente desde cero en un lienzo limpio.
+                  </p>
+                  <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    <button onClick={handleOpenPresetPicker} className="btn btn-secondary" style={{ fontWeight: 700 }}>
+                      <i className="fa fa-th-large" style={{ color: '#2563eb' }} /> ✨ Elegir Diseño Previo
+                    </button>
+                    <button onClick={handleOpenCreateBlankBanner} className="btn btn-primary" style={{ fontWeight: 800 }}>
+                      <i className="fa fa-paint-brush" /> 🎨 Diseñar Desde Cero
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -3765,27 +4085,48 @@ export default function AdminPage() {
               <div className="modal-content card" style={{ maxWidth: '1360px', width: '96vw', maxHeight: '94vh', display: 'flex', flexDirection: 'column', padding: '0', borderRadius: '18px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.15)', boxShadow: '0 25px 60px rgba(0,0,0,0.5)' }}>
                 
                 {/* Modal Top Header */}
-                <div style={{ background: 'var(--card-bg)', padding: '1.15rem 1.75rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ background: 'var(--card-bg)', padding: '1.15rem 1.75rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
                   <div>
                     <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '1.2rem', fontWeight: 800 }}>
                       <span style={{ width: '34px', height: '34px', borderRadius: '10px', backgroundColor: 'rgba(34,197,94,0.15)', color: '#22c55e', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <i className="fa fa-sliders-h" />
                       </span>
-                      {editingBanner ? `Editar Slide de Carrusel: "${bannerForm.titulo}"` : 'Crear Nueva Diapositiva / Banner Hero'}
+                      {editingBanner ? `Editar Slide de Carrusel: "${bannerForm.titulo || 'Sin Título'}"` : (bannerForm.titulo ? `Crear Banner: "${bannerForm.titulo}"` : '🎨 Diseñar Banner Desde Cero (Lienzo en Blanco)')}
                     </h3>
                     <p style={{ margin: '3px 0 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      Elige entre 5 estilos visuales, personaliza cada texto, foto, botón y campesino con vista previa interactiva en tiempo real.
+                      Elige entre 5 estilos visuales, carga un diseño previo o crea desde cero con vista previa interactiva en tiempo real.
                     </p>
                   </div>
-                  <button onClick={() => setShowBannerModal(false)} className="btn-icon" style={{ width: '36px', height: '36px', borderRadius: '50%', fontSize: '1.1rem' }}>
-                    <i className="fa fa-times" />
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => setBannerModalTab('disenos')}
+                      className={`btn btn-sm ${bannerModalTab === 'disenos' ? 'btn-primary' : 'btn-outline-primary'}`}
+                      style={{ fontSize: '0.78rem', fontWeight: 700 }}
+                      title="Explorar y cargar diseños previos"
+                    >
+                      <i className="fa fa-th-large" /> ✨ Diseños Previos
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleResetToBlankInsideModal}
+                      className="btn btn-secondary btn-sm"
+                      style={{ fontSize: '0.78rem' }}
+                      title="Limpiar todos los campos para redactar desde cero"
+                    >
+                      <i className="fa fa-eraser" /> Empezar de Cero
+                    </button>
+                    <button onClick={() => setShowBannerModal(false)} className="btn-icon" style={{ width: '36px', height: '36px', borderRadius: '50%', fontSize: '1.1rem' }}>
+                      <i className="fa fa-times" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* Steps / Tabs Navigation Bar */}
                 <div style={{ display: 'flex', borderBottom: '1px solid var(--border-color)', backgroundColor: 'var(--bg-alt)', padding: '0.5rem 1.25rem', gap: '0.45rem', overflowX: 'auto' }}>
                   {[
-                    { id: 'estilo', label: '1. Estilos & Blur (5)', icon: 'fa-palette', badge: '5 Diseños' },
+                    { id: 'disenos', label: '🎨 Diseños & Cero', icon: 'fa-layer-group', badge: 'Catálogo' },
+                    { id: 'estilo', label: '1. Plantillas & Blur', icon: 'fa-palette', badge: '5 Estilos' },
                     { id: 'textos', label: '2. Textos & Categoría', icon: 'fa-heading' },
                     { id: 'producto', label: '3. Producto & Campesino', icon: 'fa-box-open' },
                     { id: 'fondo', label: '4. Fotografía de Paisaje', icon: 'fa-image' },
@@ -3837,6 +4178,172 @@ export default function AdminPage() {
                   {/* Left Column: Tabbed Form */}
                   <form onSubmit={handleSaveBanner} style={{ padding: '1.25rem 1.5rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1rem', borderRight: '1px solid var(--border-color)' }}>
                     
+                    {/* ══════════════════════════════════════════════════════════
+                        TAB 0: CATÁLOGO DE DISEÑOS PREVIOS & LIENZO EN BLANCO
+                       ══════════════════════════════════════════════════════════ */}
+                    {bannerModalTab === 'disenos' && (
+                      <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                        {/* 1. Tarjeta Lienzo en Blanco (Desde Cero) */}
+                        <div
+                          style={{
+                            background: 'linear-gradient(135deg, rgba(34,197,94,0.08) 0%, rgba(16,185,129,0.04) 100%)',
+                            border: '1.5px dashed #22c55e',
+                            borderRadius: '14px',
+                            padding: '1.15rem 1.25rem',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            gap: '1rem',
+                            flexWrap: 'wrap',
+                          }}
+                        >
+                          <div>
+                            <strong style={{ fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#16a34a' }}>
+                              <i className="fa fa-paint-brush" /> 🎨 Diseñar Totalmente Desde Cero (Lienzo en Blanco)
+                            </strong>
+                            <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: 'var(--text-muted)', lineHeight: 1.4 }}>
+                              Limpia todos los campos de texto, productos y badges para redactar y diseñar con total libertad según tu necesidad.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleResetToBlankInsideModal()
+                              setBannerModalTab('textos')
+                            }}
+                            className="btn btn-primary btn-sm"
+                            style={{ fontWeight: 800, padding: '0.5rem 1.1rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem', whiteSpace: 'nowrap' }}
+                          >
+                            <i className="fa fa-eraser" /> Limpiar y Empezar de Cero
+                          </button>
+                        </div>
+
+                        {/* 2. Catálogo de Diseños Regionales Listos para Usar */}
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.65rem' }}>
+                            <h4 style={{ margin: 0, color: 'var(--primary-color)', display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '1.02rem' }}>
+                              <i className="fa fa-th-large" /> ✨ Diseños Previos & Plantillas de la Región (6)
+                            </h4>
+                            <span style={{ fontSize: '0.76rem', color: 'var(--text-muted)' }}>
+                              Haz clic en cualquier diseño para cargarlo en el editor
+                            </span>
+                          </div>
+
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '0.85rem' }}>
+                            {PRESET_HERO_DESIGNS.map((p) => {
+                              const isCurrent = bannerForm.titulo === p.titulo
+                              return (
+                                <div
+                                  key={p.id}
+                                  onClick={() => {
+                                    aplicarDisenoEnFormulario(p)
+                                    toast.success(`¡Plantilla "${p.titulo_preset}" aplicada al editor!`)
+                                  }}
+                                  style={{
+                                    border: isCurrent ? '2px solid var(--primary-color)' : '1px solid var(--border-color)',
+                                    borderRadius: '12px',
+                                    padding: '0.85rem',
+                                    backgroundColor: isCurrent ? 'rgba(34, 197, 94, 0.08)' : 'var(--bg-alt)',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '0.5rem',
+                                    position: 'relative',
+                                    transition: 'all 0.2s ease',
+                                    boxShadow: isCurrent ? '0 4px 14px rgba(34,197,94,0.2)' : 'none',
+                                  }}
+                                >
+                                  <div style={{ display: 'flex', gap: '0.65rem', alignItems: 'center' }}>
+                                    <div style={{ width: '46px', height: '46px', borderRadius: '8px', overflow: 'hidden', flexShrink: 0, border: '1px solid var(--border-color)' }}>
+                                      <img src={p.tarjeta_imagen || p.categoria_thumb} alt={p.titulo_preset} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.src = '/img/Logo.jpg' }} />
+                                    </div>
+                                    <div style={{ flex: 1, minWidth: 0 }}>
+                                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.3rem', marginBottom: '2px' }}>
+                                        <span style={{ fontSize: '0.66rem', fontWeight: 800, padding: '1px 6px', borderRadius: '999px', backgroundColor: p.tagColor || '#16a34a', color: '#fff' }}>
+                                          {p.tag}
+                                        </span>
+                                        <span style={{ fontSize: '0.68rem', fontWeight: 700, color: 'var(--text-muted)' }}>
+                                          {p.estilo_plantilla}
+                                        </span>
+                                      </div>
+                                      <strong style={{ fontSize: '0.86rem', display: 'block', lineHeight: 1.25, color: isCurrent ? 'var(--primary-color)' : 'inherit' }}>
+                                        {p.titulo_preset}
+                                      </strong>
+                                    </div>
+                                  </div>
+
+                                  <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)', lineHeight: 1.35 }}>
+                                    {p.desc_corta}
+                                  </p>
+
+                                  <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
+                                    {p.features.slice(0, 2).map((f, fIdx) => (
+                                      <span key={fIdx} style={{ fontSize: '0.66rem', background: 'var(--card-bg)', border: '1px solid var(--border-color)', padding: '1px 5px', borderRadius: '4px' }}>
+                                        ✓ {f}
+                                      </span>
+                                    ))}
+                                  </div>
+
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      aplicarDisenoEnFormulario(p)
+                                      toast.success(`¡Plantilla "${p.titulo_preset}" cargada!`)
+                                    }}
+                                    className={`btn btn-sm ${isCurrent ? 'btn-success' : 'btn-outline-primary'}`}
+                                    style={{ marginTop: 'auto', fontSize: '0.74rem', padding: '0.3rem 0.6rem', fontWeight: 700 }}
+                                  >
+                                    {isCurrent ? <><i className="fa fa-check-circle" /> Activo en Editor</> : <><i className="fa fa-magic" /> Cargar este Diseño</>}
+                                  </button>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        </div>
+
+                        {/* 3. Banners Creados Anteriormente (si existen) */}
+                        {banners && banners.length > 0 && (
+                          <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
+                            <h4 style={{ margin: '0 0 0.65rem 0', color: 'var(--text-color)', display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.96rem' }}>
+                              <i className="fa fa-history" /> 📋 Banners que Has Creado Previamente ({banners.length})
+                            </h4>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '0.65rem', maxHeight: '180px', overflowY: 'auto', padding: '2px' }}>
+                              {banners.map((b) => (
+                                <div
+                                  key={b.id_banner}
+                                  onClick={() => {
+                                    aplicarDisenoEnFormulario(b)
+                                    toast.success(`¡Datos del banner "${b.titulo}" copiados al editor!`)
+                                  }}
+                                  style={{
+                                    border: '1px solid var(--border-color)',
+                                    borderRadius: '8px',
+                                    padding: '0.55rem 0.75rem',
+                                    background: 'var(--bg-alt)',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '0.3rem',
+                                  }}
+                                >
+                                  <strong style={{ fontSize: '0.8rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    {b.titulo}
+                                  </strong>
+                                  <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>
+                                    Plantilla: {b.estilo_plantilla || 'clasico'} • {b.categoria_nombre || 'General'}
+                                  </span>
+                                  <span style={{ fontSize: '0.68rem', color: 'var(--primary-color)', fontWeight: 700 }}>
+                                    Usar como base →
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {/* ══════════════════════════════════════════════════════════
                         TAB 1: ESTILOS DE DISEÑO (5 PLANTILLAS) & BLUR
                        ══════════════════════════════════════════════════════════ */}
@@ -4794,11 +5301,11 @@ export default function AdminPage() {
                     {/* Step Navigation & Action Buttons */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid var(--border-color)' }}>
                       <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        {bannerModalTab !== 'estilo' && (
+                        {bannerModalTab !== 'disenos' && (
                           <button
                             type="button"
                             onClick={() => {
-                              const tabs = ['estilo', 'textos', 'producto', 'fondo', 'botones']
+                              const tabs = ['disenos', 'estilo', 'textos', 'producto', 'fondo', 'botones']
                               const currIdx = tabs.indexOf(bannerModalTab)
                               if (currIdx > 0) setBannerModalTab(tabs[currIdx - 1])
                             }}
@@ -4811,7 +5318,7 @@ export default function AdminPage() {
                           <button
                             type="button"
                             onClick={() => {
-                              const tabs = ['estilo', 'textos', 'producto', 'fondo', 'botones']
+                              const tabs = ['disenos', 'estilo', 'textos', 'producto', 'fondo', 'botones']
                               const currIdx = tabs.indexOf(bannerModalTab)
                               if (currIdx < tabs.length - 1) setBannerModalTab(tabs[currIdx + 1])
                             }}
@@ -5088,6 +5595,234 @@ export default function AdminPage() {
                   </button>
                   <button type="button" onClick={() => handleSaveCarouselSettings(carouselGlobalConfig)} className="btn btn-primary">
                     <i className="fa fa-save" /> Guardar Ajustes
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Modal Galería de Diseños Previos y Plantillas de Banners */}
+          {showPresetPickerModal && (
+            <div className="modal-overlay fade-in" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(5px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+              <div className="modal-content card" style={{ maxWidth: '1060px', width: '96vw', maxHeight: '90vh', overflowY: 'auto', padding: '1.75rem', borderRadius: '18px', boxShadow: '0 25px 60px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                
+                {/* Header del Modal */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem' }}>
+                  <div>
+                    <h3 style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '1.25rem', fontWeight: 800 }}>
+                      <span style={{ width: '36px', height: '36px', borderRadius: '10px', backgroundColor: 'rgba(37,99,235,0.12)', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <i className="fa fa-th-large" />
+                      </span>
+                      Galería de Diseños Previos & Plantillas de Banners
+                    </h3>
+                    <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                      Elige una plantilla campesina prediseñada para cargarla en el editor interactivo, o diseña desde cero con lienzo limpio.
+                    </p>
+                  </div>
+                  <button onClick={() => setShowPresetPickerModal(false)} className="btn-icon" style={{ width: '36px', height: '36px', borderRadius: '50%', fontSize: '1.1rem' }}>
+                    <i className="fa fa-times" />
+                  </button>
+                </div>
+
+                {/* Banner Destacado: Diseñar Desde Cero */}
+                <div
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(34,197,94,0.1) 0%, rgba(16,185,129,0.05) 100%)',
+                    border: '1.5px dashed #22c55e',
+                    borderRadius: '14px',
+                    padding: '1.15rem 1.4rem',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: '1rem',
+                    flexWrap: 'wrap',
+                  }}
+                >
+                  <div>
+                    <strong style={{ fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#16a34a' }}>
+                      <i className="fa fa-paint-brush" /> 🎨 ¿Prefieres un diseño totalmente personalizado?
+                    </strong>
+                    <p style={{ margin: '4px 0 0 0', fontSize: '0.82rem', color: 'var(--text-muted)' }}>
+                      Inicia en un lienzo en blanco sin textos predefinidos para redactar tus propios títulos, fotos y productos.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowPresetPickerModal(false)
+                      handleOpenCreateBlankBanner()
+                    }}
+                    className="btn btn-primary"
+                    style={{ fontWeight: 800, padding: '0.55rem 1.25rem', display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}
+                  >
+                    <i className="fa fa-magic" /> 🎨 Diseñar Desde Cero
+                  </button>
+                </div>
+
+                {/* Filtro de Estilos de Presets */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                  <span style={{ fontSize: '0.88rem', fontWeight: 800, color: 'var(--text-color)' }}>
+                    ✨ Diseños Regionales Listos para Usar ({PRESET_HERO_DESIGNS.length})
+                  </span>
+                  <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
+                    {[
+                      { id: 'todos', label: 'Todos' },
+                      { id: 'clasico', label: '🌿 Clásicos' },
+                      { id: 'inmersivo', label: '🌌 Inmersivos' },
+                      { id: 'oferta_flash', label: '⚡ Ofertas' },
+                      { id: 'mosaico', label: '🏛️ Mosaicos' },
+                      { id: 'historia_campesina', label: '👨‍🌾 Historias' },
+                    ].map((f) => (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => setBannerPresetFilter(f.id)}
+                        style={{
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
+                          padding: '3px 9px',
+                          borderRadius: '999px',
+                          border: bannerPresetFilter === f.id ? '1.5px solid var(--primary-color)' : '1px solid var(--border-color)',
+                          backgroundColor: bannerPresetFilter === f.id ? 'var(--primary-color)' : 'var(--card-bg)',
+                          color: bannerPresetFilter === f.id ? '#ffffff' : 'var(--text-color)',
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Grid de Diseños Previos */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(290px, 1fr))', gap: '1rem' }}>
+                  {PRESET_HERO_DESIGNS
+                    .filter((p) => bannerPresetFilter === 'todos' || p.estilo_plantilla === bannerPresetFilter)
+                    .map((preset) => (
+                      <div
+                        key={preset.id}
+                        className="card"
+                        style={{
+                          padding: '1rem',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '0.65rem',
+                          border: '1px solid var(--border-color)',
+                          borderRadius: '14px',
+                          transition: 'all 0.2s ease',
+                          position: 'relative',
+                          overflow: 'hidden',
+                        }}
+                      >
+                        {/* Top Preview Banner */}
+                        <div
+                          style={{
+                            height: '110px',
+                            borderRadius: '10px',
+                            backgroundImage: `url('${preset.imagen_fondo}')`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            display: 'flex',
+                            alignItems: 'flex-end',
+                            padding: '0.5rem',
+                          }}
+                        >
+                          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: `linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.7) 100%)` }} />
+                          <div style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                            <span style={{ fontSize: '0.66rem', fontWeight: 800, padding: '2px 8px', borderRadius: '999px', backgroundColor: preset.tagColor || '#16a34a', color: '#fff' }}>
+                              {preset.tag}
+                            </span>
+                            <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#facc15', background: 'rgba(0,0,0,0.6)', padding: '2px 6px', borderRadius: '4px' }}>
+                              {preset.tarjeta_precio || preset.estilo_plantilla}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Info Header */}
+                        <div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
+                            <div style={{ width: '22px', height: '22px', borderRadius: '50%', overflow: 'hidden', flexShrink: 0 }}>
+                              <img src={preset.categoria_thumb} alt={preset.categoria_nombre} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e) => { e.target.src = '/img/Logo.jpg' }} />
+                            </div>
+                            <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>
+                              {preset.categoria_nombre} • Plantilla {preset.estilo_plantilla}
+                            </span>
+                          </div>
+                          <strong style={{ fontSize: '0.96rem', display: 'block', lineHeight: 1.3, color: 'var(--text-color)' }}>
+                            {preset.titulo_preset}
+                          </strong>
+                          <p style={{ margin: '4px 0 0 0', fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.35 }}>
+                            {preset.desc_corta}
+                          </p>
+                        </div>
+
+                        {/* Tag Pills */}
+                        <div style={{ display: 'flex', gap: '0.3rem', flexWrap: 'wrap' }}>
+                          {preset.features.slice(0, 3).map((f, fIdx) => (
+                            <span key={fIdx} style={{ fontSize: '0.68rem', background: 'var(--bg-alt)', border: '1px solid var(--border-color)', padding: '2px 6px', borderRadius: '4px' }}>
+                              ✓ {f}
+                            </span>
+                          ))}
+                        </div>
+
+                        {/* Action Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleSelectPresetFromPicker(preset)}
+                          className="btn btn-primary btn-sm"
+                          style={{ marginTop: 'auto', fontWeight: 800, padding: '0.45rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
+                        >
+                          <i className="fa fa-magic" /> ✨ Usar este Diseño
+                        </button>
+                      </div>
+                    ))}
+                </div>
+
+                {/* Banners Guardados de la Tienda (si hay) */}
+                {banners && banners.length > 0 && (
+                  <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1.25rem', marginTop: '0.5rem' }}>
+                    <h4 style={{ margin: '0 0 0.75rem 0', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '1rem', fontWeight: 800 }}>
+                      <i className="fa fa-history text-primary" /> 📋 Banners que Has Creado Previamente en la Tienda ({banners.length})
+                    </h4>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '0.75rem' }}>
+                      {banners.map((b) => (
+                        <div
+                          key={b.id_banner}
+                          onClick={() => handleSelectPresetFromPicker(b)}
+                          style={{
+                            border: '1px solid var(--border-color)',
+                            borderRadius: '10px',
+                            padding: '0.75rem',
+                            background: 'var(--bg-alt)',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '0.35rem',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <strong style={{ fontSize: '0.86rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {b.titulo}
+                          </strong>
+                          <span style={{ fontSize: '0.74rem', color: 'var(--text-muted)' }}>
+                            Categoría: {b.categoria_nombre || 'General'} • Estilo: {b.estilo_plantilla || 'clasico'}
+                          </span>
+                          <span style={{ fontSize: '0.74rem', color: 'var(--primary-color)', fontWeight: 800, marginTop: '2px' }}>
+                            Copiar al editor y modificar →
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Footer Modal */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
+                  <button type="button" onClick={() => setShowPresetPickerModal(false)} className="btn btn-secondary">
+                    Cerrar
                   </button>
                 </div>
               </div>

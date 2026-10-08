@@ -200,12 +200,12 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
                 <span className="ofercampo-badge-title" style={{ fontSize: isPreview ? '0.74rem' : undefined }}>{catName}</span>
               </div>
 
-              <h1 className="ofercampo-title" style={{ fontSize: isPreview ? '1.15rem' : undefined, marginBottom: isPreview ? '0.35rem' : undefined, lineHeight: isPreview ? 1.25 : undefined }}>
-                {slide.title || slide.titulo || 'Cosechas Frescas y Tradición'}
+              <h1 className="ofercampo-title" style={{ fontSize: isPreview ? '1.15rem' : undefined, marginBottom: isPreview ? '0.35rem' : undefined, lineHeight: isPreview ? 1.25 : undefined, opacity: (!slide.title && !slide.titulo && isPreview) ? 0.75 : 1 }}>
+                {(slide.title || slide.titulo) ? (slide.title || slide.titulo) : (isPreview ? '(Escribe el título de tu diseño aquí)' : 'Cosechas Frescas y Tradición')}
               </h1>
 
-              <p className="ofercampo-subtitle" style={{ fontSize: isPreview ? '0.78rem' : undefined, marginBottom: isPreview ? '0.5rem' : undefined, lineHeight: isPreview ? 1.35 : undefined }}>
-                {slide.subtitle !== undefined && slide.subtitle !== '' ? slide.subtitle : (slide.subtitulo || 'Directamente desde los Montes de María.')}
+              <p className="ofercampo-subtitle" style={{ fontSize: isPreview ? '0.78rem' : undefined, marginBottom: isPreview ? '0.5rem' : undefined, lineHeight: isPreview ? 1.35 : undefined, opacity: (!slide.subtitle && !slide.subtitulo && isPreview) ? 0.7 : 1 }}>
+                {(slide.subtitle !== undefined && slide.subtitle !== '') ? slide.subtitle : (slide.subtitulo ? slide.subtitulo : (isPreview ? '(Escribe el subtítulo o descripción aquí)' : 'Directamente desde los Montes de María.'))}
               </p>
 
               {features.length > 0 && (
@@ -227,7 +227,7 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
             <div className="ofercampo-hero-right">
               <div className="ofercampo-visual-card" style={{ maxWidth: isPreview ? '220px' : '360px', padding: isPreview ? '0.75rem' : undefined, borderRadius: isPreview ? '12px' : undefined }}>
                 <div className="ofercampo-product-preview-box" style={{ height: isPreview ? '105px' : '200px', marginBottom: isPreview ? '0.4rem' : undefined, position: 'relative' }}>
-                  <img src={prodImg} alt={prodTitle} onError={(e) => { e.target.src = '/img/Logo.jpg' }} />
+                  <img src={prodImg || '/img/Logo.jpg'} alt={prodTitle || 'Producto'} onError={(e) => { e.target.src = '/img/Logo.jpg' }} />
                   {badgeTop && (
                     <span style={{ position: 'absolute', top: '6px', left: '6px', background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)', color: '#facc15', fontSize: isPreview ? '0.62rem' : '0.72rem', fontWeight: 800, padding: isPreview ? '2px 6px' : '3px 8px', borderRadius: '6px', border: '1px solid rgba(250,204,21,0.3)', zIndex: 2 }}>
                       {badgeTop}
@@ -238,16 +238,16 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
                 <div className="ofercampo-card-details">
                   <div className="ofercampo-card-title-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '0.4rem' }}>
                     <h4 className="ofercampo-card-title" style={{ fontSize: isPreview ? '0.85rem' : '1.15rem' }}>
-                      {prodTitle}
+                      {prodTitle || (isPreview ? '(Producto)' : '')}
                     </h4>
                     <span className="ofercampo-card-price" style={{ color: '#facc15', fontWeight: 800, fontSize: isPreview ? '0.8rem' : '1rem' }}>
-                      {prodPrice}
+                      {prodPrice || (isPreview ? '$0 COP' : '')}
                     </span>
                   </div>
 
                   <div className="ofercampo-card-vendor" style={{ marginTop: '0.3rem', fontSize: isPreview ? '0.7rem' : '0.75rem', padding: isPreview ? '0.2rem 0.45rem' : undefined }}>
                     <i className="fa fa-user-check" style={{ color: '#4ade80' }} />
-                    <span>{vendorName}</span>
+                    <span>{vendorName || (isPreview ? '(Productor)' : '')}</span>
                   </div>
                 </div>
               </div>
@@ -279,12 +279,12 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
               <span>{catName}</span>
             </div>
 
-            <h1 style={{ fontSize: isPreview ? '1.2rem' : '3.2rem', fontWeight: 900, lineHeight: 1.15, marginBottom: isPreview ? '0.4rem' : '1rem', textShadow: '0 4px 20px rgba(0,0,0,0.5)', letterSpacing: '-0.5px' }}>
-              {slide.title || slide.titulo || 'El Campo Colombiano Directo a tu Hogar'}
+            <h1 style={{ fontSize: isPreview ? '1.2rem' : '3.2rem', fontWeight: 900, lineHeight: 1.15, marginBottom: isPreview ? '0.4rem' : '1rem', textShadow: '0 4px 20px rgba(0,0,0,0.5)', letterSpacing: '-0.5px', opacity: (!slide.title && !slide.titulo && isPreview) ? 0.75 : 1 }}>
+              {(slide.title || slide.titulo) ? (slide.title || slide.titulo) : (isPreview ? '(Escribe el título de tu diseño aquí)' : 'El Campo Colombiano Directo a tu Hogar')}
             </h1>
 
-            <p style={{ fontSize: isPreview ? '0.78rem' : '1.2rem', color: '#dcfce7', maxWidth: '680px', margin: isPreview ? '0 auto 0.6rem auto' : '0 auto 1.5rem auto', lineHeight: 1.4, fontWeight: 400 }}>
-              {slide.subtitle !== undefined && slide.subtitle !== '' ? slide.subtitle : (slide.subtitulo || 'Cosechas frescas, productos artesanales y alimentos del campo sin intermediarios.')}
+            <p style={{ fontSize: isPreview ? '0.78rem' : '1.2rem', color: '#dcfce7', maxWidth: '680px', margin: isPreview ? '0 auto 0.6rem auto' : '0 auto 1.5rem auto', lineHeight: 1.4, fontWeight: 400, opacity: (!slide.subtitle && !slide.subtitulo && isPreview) ? 0.7 : 1 }}>
+              {(slide.subtitle !== undefined && slide.subtitle !== '') ? slide.subtitle : (slide.subtitulo ? slide.subtitulo : (isPreview ? '(Escribe el subtítulo o descripción aquí)' : 'Cosechas frescas, productos artesanales y alimentos del campo sin intermediarios.'))}
             </p>
 
             {/* Feature Horizontal Strip from Database */}
@@ -330,12 +330,12 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
                 ⚡ OFERTA LIMITADA • {badgeTop}
               </div>
 
-              <h1 style={{ fontSize: isPreview ? '1.15rem' : '2.5rem', fontWeight: 900, marginBottom: isPreview ? '0.35rem' : '0.75rem', lineHeight: 1.2 }}>
-                {slide.title || slide.titulo || 'Gran Descuento Especial'}
+              <h1 style={{ fontSize: isPreview ? '1.15rem' : '2.5rem', fontWeight: 900, marginBottom: isPreview ? '0.35rem' : '0.75rem', lineHeight: 1.2, opacity: (!slide.title && !slide.titulo && isPreview) ? 0.75 : 1 }}>
+                {(slide.title || slide.titulo) ? (slide.title || slide.titulo) : (isPreview ? '(Escribe el título de tu diseño aquí)' : 'Gran Descuento Especial')}
               </h1>
 
-              <p style={{ fontSize: isPreview ? '0.78rem' : '1.05rem', color: '#fed7aa', marginBottom: isPreview ? '0.55rem' : '1.25rem', lineHeight: 1.35 }}>
-                {slide.subtitle !== undefined && slide.subtitle !== '' ? slide.subtitle : (slide.subtitulo || 'Aprovecha precios directos de campesinos de los Montes de María con descuentos exclusivos.')}
+              <p style={{ fontSize: isPreview ? '0.78rem' : '1.05rem', color: '#fed7aa', marginBottom: isPreview ? '0.55rem' : '1.25rem', lineHeight: 1.35, opacity: (!slide.subtitle && !slide.subtitulo && isPreview) ? 0.7 : 1 }}>
+                {(slide.subtitle !== undefined && slide.subtitle !== '') ? slide.subtitle : (slide.subtitulo ? slide.subtitulo : (isPreview ? '(Escribe el subtítulo o descripción aquí)' : 'Aprovecha precios directos de campesinos de los Montes de María con descuentos exclusivos.'))}
               </p>
 
               {/* Cupón Card con Botón Copiar */}
@@ -473,12 +473,12 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
                 <span className="ofercampo-badge-title" style={{ fontSize: isPreview ? '0.72rem' : undefined }}>🌱 {catName}</span>
               </div>
 
-              <h1 style={{ fontSize: isPreview ? '1.15rem' : '2.4rem', fontWeight: 900, marginBottom: isPreview ? '0.4rem' : '0.85rem', lineHeight: 1.2 }}>
-                {slide.title || slide.titulo || 'Cosechas Tradicionales con Alma de Campo'}
+              <h1 style={{ fontSize: isPreview ? '1.15rem' : '2.4rem', fontWeight: 900, marginBottom: isPreview ? '0.4rem' : '0.85rem', lineHeight: 1.2, opacity: (!slide.title && !slide.titulo && isPreview) ? 0.75 : 1 }}>
+                {(slide.title || slide.titulo) ? (slide.title || slide.titulo) : (isPreview ? '(Escribe el título de tu diseño aquí)' : 'Cosechas Tradicionales con Alma de Campo')}
               </h1>
 
-              <p style={{ fontSize: isPreview ? '0.78rem' : '1rem', color: '#e2e8f0', marginBottom: isPreview ? '0.6rem' : '1.25rem', lineHeight: 1.35 }}>
-                {slide.subtitle !== undefined && slide.subtitle !== '' ? slide.subtitle : (slide.subtitulo || 'Conectamos a campesinos de Bolívar y Sucre con familias de toda Colombia sin intermediarios.')}
+              <p style={{ fontSize: isPreview ? '0.78rem' : '1rem', color: '#e2e8f0', marginBottom: isPreview ? '0.6rem' : '1.25rem', lineHeight: 1.35, opacity: (!slide.subtitle && !slide.subtitulo && isPreview) ? 0.7 : 1 }}>
+                {(slide.subtitle !== undefined && slide.subtitle !== '') ? slide.subtitle : (slide.subtitulo ? slide.subtitulo : (isPreview ? '(Escribe el subtítulo o descripción aquí)' : 'Conectamos a campesinos de Bolívar y Sucre con familias de toda Colombia sin intermediarios.'))}
               </p>
 
               <div className="ofercampo-actions" style={{ gap: isPreview ? '0.4rem' : undefined }}>
@@ -556,8 +556,8 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
                 <i className="fa fa-seedling" /> {catName ? `${catName.toUpperCase()}` : 'HISTORIA & TRADICIÓN'}
               </div>
 
-              <h1 style={{ fontSize: isPreview ? '1.15rem' : '2.4rem', fontWeight: 900, marginBottom: isPreview ? '0.35rem' : '0.75rem', lineHeight: 1.2 }}>
-                {slide.title || slide.titulo || 'Cosechado con Amor en Montes de María'}
+              <h1 style={{ fontSize: isPreview ? '1.15rem' : '2.4rem', fontWeight: 900, marginBottom: isPreview ? '0.35rem' : '0.75rem', lineHeight: 1.2, opacity: (!slide.title && !slide.titulo && isPreview) ? 0.75 : 1 }}>
+                {(slide.title || slide.titulo) ? (slide.title || slide.titulo) : (isPreview ? '(Escribe el título de tu diseño aquí)' : 'Cosechado con Amor en Montes de María')}
               </h1>
 
               {/* Farmer Quote Box from Database */}
@@ -570,10 +570,11 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
                   marginBottom: isPreview ? '0.55rem' : '1.25rem',
                   backdropFilter: 'blur(10px)',
                   boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+                  opacity: (!slide.subtitle && !slide.subtitulo && isPreview) ? 0.7 : 1,
                 }}
               >
                 <p style={{ margin: 0, fontStyle: 'italic', fontSize: isPreview ? '0.72rem' : '0.96rem', color: '#fef3c7', lineHeight: 1.45 }}>
-                  “{slide.subtitle !== undefined && slide.subtitle !== '' ? slide.subtitle : (slide.subtitulo || 'Cada fruto que sembramos lleva el sudor, la esperanza y la tradición de nuestras veredas.')}”
+                  “{(slide.subtitle !== undefined && slide.subtitle !== '') ? slide.subtitle : (slide.subtitulo ? slide.subtitulo : (isPreview ? '(Escribe aquí la cita o frase testimonial del campesino)' : 'Cada fruto que sembramos lleva el sudor, la esperanza y la tradición de nuestras veredas.'))}”
                 </p>
               </div>
 
