@@ -89,13 +89,19 @@ export default function ProductPage() {
         cargarResenas(prodData.id_producto)
 
         // Cargar productos relacionados
-        listarProductos().then((allRes) => {
-          const todos = allRes.data?.productos || allRes.data || []
-          const filtrados = todos
-            .filter((p) => String(p.id_producto) !== String(prodData.id_producto) && p.categoria === prodData.categoria)
-            .slice(0, 4)
-          setRelacionados(filtrados)
-        }).catch(() => {})
+        listarProductos()
+          .then((allRes) => {
+            const todos = allRes.data?.productos || allRes.data || []
+            const filtrados = todos
+              .filter(
+                (p) =>
+                  String(p.id_producto) !== String(prodData.id_producto) &&
+                  p.categoria === prodData.categoria
+              )
+              .slice(0, 4)
+            setRelacionados(filtrados)
+          })
+          .catch(() => {})
       })
       .catch((err) => {
         console.error('Error al cargar producto:', err)
@@ -116,7 +122,6 @@ export default function ProductPage() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Convertir a Data URL para guardarla directamente con la reseña
     const reader = new FileReader()
     reader.onload = (uploadEvent) => {
       const dataUrl = uploadEvent.target?.result
@@ -216,7 +221,6 @@ export default function ProductPage() {
     setTimeout(() => setCopiado(false), 2500)
   }
 
-  // Mensaje conversacional contextual para el campesino
   const vendorGreeting = vendorName && vendorName !== 'Campesino de Montes de María' ? `Don/Doña ${vendorName}` : 'amigo campesino'
   const whatsappMessage = encodeURIComponent(
     `Hola ${vendorGreeting}, vi tu producto "${prodName}" (${formatCOP(producto.precio)}) en De los Montes de María y me interesa comprarlo. ¿Tienen disponibilidad para envío? Enlace: ${currentUrl}`
@@ -231,10 +235,10 @@ export default function ProductPage() {
       <Navbar />
 
       <main style={{ flex: 1, padding: '2rem 1rem' }}>
-        <div className="container" style={{ maxWidth: '1100px' }}>
+        <div style={{ maxWidth: '1150px', margin: '0 auto', width: '100%' }}>
           {/* Breadcrumbs */}
           <nav aria-label="breadcrumb" style={{ marginBottom: '1.5rem' }}>
-            <ol style={{ display: 'flex', gap: '0.5rem', listStyle: 'none', padding: 0, margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
+            <ol style={{ display: 'flex', gap: '0.5rem', listStyle: 'none', padding: 0, margin: 0, fontSize: '0.85rem', color: '#64748b', alignItems: 'center' }}>
               <li><Link to="/" style={{ color: '#16a34a', textDecoration: 'none', fontWeight: 600 }}>Inicio</Link></li>
               <li>/</li>
               <li><Link to="/categorias" style={{ color: '#16a34a', textDecoration: 'none', fontWeight: 600 }}>Categorías</Link></li>
@@ -245,13 +249,13 @@ export default function ProductPage() {
                 </>
               )}
               <li>/</li>
-              <li style={{ color: '#0f172a', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '240px' }}>
+              <li style={{ color: '#0f172a', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '280px' }}>
                 {prodName}
               </li>
             </ol>
           </nav>
 
-          {/* Tarjeta Principal del Producto */}
+          {/* Tarjeta Principal del Producto - 2 Columnas Elegantes y Balanceadas */}
           <div
             style={{
               background: '#ffffff',
@@ -260,60 +264,80 @@ export default function ProductPage() {
               boxShadow: '0 10px 30px rgba(0,0,0,0.04)',
               overflow: 'hidden',
               marginBottom: '2.5rem',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+              alignItems: 'stretch',
             }}
           >
-            <div className="row g-0">
-              {/* Columna Izquierda: Imagen y Badges */}
-              <div className="col-lg-6" style={{ background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '380px', position: 'relative' }}>
-                <img
-                  src={imageUrl}
-                  alt={prodName}
-                  onError={(e) => handleProductImageError(e, prodName)}
-                  style={{ width: '100%', height: '100%', maxHeight: '480px', objectFit: 'cover' }}
-                />
+            {/* Columna Izquierda: Imagen y Badges */}
+            <div
+              style={{
+                background: '#f8fafc',
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: '380px',
+                maxHeight: '520px',
+                overflow: 'hidden',
+              }}
+            >
+              <img
+                src={imageUrl}
+                alt={prodName}
+                onError={(e) => handleProductImageError(e, prodName)}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'block',
+                }}
+              />
 
-                {/* Badge Región */}
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: '1rem',
-                    left: '1rem',
-                    background: 'rgba(255, 255, 255, 0.95)',
-                    backdropFilter: 'blur(8px)',
-                    color: '#15803d',
-                    padding: '0.35rem 0.85rem',
-                    borderRadius: '999px',
-                    fontSize: '0.78rem',
-                    fontWeight: 800,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
-                  }}
-                >
-                  <i className="fa fa-seedling text-success" /> Montes de María Oficial
-                </span>
+              {/* Badge Región */}
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '1rem',
+                  left: '1rem',
+                  background: 'rgba(255, 255, 255, 0.95)',
+                  backdropFilter: 'blur(8px)',
+                  color: '#15803d',
+                  padding: '0.4rem 0.9rem',
+                  borderRadius: '999px',
+                  fontSize: '0.78rem',
+                  fontWeight: 800,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                }}
+              >
+                <i className="fa fa-seedling text-success" /> Montes de María Oficial
+              </span>
 
-                {/* Stock Badge */}
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: '1rem',
-                    right: '1rem',
-                    background: isOutOfStock ? '#fee2e2' : '#dcfce7',
-                    color: isOutOfStock ? '#991b1b' : '#166534',
-                    padding: '0.35rem 0.85rem',
-                    borderRadius: '999px',
-                    fontSize: '0.78rem',
-                    fontWeight: 800,
-                  }}
-                >
-                  {isOutOfStock ? 'Agotado' : `${producto.stock} ${unidadText} disponibles`}
-                </span>
-              </div>
+              {/* Stock Badge */}
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '1rem',
+                  right: '1rem',
+                  background: isOutOfStock ? '#fee2e2' : '#dcfce7',
+                  color: isOutOfStock ? '#991b1b' : '#166534',
+                  padding: '0.4rem 0.9rem',
+                  borderRadius: '999px',
+                  fontSize: '0.78rem',
+                  fontWeight: 800,
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                }}
+              >
+                {isOutOfStock ? 'Agotado' : `${producto.stock} ${unidadText} disponibles`}
+              </span>
+            </div>
 
-              {/* Columna Derecha: Información y Compra */}
-              <div className="col-lg-6" style={{ padding: '2.5rem' }}>
+            {/* Columna Derecha: Información y Acciones */}
+            <div style={{ padding: '2.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div>
                 {/* Vendedor Info */}
                 {vendorId && (
                   <div
@@ -350,7 +374,7 @@ export default function ProductPage() {
                   </div>
                 )}
 
-                <h1 style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.5rem', lineHeight: 1.25 }}>
+                <h1 style={{ fontSize: '1.9rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.6rem', lineHeight: 1.25 }}>
                   {prodName}
                 </h1>
 
@@ -364,7 +388,7 @@ export default function ProductPage() {
                       {promedioRating}
                     </span>
                     <span style={{ color: '#64748b', fontSize: '0.8rem' }}>
-                      ({totalResenas} {totalResenas === 1 ? 'reseña' : 'reseñas'})
+                      ({totalResenas} {totalResenas === 1 ? 'opinión' : 'opiniones'})
                     </span>
                   </div>
 
@@ -383,10 +407,10 @@ export default function ProductPage() {
                 {/* Precio */}
                 <div style={{ marginBottom: '1.5rem', paddingBottom: '1.25rem', borderBottom: '1px solid #f1f5f9' }}>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.5rem' }}>
-                    <span style={{ fontSize: '2.1rem', fontWeight: 900, color: '#16a34a' }}>
+                    <span style={{ fontSize: '2.2rem', fontWeight: 900, color: '#16a34a' }}>
                       {formatCOP(producto.precio)}
                     </span>
-                    <span style={{ color: '#64748b', fontSize: '0.9rem', fontWeight: 600 }}>
+                    <span style={{ color: '#64748b', fontSize: '0.95rem', fontWeight: 600 }}>
                       / {unidadText}
                     </span>
                   </div>
@@ -394,109 +418,109 @@ export default function ProductPage() {
 
                 {/* Descripción */}
                 <div style={{ marginBottom: '1.75rem' }}>
-                  <h6 style={{ fontSize: '0.85rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Origen y Detalles
+                  <h6 style={{ fontSize: '0.85rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.4rem' }}>
+                    Origen y Frescura
                   </h6>
                   <p style={{ color: '#334155', fontSize: '0.95rem', lineHeight: 1.6, margin: 0 }}>
-                    {producto.descripcion || 'Producto 100% cultivado en las fértiles tierras de los Montes de María, sin intermediarios.'}
+                    {producto.descripcion || 'Cosecha fresca 100% cultivada en las fértiles tierras de los Montes de María, recolectada directamente por familias campesinas.'}
                   </p>
                 </div>
+              </div>
 
-                {/* Cantidad y Acciones de Compra */}
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
-                    <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>Cantidad:</span>
-                    <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #cbd5e1', borderRadius: '999px', padding: '0.2rem 0.6rem' }}>
-                      <button
-                        type="button"
-                        onClick={() => setCantidad((c) => Math.max(1, c - 1))}
-                        disabled={cantidad <= 1 || isOutOfStock}
-                        style={{ border: 'none', background: 'none', fontWeight: 800, fontSize: '1rem', cursor: 'pointer', padding: '0 0.5rem' }}
-                      >
-                        -
-                      </button>
-                      <span style={{ minWidth: '32px', textAlign: 'center', fontWeight: 800, color: '#0f172a' }}>
-                        {cantidad}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setCantidad((c) => Math.min(maxStock, c + 1))}
-                        disabled={cantidad >= maxStock || isOutOfStock}
-                        style={{ border: 'none', background: 'none', fontWeight: 800, fontSize: '1rem', cursor: 'pointer', padding: '0 0.5rem' }}
-                      >
-                        +
-                      </button>
-                    </div>
-                    <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
-                      Total: <strong style={{ color: '#0f172a' }}>{formatCOP(Number(producto.precio || 0) * cantidad)}</strong>
-                    </span>
-                  </div>
-
-                  {/* Botón Principal: Agregar al Carrito */}
-                  <button
-                    type="button"
-                    onClick={handleAddToCart}
-                    disabled={isOutOfStock}
-                    className={`btn ${added ? 'btn-success' : 'btn-primary'} w-100`}
-                    style={{
-                      padding: '0.9rem',
-                      borderRadius: '16px',
-                      fontWeight: 800,
-                      fontSize: '1.05rem',
-                      marginBottom: '0.75rem',
-                      boxShadow: '0 4px 15px rgba(22, 163, 74, 0.3)',
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    {added ? (
-                      <><i className="fa fa-check-circle me-2" /> ¡Agregado al Carrito ({cantidad})!</>
-                    ) : isOutOfStock ? (
-                      <><i className="fa fa-ban me-2" /> Producto Agotado</>
-                    ) : (
-                      <><i className="fa fa-cart-plus me-2" /> Agregar al Carrito</>
-                    )}
-                  </button>
-
-                  {/* Botones Secundarios: WhatsApp Directo y Compartir */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                    <a
-                      href={whatsappUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="btn btn-outline-success"
-                      style={{
-                        borderRadius: '14px',
-                        fontWeight: 700,
-                        fontSize: '0.85rem',
-                        padding: '0.65rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.4rem',
-                      }}
-                    >
-                      <i className="fab fa-whatsapp text-success fs-5" /> Preguntar al Campesino
-                    </a>
-
+              {/* Acciones de Compra y Botones */}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+                  <span style={{ fontSize: '0.88rem', fontWeight: 700, color: '#0f172a' }}>Cantidad:</span>
+                  <div style={{ display: 'flex', alignItems: 'center', border: '1.5px solid #cbd5e1', borderRadius: '999px', padding: '0.25rem 0.75rem', background: '#ffffff' }}>
                     <button
                       type="button"
-                      onClick={handleCopyLink}
-                      className="btn btn-outline-secondary"
-                      style={{
-                        borderRadius: '14px',
-                        fontWeight: 700,
-                        fontSize: '0.85rem',
-                        padding: '0.65rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.4rem',
-                      }}
+                      onClick={() => setCantidad((c) => Math.max(1, c - 1))}
+                      disabled={cantidad <= 1 || isOutOfStock}
+                      style={{ border: 'none', background: 'none', fontWeight: 800, fontSize: '1.1rem', cursor: 'pointer', padding: '0 0.5rem', color: cantidad <= 1 ? '#cbd5e1' : '#0f172a' }}
                     >
-                      <i className={`fa ${copiado ? 'fa-check text-success' : 'fa-share-nodes'}`} />
-                      {copiado ? '¡Copiado!' : 'Compartir Producto'}
+                      -
+                    </button>
+                    <span style={{ minWidth: '36px', textAlign: 'center', fontWeight: 800, color: '#0f172a', fontSize: '1rem' }}>
+                      {cantidad}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setCantidad((c) => Math.min(maxStock, c + 1))}
+                      disabled={cantidad >= maxStock || isOutOfStock}
+                      style={{ border: 'none', background: 'none', fontWeight: 800, fontSize: '1.1rem', cursor: 'pointer', padding: '0 0.5rem', color: cantidad >= maxStock ? '#cbd5e1' : '#0f172a' }}
+                    >
+                      +
                     </button>
                   </div>
+                  <span style={{ fontSize: '0.9rem', color: '#64748b' }}>
+                    Subtotal: <strong style={{ color: '#0f172a', fontSize: '1.05rem' }}>{formatCOP(Number(producto.precio || 0) * cantidad)}</strong>
+                  </span>
+                </div>
+
+                {/* Botón Principal: Agregar al Carrito */}
+                <button
+                  type="button"
+                  onClick={handleAddToCart}
+                  disabled={isOutOfStock}
+                  className={`btn ${added ? 'btn-success' : 'btn-primary'} w-100`}
+                  style={{
+                    padding: '0.95rem',
+                    borderRadius: '16px',
+                    fontWeight: 800,
+                    fontSize: '1.05rem',
+                    marginBottom: '0.85rem',
+                    boxShadow: '0 4px 15px rgba(22, 163, 74, 0.3)',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {added ? (
+                    <><i className="fa fa-check-circle me-2" /> ¡Agregado al Carrito ({cantidad})!</>
+                  ) : isOutOfStock ? (
+                    <><i className="fa fa-ban me-2" /> Producto Agotado</>
+                  ) : (
+                    <><i className="fa fa-cart-plus me-2" /> Agregar al Carrito</>
+                  )}
+                </button>
+
+                {/* Botones Secundarios: WhatsApp Directo y Compartir */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                  <a
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-outline-success"
+                    style={{
+                      borderRadius: '14px',
+                      fontWeight: 700,
+                      fontSize: '0.85rem',
+                      padding: '0.7rem 0.5rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.4rem',
+                    }}
+                  >
+                    <i className="fab fa-whatsapp text-success fs-5" /> Preguntar al Campesino
+                  </a>
+
+                  <button
+                    type="button"
+                    onClick={handleCopyLink}
+                    className="btn btn-outline-secondary"
+                    style={{
+                      borderRadius: '14px',
+                      fontWeight: 700,
+                      fontSize: '0.85rem',
+                      padding: '0.7rem 0.5rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.4rem',
+                    }}
+                  >
+                    <i className={`fa ${copiado ? 'fa-check text-success' : 'fa-share-nodes'}`} />
+                    {copiado ? '¡Copiado!' : 'Compartir Producto'}
+                  </button>
                 </div>
 
                 {/* Garantías Agroecológicas */}
@@ -558,117 +582,114 @@ export default function ProductPage() {
                   marginBottom: '2rem',
                 }}
               >
-                <h5 style={{ fontWeight: 800, color: '#0f172a', marginBottom: '1rem' }}>
-                  Cuéntanos tu experiencia con este producto campesino
+                <h5 style={{ fontWeight: 800, color: '#0f172a', marginBottom: '1.25rem' }}>
+                  Cuéntanos tu experiencia con esta cosecha del campo
                 </h5>
 
-                <div className="row g-3">
-                  <div className="col-md-6">
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                  <div>
                     <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.3rem' }}>
                       Tu Nombre Completo *
                     </label>
                     <input
                       type="text"
-                      className="form-control"
                       value={formResena.nombre_usuario}
                       onChange={(e) => setFormResena({ ...formResena, nombre_usuario: e.target.value })}
                       placeholder="Ej. Carmen Paternina"
                       required
-                      style={{ borderRadius: '12px' }}
+                      style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '12px', border: '1.5px solid #cbd5e1', fontSize: '0.9rem' }}
                     />
                   </div>
 
-                  <div className="col-md-6">
+                  <div>
                     <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.3rem' }}>
                       Ciudad / Municipio
                     </label>
                     <input
                       type="text"
-                      className="form-control"
                       value={formResena.ciudad}
                       onChange={(e) => setFormResena({ ...formResena, ciudad: e.target.value })}
                       placeholder="Ej. Cartagena, Sincelejo, etc."
-                      style={{ borderRadius: '12px' }}
+                      style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '12px', border: '1.5px solid #cbd5e1', fontSize: '0.9rem' }}
                     />
                   </div>
+                </div>
 
-                  {/* Selector de Estrellas Interactivo */}
-                  <div className="col-12">
-                    <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.4rem' }}>
-                      Calificación (1 a 5 estrellas) *
-                    </label>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <i
-                          key={star}
-                          onClick={() => setFormResena({ ...formResena, rating: star })}
-                          className={`fa fa-star fs-3 ${star <= formResena.rating ? 'text-warning' : 'text-secondary opacity-50'}`}
-                          style={{ transition: 'transform 0.1s ease', cursor: 'pointer' }}
-                          title={`${star} estrellas`}
-                        />
-                      ))}
-                      <span style={{ fontWeight: 800, color: '#0f172a', marginLeft: '0.5rem' }}>
-                        {formResena.rating} de 5 estrellas
-                      </span>
+                {/* Selector de Estrellas Interactivo */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.4rem' }}>
+                    Calificación (1 a 5 estrellas) *
+                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <i
+                        key={star}
+                        onClick={() => setFormResena({ ...formResena, rating: star })}
+                        className={`fa fa-star fs-3 ${star <= formResena.rating ? 'text-warning' : 'text-secondary opacity-50'}`}
+                        style={{ cursor: 'pointer', transition: 'transform 0.1s ease' }}
+                        title={`${star} estrellas`}
+                      />
+                    ))}
+                    <span style={{ fontWeight: 800, color: '#0f172a', marginLeft: '0.5rem' }}>
+                      {formResena.rating} de 5 estrellas
+                    </span>
+                  </div>
+                </div>
+
+                {/* Comentario */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.3rem' }}>
+                    Comentario y detalles de cómo te llegó el producto *
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={formResena.comentario}
+                    onChange={(e) => setFormResena({ ...formResena, comentario: e.target.value })}
+                    placeholder="¿Cómo estuvo la frescura, el empaque y el sabor? Cuéntanos..."
+                    required
+                    style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '12px', border: '1.5px solid #cbd5e1', fontSize: '0.9rem' }}
+                  />
+                </div>
+
+                {/* Subida de Foto Real */}
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.3rem' }}>
+                    📷 Sube una foto real del producto recibido (Opcional pero muy valioso)
+                  </label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleSubirFoto}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '12px', border: '1.5px solid #cbd5e1', background: '#ffffff', fontSize: '0.85rem' }}
+                  />
+                  {fotoPreview && (
+                    <div style={{ marginTop: '0.75rem', position: 'relative', display: 'inline-block' }}>
+                      <img
+                        src={fotoPreview}
+                        alt="Vista previa de reseña"
+                        style={{ width: '120px', height: '120px', objectFit: 'cover', borderRadius: '14px', border: '2px solid #22c55e' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => { setFotoPreview(''); setFormResena({ ...formResena, foto_url: '' }) }}
+                        className="btn btn-sm btn-danger"
+                        style={{ position: 'absolute', top: '-8px', right: '-8px', borderRadius: '50%', width: '24px', height: '24px', padding: 0 }}
+                      >
+                        &times;
+                      </button>
                     </div>
-                  </div>
+                  )}
+                </div>
 
-                  <div className="col-12">
-                    <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.3rem' }}>
-                      Comentario y detalles de cómo te llegó el producto *
-                    </label>
-                    <textarea
-                      className="form-control"
-                      rows={3}
-                      value={formResena.comentario}
-                      onChange={(e) => setFormResena({ ...formResena, comentario: e.target.value })}
-                      placeholder="¿Cómo estuvo la frescura, el empaque y el sabor? Cuéntanos..."
-                      required
-                      style={{ borderRadius: '12px' }}
-                    />
-                  </div>
-
-                  {/* Subida de Foto Real */}
-                  <div className="col-12">
-                    <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.3rem' }}>
-                      📷 Sube una foto real del producto recibido (Opcional pero muy valioso)
-                    </label>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleSubirFoto}
-                      className="form-control"
-                      style={{ borderRadius: '12px' }}
-                    />
-                    {fotoPreview && (
-                      <div style={{ marginTop: '0.75rem', position: 'relative', display: 'inline-block' }}>
-                        <img
-                          src={fotoPreview}
-                          alt="Vista previa de reseña"
-                          style={{ width: '120px', height: '120px', objectFit: 'cover', borderRadius: '14px', border: '2px solid #22c55e' }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => { setFotoPreview(''); setFormResena({ ...formResena, foto_url: '' }) }}
-                          className="btn btn-sm btn-danger"
-                          style={{ position: 'absolute', top: '-8px', right: '-8px', borderRadius: '50%', width: '24px', height: '24px', padding: 0 }}
-                        >
-                          &times;
-                        </button>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="col-12 text-end">
-                    <button
-                      type="submit"
-                      disabled={enviandoResena}
-                      className="btn btn-success"
-                      style={{ borderRadius: '999px', fontWeight: 800, padding: '0.65rem 1.75rem' }}
-                    >
-                      {enviandoResena ? 'Publicando...' : 'Publicar Reseña'}
-                    </button>
-                  </div>
+                <div style={{ textAlign: 'right' }}>
+                  <button
+                    type="submit"
+                    disabled={enviandoResena}
+                    className="btn btn-success"
+                    style={{ borderRadius: '999px', fontWeight: 800, padding: '0.65rem 1.75rem' }}
+                  >
+                    {enviandoResena ? 'Publicando...' : 'Publicar Reseña'}
+                  </button>
                 </div>
               </form>
             )}
@@ -691,86 +712,84 @@ export default function ProductPage() {
                 </button>
               </div>
             ) : (
-              <div className="row g-4">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem' }}>
                 {resenas.map((r) => (
-                  <div className="col-md-6" key={r.id_resena}>
-                    <div
-                      style={{
-                        background: '#f8fafc',
-                        border: '1px solid #e2e8f0',
-                        borderRadius: '18px',
-                        padding: '1.25rem',
-                        height: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                      }}
-                    >
-                      <div>
-                        {/* Cabecera de la reseña */}
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
-                          <div>
-                            <strong style={{ color: '#0f172a', fontSize: '0.95rem', display: 'block' }}>
-                              {r.nombre_usuario}
-                            </strong>
-                            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                              {r.ciudad || 'Montes de María'} • {r.fecha_creacion ? new Date(r.fecha_creacion).toLocaleDateString('es-CO') : 'Reciente'}
-                            </span>
-                          </div>
-
-                          <span
-                            style={{
-                              background: '#dcfce7',
-                              color: '#15803d',
-                              fontSize: '0.72rem',
-                              fontWeight: 700,
-                              padding: '0.2rem 0.55rem',
-                              borderRadius: '999px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.3rem',
-                            }}
-                          >
-                            <i className="fa fa-circle-check" /> Compra Verificada
+                  <div
+                    key={r.id_resena}
+                    style={{
+                      background: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '18px',
+                      padding: '1.25rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <div>
+                      {/* Cabecera de la reseña */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
+                        <div>
+                          <strong style={{ color: '#0f172a', fontSize: '0.95rem', display: 'block' }}>
+                            {r.nombre_usuario}
+                          </strong>
+                          <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                            {r.ciudad || 'Montes de María'} • {r.fecha_creacion ? new Date(r.fecha_creacion).toLocaleDateString('es-CO') : 'Reciente'}
                           </span>
                         </div>
 
-                        {/* Estrellas */}
-                        <div style={{ color: '#eab308', fontSize: '0.85rem', marginBottom: '0.65rem' }}>
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <i key={star} className={`fa ${star <= r.rating ? 'fa-star' : 'fa-star-o'}`} />
-                          ))}
-                        </div>
-
-                        {/* Texto del comentario */}
-                        <p style={{ color: '#334155', fontSize: '0.9rem', lineHeight: 1.5, margin: 0, fontStyle: 'italic' }}>
-                          "{r.comentario}"
-                        </p>
+                        <span
+                          style={{
+                            background: '#dcfce7',
+                            color: '#15803d',
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            padding: '0.2rem 0.55rem',
+                            borderRadius: '999px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.3rem',
+                          }}
+                        >
+                          <i className="fa fa-circle-check" /> Compra Verificada
+                        </span>
                       </div>
 
-                      {/* Foto Real de la Reseña */}
-                      {r.foto_url && (
-                        <div style={{ marginTop: '0.85rem' }}>
-                          <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, display: 'block', marginBottom: '0.25rem' }}>
-                            Foto real del cliente:
-                          </span>
-                          <img
-                            src={r.foto_url}
-                            alt={`Foto reseña de ${r.nombre_usuario}`}
-                            style={{
-                              width: '80px',
-                              height: '80px',
-                              borderRadius: '12px',
-                              objectFit: 'cover',
-                              border: '1px solid #cbd5e1',
-                              cursor: 'pointer',
-                            }}
-                            onClick={() => window.open(r.foto_url, '_blank')}
-                            title="Ver foto en tamaño completo"
-                          />
-                        </div>
-                      )}
+                      {/* Estrellas */}
+                      <div style={{ color: '#eab308', fontSize: '0.85rem', marginBottom: '0.65rem' }}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <i key={star} className={`fa ${star <= r.rating ? 'fa-star' : 'fa-star-o'}`} />
+                        ))}
+                      </div>
+
+                      {/* Texto del comentario */}
+                      <p style={{ color: '#334155', fontSize: '0.9rem', lineHeight: 1.5, margin: 0, fontStyle: 'italic' }}>
+                        "{r.comentario}"
+                      </p>
                     </div>
+
+                    {/* Foto Real de la Reseña */}
+                    {r.foto_url && (
+                      <div style={{ marginTop: '0.85rem' }}>
+                        <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, display: 'block', marginBottom: '0.25rem' }}>
+                          Foto real del cliente:
+                        </span>
+                        <img
+                          src={r.foto_url}
+                          alt={`Foto reseña de ${r.nombre_usuario}`}
+                          style={{
+                            width: '80px',
+                            height: '80px',
+                            borderRadius: '12px',
+                            objectFit: 'cover',
+                            border: '1px solid #cbd5e1',
+                            cursor: 'pointer',
+                          }}
+                          onClick={() => window.open(r.foto_url, '_blank')}
+                          title="Ver foto en tamaño completo"
+                        />
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -789,11 +808,9 @@ export default function ProductPage() {
                 </Link>
               </div>
 
-              <div className="row g-3">
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1.25rem' }}>
                 {relacionados.map((rel) => (
-                  <div className="col-6 col-md-3" key={rel.id_producto || rel.id}>
-                    <ProductCard producto={rel} />
-                  </div>
+                  <ProductCard key={rel.id_producto || rel.id} producto={rel} />
                 ))}
               </div>
             </div>
