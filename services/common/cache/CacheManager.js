@@ -76,6 +76,7 @@ class CacheManager {
       if (req.method !== 'GET') return next();
 
       const cacheKey = typeof keyGenerator === 'function' ? keyGenerator(req) : `${req.baseUrl}${req.path}`;
+      if (!cacheKey) return next();
       
       try {
         const cached = await this.get(cacheKey);
