@@ -3,7 +3,7 @@
  * De los Montes de María
  */
 
-const GA_MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID || 'G-Z5L4V89H9D'
+const GA_MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID || 'G-Y9MYJHPF9X'
 
 let isInitialized = false
 
