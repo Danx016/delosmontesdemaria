@@ -286,6 +286,20 @@ function initializeDatabaseTables() {
       orden INT DEFAULT 0,
       activo TINYINT(1) DEFAULT 1,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+
+    `CREATE TABLE IF NOT EXISTS producto_resenas (
+      id_resena INT AUTO_INCREMENT PRIMARY KEY,
+      id_producto INT NOT NULL,
+      id_usuario INT DEFAULT NULL,
+      nombre_usuario VARCHAR(150) NOT NULL,
+      ciudad VARCHAR(100) DEFAULT 'Montes de María',
+      rating INT NOT NULL DEFAULT 5,
+      comentario TEXT NOT NULL,
+      foto_url VARCHAR(500) DEFAULT NULL,
+      verificado TINYINT(1) DEFAULT 1,
+      fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      INDEX idx_producto (id_producto)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`
   ];
 

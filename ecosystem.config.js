@@ -40,7 +40,7 @@ module.exports = {
       env: {
         NODE_ENV: 'production',
         CATALOG_SERVICE_PORT: 3002,
-        DB_NAME: 'db_catalog'
+        DB_NAME: 'dbmontesdm'
       }
     },
     {
