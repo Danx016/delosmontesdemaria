@@ -155,6 +155,8 @@ class ProductoController {
     } catch (error) {
       res.status(500).json({ error: 'Error al buscar productos' });
     }
+  }
+
   async listarResenas(req, res) {
     try {
       const { id_producto } = req.params;
