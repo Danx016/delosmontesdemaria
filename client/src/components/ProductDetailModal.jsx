@@ -424,6 +424,27 @@ export default function ProductDetailModal({ producto, isOpen, onClose }) {
                   </>
                 )}
               </button>
+
+              {/* Botones de acción rápida: Ver página completa y WhatsApp */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem', marginTop: '0.75rem' }}>
+                <Link
+                  to={`/producto/${producto.id_producto || producto.id}`}
+                  onClick={onClose}
+                  className="btn btn-sm btn-outline-secondary"
+                  style={{ borderRadius: '12px', fontWeight: 700, padding: '0.55rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', fontSize: '0.8rem' }}
+                >
+                  <i className="fa fa-arrow-up-right-from-square" /> Ver Página
+                </Link>
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(`¡Mira este producto en De los Montes de María! ${producto.nombre || ''}: https://delosmontesdemaria.dev/producto/${producto.id_producto || producto.id}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-sm btn-outline-success"
+                  style={{ borderRadius: '12px', fontWeight: 700, padding: '0.55rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', fontSize: '0.8rem' }}
+                >
+                  <i className="fab fa-whatsapp" /> Compartir
+                </a>
+              </div>
             </div>
           </div>
         </div>

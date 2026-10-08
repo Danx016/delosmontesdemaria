@@ -368,16 +368,60 @@ app.use(createResilientProxy(
 ));
 
 
-// Fallback SPA React
-app.use((req, res, next) => {
+// Fallback SPA React con Inyección Dinámica Open Graph (SEO Social para WhatsApp y Redes)
+app.use(async (req, res, next) => {
   if (req.path.startsWith('/api') || req.path.startsWith('/uploads') || req.path.startsWith('/img') || req.path.startsWith('/socket.io')) {
     return next();
   }
   const indexPath = path.join(clientDistPath, 'index.html');
-  if (fs.existsSync(indexPath)) {
-    return res.sendFile(indexPath);
+  if (!fs.existsSync(indexPath)) {
+    return next();
   }
-  next();
+
+  // Detección de ruta de producto (/producto/:id) para compartir en WhatsApp y Redes
+  const matchProduct = req.path.match(/^\/producto\/([a-zA-Z0-9_-]+)/);
+  if (matchProduct) {
+    try {
+      const prodId = matchProduct[1];
+      const catalogRes = await fetch(`${SERVICES.catalog}/api/productos/${prodId}`, {
+        signal: AbortSignal.timeout(3000)
+      });
+      if (catalogRes.ok) {
+        const prodData = await catalogRes.json();
+        const p = prodData.producto || prodData;
+        if (p && (p.id_producto || p.id)) {
+          let html = fs.readFileSync(indexPath, 'utf8');
+          const pName = p.nombre || p.nombre_producto || 'Cosecha Campesina';
+          const pPrice = Number(p.precio || 0).toLocaleString('es-CO');
+          const title = `${pName} ($${pPrice} COP) - De los Montes de María`;
+          const desc = `${p.descripcion ? p.descripcion.substring(0, 150) : 'Producto 100% cultivado en los Montes de María.'} ¡Cómpralo directo del campo sin intermediarios!`;
+          const baseUrl = process.env.BASE_URL || 'https://delosmontesdemaria.dev';
+          let imgUrl = p.imagen || p.foto || '/img/Logo.jpg';
+          if (imgUrl.startsWith('/')) {
+            imgUrl = `${baseUrl}${imgUrl}`;
+          }
+          const prodUrl = `${baseUrl}/producto/${p.id_producto || p.id}`;
+
+          html = html
+            .replace(/<title>.*?<\/title>/i, `<title>${title}</title>`)
+            .replace(/<meta property="og:title" content=".*?" \/>/i, `<meta property="og:title" content="${title}" />`)
+            .replace(/<meta property="og:description" content=".*?" \/>/i, `<meta property="og:description" content="${desc}" />`)
+            .replace(/<meta property="og:image" content=".*?" \/>/i, `<meta property="og:image" content="${imgUrl}" />`)
+            .replace(/<meta property="og:url" content=".*?" \/>/i, `<meta property="og:url" content="${prodUrl}" />`)
+            .replace(/<meta name="twitter:title" content=".*?" \/>/i, `<meta name="twitter:title" content="${title}" />`)
+            .replace(/<meta name="twitter:description" content=".*?" \/>/i, `<meta name="twitter:description" content="${desc}" />`)
+            .replace(/<meta name="twitter:image" content=".*?" \/>/i, `<meta name="twitter:image" content="${imgUrl}" />`);
+
+          res.setHeader('Content-Type', 'text/html; charset=utf-8');
+          return res.send(html);
+        }
+      }
+    } catch {
+      // Si ocurre timeout o error al consultar el catálogo, continuar al fallback regular
+    }
+  }
+
+  return res.sendFile(indexPath);
 });
 
 if (require.main === module) {
