@@ -77,7 +77,11 @@ const adminController = new AdminController({
 // Rutas del servicio con Caché Distribuida Redis (< 2ms)
 app.use(
   '/api/productos',
-  cache.middleware((req) => `productos:${req.path}:${JSON.stringify(req.query)}`, 300),
+  cache.middleware((req) => {
+    // No almacenar en caché las reseñas para que los cambios se reflejen de inmediato
+    if (req.path.includes('/resenas')) return null;
+    return `productos:${req.path}:${JSON.stringify(req.query)}`;
+  }, 300),
   createProductoRoutes(productoController)
 );
 

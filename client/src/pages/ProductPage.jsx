@@ -6,7 +6,7 @@ import { obtenerProducto, listarProductos, listarResenasProducto, crearResenaPro
 import { useCart } from '../context/CartContext'
 import { useToast } from '../context/ToastContext'
 import { useAuth } from '../context/AuthContext'
-import { getProductImageUrl, handleProductImageError } from '../utils/productImage'
+import { getProductImageUrl, getProductImages, handleProductImageError } from '../utils/productImage'
 import { getAvatarUrl, handleAvatarError } from '../utils/avatar'
 import { trackProductView, trackAddToCart } from '../utils/analytics'
 import ProductCard from '../components/ProductCard'
@@ -24,10 +24,11 @@ export default function ProductPage() {
   const [cantidad, setCantidad] = useState(1)
   const [added, setAdded] = useState(false)
   const [copiado, setCopiado] = useState(false)
+  const [activeImageIndex, setActiveImageIndex] = useState(0)
 
   // Reseñas y calificaciones
   const [resenas, setResenas] = useState([])
-  const [promedioRating, setPromedioRating] = useState(5.0)
+  const [promedioRating, setPromedioRating] = useState(0)
   const [totalResenas, setTotalResenas] = useState(0)
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [enviandoResena, setEnviandoResena] = useState(false)
@@ -56,7 +57,7 @@ export default function ProductPage() {
       .then((res) => {
         setResenas(res.data?.resenas || [])
         setTotalResenas(res.data?.total || 0)
-        setPromedioRating(res.data?.promedio || 5.0)
+        setPromedioRating(res.data?.promedio ? Number(res.data.promedio) : 0)
       })
       .catch((err) => {
         console.error('Error al cargar reseñas:', err)
@@ -68,6 +69,7 @@ export default function ProductPage() {
     setError(null)
     setCantidad(1)
     setMostrarFormulario(false)
+    setActiveImageIndex(0)
 
     obtenerProducto(id)
       .then((res) => {
@@ -269,70 +271,205 @@ export default function ProductPage() {
               alignItems: 'stretch',
             }}
           >
-            {/* Columna Izquierda: Imagen y Badges */}
-            <div
-              style={{
-                background: '#f8fafc',
-                position: 'relative',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: '380px',
-                maxHeight: '520px',
-                overflow: 'hidden',
-              }}
-            >
-              <img
-                src={imageUrl}
-                alt={prodName}
-                onError={(e) => handleProductImageError(e, prodName)}
+            {/* Columna Izquierda: Galería de Fotos y Badges */}
+            <div style={{ display: 'flex', flexDirection: 'column', background: '#f8fafc', borderRadius: '24px 0 0 24px', overflow: 'hidden' }}>
+              <div
                 style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  display: 'block',
-                }}
-              />
-
-              {/* Badge Región */}
-              <span
-                style={{
-                  position: 'absolute',
-                  top: '1rem',
-                  left: '1rem',
-                  background: 'rgba(255, 255, 255, 0.95)',
-                  backdropFilter: 'blur(8px)',
-                  color: '#15803d',
-                  padding: '0.4rem 0.9rem',
-                  borderRadius: '999px',
-                  fontSize: '0.78rem',
-                  fontWeight: 800,
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                  background: '#f8fafc',
+                  position: 'relative',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.4rem',
+                  justifyContent: 'center',
+                  minHeight: '380px',
+                  maxHeight: '480px',
+                  overflow: 'hidden',
+                  flex: 1,
                 }}
               >
-                <i className="fa fa-seedling text-success" /> Montes de María Oficial
-              </span>
+                {(() => {
+                  const productImages = getProductImages(producto)
+                  const currentImg = productImages[activeImageIndex] || productImages[0] || imageUrl
+                  return (
+                    <>
+                      <img
+                        src={currentImg}
+                        alt={`${prodName} - vista ${activeImageIndex + 1}`}
+                        onError={(e) => handleProductImageError(e, prodName)}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover',
+                          display: 'block',
+                          transition: 'all 0.25s ease',
+                        }}
+                      />
 
-              {/* Stock Badge */}
-              <span
-                style={{
-                  position: 'absolute',
-                  top: '1rem',
-                  right: '1rem',
-                  background: isOutOfStock ? '#fee2e2' : '#dcfce7',
-                  color: isOutOfStock ? '#991b1b' : '#166534',
-                  padding: '0.4rem 0.9rem',
-                  borderRadius: '999px',
-                  fontSize: '0.78rem',
-                  fontWeight: 800,
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                }}
-              >
-                {isOutOfStock ? 'Agotado' : `${producto.stock} ${unidadText} disponibles`}
-              </span>
+                      {/* Flechas si hay más de una foto */}
+                      {productImages.length > 1 && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setActiveImageIndex((prev) => (prev > 0 ? prev - 1 : productImages.length - 1))}
+                            aria-label="Foto anterior"
+                            style={{
+                              position: 'absolute',
+                              left: '0.75rem',
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              background: 'rgba(255, 255, 255, 0.9)',
+                              border: 'none',
+                              width: '38px',
+                              height: '38px',
+                              borderRadius: '50%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              cursor: 'pointer',
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                              color: '#0f172a',
+                              zIndex: 10,
+                            }}
+                          >
+                            <i className="fa fa-chevron-left" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setActiveImageIndex((prev) => (prev < productImages.length - 1 ? prev + 1 : 0))}
+                            aria-label="Siguiente foto"
+                            style={{
+                              position: 'absolute',
+                              right: '0.75rem',
+                              top: '50%',
+                              transform: 'translateY(-50%)',
+                              background: 'rgba(255, 255, 255, 0.9)',
+                              border: 'none',
+                              width: '38px',
+                              height: '38px',
+                              borderRadius: '50%',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              cursor: 'pointer',
+                              boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                              color: '#0f172a',
+                              zIndex: 10,
+                            }}
+                          >
+                            <i className="fa fa-chevron-right" />
+                          </button>
+
+                          <span
+                            style={{
+                              position: 'absolute',
+                              bottom: '0.75rem',
+                              right: '0.75rem',
+                              background: 'rgba(15, 23, 42, 0.75)',
+                              color: '#ffffff',
+                              padding: '0.25rem 0.65rem',
+                              borderRadius: '999px',
+                              fontSize: '0.75rem',
+                              fontWeight: 700,
+                              zIndex: 10,
+                            }}
+                          >
+                            📷 {activeImageIndex + 1} / {productImages.length}
+                          </span>
+                        </>
+                      )}
+                    </>
+                  )
+                })()}
+
+                {/* Badge Región */}
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: '1rem',
+                    left: '1rem',
+                    background: 'rgba(255, 255, 255, 0.95)',
+                    backdropFilter: 'blur(8px)',
+                    color: '#15803d',
+                    padding: '0.4rem 0.9rem',
+                    borderRadius: '999px',
+                    fontSize: '0.78rem',
+                    fontWeight: 800,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
+                    zIndex: 5,
+                  }}
+                >
+                  <i className="fa fa-seedling text-success" /> Montes de María Oficial
+                </span>
+
+                {/* Stock Badge */}
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: '1rem',
+                    right: '1rem',
+                    background: isOutOfStock ? '#fee2e2' : '#dcfce7',
+                    color: isOutOfStock ? '#991b1b' : '#166534',
+                    padding: '0.4rem 0.9rem',
+                    borderRadius: '999px',
+                    fontSize: '0.78rem',
+                    fontWeight: 800,
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                    zIndex: 5,
+                  }}
+                >
+                  {isOutOfStock ? 'Agotado' : `${producto.stock} ${unidadText} disponibles`}
+                </span>
+              </div>
+
+              {/* Tira de Miniaturas si hay múltiples fotos */}
+              {(() => {
+                const productImages = getProductImages(producto)
+                if (productImages.length <= 1) return null
+                return (
+                  <div
+                    style={{
+                      display: 'flex',
+                      gap: '0.5rem',
+                      padding: '0.65rem 1rem 0.85rem 1rem',
+                      background: '#f1f5f9',
+                      borderTop: '1px solid #e2e8f0',
+                      overflowX: 'auto',
+                      WebkitOverflowScrolling: 'touch',
+                    }}
+                  >
+                    {productImages.map((imgUrl, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setActiveImageIndex(idx)}
+                        style={{
+                          padding: 0,
+                          border: idx === activeImageIndex ? '2px solid #16a34a' : '2px solid transparent',
+                          borderRadius: '10px',
+                          overflow: 'hidden',
+                          width: '56px',
+                          height: '56px',
+                          flexShrink: 0,
+                          cursor: 'pointer',
+                          background: '#ffffff',
+                          boxShadow: idx === activeImageIndex ? '0 0 0 2px rgba(22, 163, 74, 0.3)' : 'none',
+                          transform: idx === activeImageIndex ? 'scale(1.05)' : 'scale(1)',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        <img
+                          src={imgUrl}
+                          alt={`Miniatura ${idx + 1}`}
+                          onError={(e) => handleProductImageError(e, prodName)}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )
+              })()}
             </div>
 
             {/* Columna Derecha: Información y Acciones */}
@@ -380,17 +517,37 @@ export default function ProductPage() {
 
                 {/* Calificación y Categoría */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#eab308' }}>
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <i key={star} className={`fa ${star <= Math.round(promedioRating) ? 'fa-star' : 'fa-star-o'}`} />
-                    ))}
-                    <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9rem', marginLeft: '0.2rem' }}>
-                      {promedioRating}
-                    </span>
-                    <span style={{ color: '#64748b', fontSize: '0.8rem' }}>
-                      ({totalResenas} {totalResenas === 1 ? 'opinión' : 'opiniones'})
-                    </span>
-                  </div>
+                  {totalResenas > 0 ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#eab308' }}>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <i
+                          key={star}
+                          className={`fa ${
+                            star <= Math.floor(promedioRating)
+                              ? 'fa-star'
+                              : star - 0.5 <= promedioRating
+                              ? 'fa-star-half-o'
+                              : 'fa-star-o'
+                          }`}
+                        />
+                      ))}
+                      <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9rem', marginLeft: '0.2rem' }}>
+                        {promedioRating.toFixed(1)}
+                      </span>
+                      <span style={{ color: '#64748b', fontSize: '0.8rem' }}>
+                        ({totalResenas} {totalResenas === 1 ? 'opinión verificada' : 'opiniones verificadas'})
+                      </span>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#94a3b8' }}>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <i key={star} className="fa fa-star-o" style={{ color: '#cbd5e1' }} />
+                      ))}
+                      <span style={{ color: '#64748b', fontSize: '0.82rem', fontWeight: 600 }}>
+                        Sin opiniones aún
+                      </span>
+                    </div>
+                  )}
 
                   {producto.categoria && (
                     <span style={{ background: '#f1f5f9', color: '#475569', fontSize: '0.75rem', fontWeight: 700, padding: '0.25rem 0.65rem', borderRadius: '8px' }}>

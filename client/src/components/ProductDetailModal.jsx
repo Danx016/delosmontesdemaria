@@ -2,17 +2,19 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
-import { getProductImageUrl, handleProductImageError } from '../utils/productImage'
+import { getProductImageUrl, getProductImages, handleProductImageError } from '../utils/productImage'
 import { getAvatarUrl, handleAvatarError } from '../utils/avatar'
 
 export default function ProductDetailModal({ producto, isOpen, onClose }) {
   const { addItem } = useCart()
   const [cantidad, setCantidad] = useState(1)
   const [added, setAdded] = useState(false)
+  const [activeModalImgIdx, setActiveModalImgIdx] = useState(0)
 
   useEffect(() => {
     setCantidad(1)
     setAdded(false)
+    setActiveModalImgIdx(0)
   }, [producto])
 
   useEffect(() => {
@@ -142,19 +144,137 @@ export default function ProductDetailModal({ producto, isOpen, onClose }) {
         <div className="product-modal-grid">
           {/* Left Column: Image & Badges */}
           <div className="product-modal-image-col">
-            <div className="product-modal-img-container">
-              <img
-                src={imageUrl}
-                alt={prodTitle}
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  transition: 'transform 0.4s ease',
-                }}
-                onError={handleProductImageError}
-              />
-            </div>
+            {(() => {
+              const modalImages = getProductImages(producto)
+              const currentModalImg = modalImages[activeModalImgIdx] || modalImages[0] || imageUrl
+              return (
+                <>
+                  <div className="product-modal-img-container" style={{ position: 'relative' }}>
+                    <img
+                      src={currentModalImg}
+                      alt={`${prodTitle} - foto ${activeModalImgIdx + 1}`}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        transition: 'transform 0.4s ease',
+                      }}
+                      onError={handleProductImageError}
+                    />
+
+                    {modalImages.length > 1 && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setActiveModalImgIdx((prev) => (prev > 0 ? prev - 1 : modalImages.length - 1))
+                          }}
+                          aria-label="Foto anterior"
+                          style={{
+                            position: 'absolute',
+                            left: '0.5rem',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'rgba(255, 255, 255, 0.9)',
+                            border: 'none',
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            color: '#0f172a',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                            zIndex: 5,
+                          }}
+                        >
+                          <i className="fa fa-chevron-left" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setActiveModalImgIdx((prev) => (prev < modalImages.length - 1 ? prev + 1 : 0))
+                          }}
+                          aria-label="Siguiente foto"
+                          style={{
+                            position: 'absolute',
+                            right: '0.5rem',
+                            top: '50%',
+                            transform: 'translateY(-50%)',
+                            background: 'rgba(255, 255, 255, 0.9)',
+                            border: 'none',
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '50%',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            color: '#0f172a',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                            zIndex: 5,
+                          }}
+                        >
+                          <i className="fa fa-chevron-right" />
+                        </button>
+                        <span
+                          style={{
+                            position: 'absolute',
+                            bottom: '0.5rem',
+                            right: '0.5rem',
+                            background: 'rgba(15, 23, 42, 0.75)',
+                            color: '#ffffff',
+                            padding: '0.2rem 0.5rem',
+                            borderRadius: '999px',
+                            fontSize: '0.7rem',
+                            fontWeight: 700,
+                            zIndex: 5,
+                          }}
+                        >
+                          {activeModalImgIdx + 1} / {modalImages.length}
+                        </span>
+                      </>
+                    )}
+                  </div>
+
+                  {modalImages.length > 1 && (
+                    <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.6rem', overflowX: 'auto', paddingBottom: '0.2rem' }}>
+                      {modalImages.map((mImg, mIdx) => (
+                        <button
+                          key={mIdx}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setActiveModalImgIdx(mIdx)
+                          }}
+                          style={{
+                            padding: 0,
+                            border: mIdx === activeModalImgIdx ? '2px solid #16a34a' : '2px solid transparent',
+                            borderRadius: '8px',
+                            overflow: 'hidden',
+                            width: '48px',
+                            height: '48px',
+                            flexShrink: 0,
+                            cursor: 'pointer',
+                            background: '#f8fafc',
+                          }}
+                        >
+                          <img
+                            src={mImg}
+                            alt=""
+                            onError={handleProductImageError}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )
+            })()}
 
             {/* Badges bar */}
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '1.25rem', justifyContent: 'center' }}>

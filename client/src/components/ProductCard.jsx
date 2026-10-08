@@ -135,11 +135,17 @@ export default function ProductCard({ producto }) {
               </Link>
             )}
 
-            {/* Rating Stars preview */}
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.75rem', color: '#eab308', fontWeight: 700 }}>
-              <i className="fa fa-star" />
-              <span style={{ color: '#475569' }}>5.0</span>
-            </div>
+            {/* Rating Stars preview - Solo si tiene calificación real */}
+            {Number(producto.rating || producto.promedio_rating || 0) > 0 ? (
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontSize: '0.75rem', color: '#eab308', fontWeight: 700 }}>
+                <i className="fa fa-star" />
+                <span style={{ color: '#475569' }}>{Number(producto.rating || producto.promedio_rating).toFixed(1)}</span>
+              </div>
+            ) : (
+              <span style={{ fontSize: '0.72rem', color: '#16a34a', fontWeight: 700, background: '#f0fdf4', padding: '0.15rem 0.5rem', borderRadius: '6px' }}>
+                🌱 Cosecha Local
+              </span>
+            )}
           </div>
 
           <h3 className="product-card-name" title={prodTitle}>

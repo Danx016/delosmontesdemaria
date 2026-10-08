@@ -17,8 +17,8 @@ function createProductoRoutes(productoController) {
   router.post('/:id_producto/resenas', productIdParamRule, handleValidation, (req, res) => productoController.crearResena(req, res));
 
   // Endpoints para Vendedores y Admin
-  router.post('/', verifyToken, verifyVendedor, handleMulterUpload(uploadProductImage.single('imageFile')), productRules, handleValidation, (req, res) => productoController.crear(req, res));
-  router.put('/:id_producto', verifyToken, verifyVendedor, handleMulterUpload(uploadProductImage.single('imageFile')), productIdParamRule, productRules, handleValidation, (req, res) => productoController.actualizar(req, res));
+  router.post('/', verifyToken, verifyVendedor, handleMulterUpload(uploadProductImage.any()), productRules, handleValidation, (req, res) => productoController.crear(req, res));
+  router.put('/:id_producto', verifyToken, verifyVendedor, handleMulterUpload(uploadProductImage.any()), productIdParamRule, productRules, handleValidation, (req, res) => productoController.actualizar(req, res));
   router.delete('/:id_producto', verifyToken, verifyVendedor, productIdParamRule, handleValidation, (req, res) => productoController.eliminar(req, res));
 
   return router;

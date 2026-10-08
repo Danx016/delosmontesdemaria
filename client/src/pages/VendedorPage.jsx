@@ -8,7 +8,7 @@ import { useConfirm } from '../context/ConfirmContext'
 import { listarProductos, crearProducto, actualizarProducto, eliminarProducto, listarCategoriasPublicas } from '../api/productos.api'
 import { listarTodasVendedor, actualizarEstadoDespacho } from '../api/compras.api'
 import { convertirseEnVendedor } from '../api/usuario.api'
-import { getProductImageUrl, handleProductImageError } from '../utils/productImage'
+import { getProductImageUrl, getProductImages, handleProductImageError } from '../utils/productImage'
 import { compressImage } from '../utils/imageCompressor'
 import LocationPickerModal from '../components/LocationPickerModal'
 
@@ -53,9 +53,8 @@ export default function VendedorPage() {
     presentacion: '',
     cuidado: '',
   })
-  const [imageFile, setImageFile] = useState(null)
-  const [imagePreview, setImagePreview] = useState(null)
-  const [existingImage, setExistingImage] = useState(null)
+  const [imageFiles, setImageFiles] = useState([])
+  const [existingImages, setExistingImages] = useState([])
   const [compressing, setCompressing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -154,9 +153,8 @@ export default function VendedorPage() {
       presentacion: 'Empaque fresco de finca',
       cuidado: 'Conservar en lugar fresco y seco',
     })
-    setImageFile(null)
-    setImagePreview(null)
-    setExistingImage(null)
+    setImageFiles([])
+    setExistingImages([])
     setError('')
     setShowModal(true)
   }
@@ -177,32 +175,55 @@ export default function VendedorPage() {
       presentacion: prod.presentacion || '',
       cuidado: prod.cuidado || '',
     })
-    setImageFile(null)
-    setImagePreview(null)
-    setExistingImage(prod.imagen || null)
+    setImageFiles([])
+    const parsedImages = getProductImages(prod.imagen).filter(url => url && !url.includes('/img/Logo.jpg'))
+    setExistingImages(parsedImages)
     setError('')
     setShowModal(true)
   }
 
-  const handleImageChange = async (e) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setCompressing(true)
-      try {
-        const optimized = await compressImage(file)
-        setImageFile(optimized)
-        if (imagePreview) {
-          URL.revokeObjectURL(imagePreview)
+  const handleImagesChange = async (e) => {
+    const selected = Array.from(e.target.files || [])
+    if (selected.length === 0) return
+
+    setCompressing(true)
+    try {
+      const newItems = []
+      for (const file of selected) {
+        try {
+          const optimized = await compressImage(file)
+          newItems.push({
+            file: optimized,
+            previewUrl: URL.createObjectURL(optimized),
+            name: file.name
+          })
+        } catch (err) {
+          newItems.push({
+            file,
+            previewUrl: URL.createObjectURL(file),
+            name: file.name
+          })
         }
-        setImagePreview(URL.createObjectURL(optimized))
-      } catch (err) {
-        console.warn('Error al procesar foto:', err)
-        setImageFile(file)
-        setImagePreview(URL.createObjectURL(file))
-      } finally {
-        setCompressing(false)
       }
+      setImageFiles((prev) => [...prev, ...newItems])
+    } catch (err) {
+      console.warn('Error al procesar fotos:', err)
+    } finally {
+      setCompressing(false)
+      e.target.value = ''
     }
+  }
+
+  const handleRemoveNewImage = (index) => {
+    setImageFiles((prev) => {
+      const item = prev[index]
+      if (item?.previewUrl) URL.revokeObjectURL(item.previewUrl)
+      return prev.filter((_, i) => i !== index)
+    })
+  }
+
+  const handleRemoveExistingImage = (index) => {
+    setExistingImages((prev) => prev.filter((_, i) => i !== index))
   }
 
   const handleSaveProduct = async (e) => {
@@ -223,8 +244,17 @@ export default function VendedorPage() {
     if (prodForm.longitud) formData.append('longitud', prodForm.longitud)
     formData.append('presentacion', prodForm.presentacion)
     formData.append('cuidado', prodForm.cuidado)
-    if (imageFile) {
-      formData.append('imageFile', imageFile)
+
+    // Guardar lista de imágenes existentes que se mantuvieron
+    formData.append('imagenes_existentes', JSON.stringify(existingImages))
+
+    // Adjuntar todas las fotos nuevas
+    imageFiles.forEach((item) => {
+      formData.append('imageFiles', item.file)
+    })
+    // Para retrocompatibilidad
+    if (imageFiles[0]) {
+      formData.append('imageFile', imageFiles[0].file)
     }
 
     try {
@@ -907,67 +937,168 @@ export default function VendedorPage() {
                   </div>
 
                   <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-                    <label className="form-label" style={{ fontWeight: 600 }}>Foto o Imagen del Producto</label>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem', flexWrap: 'wrap', gap: '0.4rem' }}>
+                      <label className="form-label" style={{ fontWeight: 700, margin: 0 }}>
+                        📸 Fotos del Producto (Puedes subir varias)
+                      </label>
+                      <span style={{ fontSize: '0.78rem', color: '#16a34a', fontWeight: 700 }}>
+                        {existingImages.length + imageFiles.length} foto(s) en total
+                      </span>
+                    </div>
+
                     <input
                       type="file"
+                      multiple
                       accept="image/*,image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif"
-                      onChange={handleImageChange}
+                      onChange={handleImagesChange}
                       className="form-input"
                     />
-                    
+                    <small style={{ display: 'block', marginTop: '0.35rem', color: '#64748b', fontSize: '0.78rem' }}>
+                      Tip: Puedes seleccionar más de una foto manteniendo presionado Ctrl / Shift o seleccionando varias en tu galería del celular. La primera foto será la portada principal.
+                    </small>
+
                     {compressing && (
                       <div style={{ marginTop: '0.6rem', color: 'var(--primary-color)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <i className="fa fa-spinner fa-spin" /> Optimizando imagen para carga rápida...
+                        <i className="fa fa-spinner fa-spin" /> Optimizando fotos para carga rápida...
                       </div>
                     )}
-                    
-                    {/* Visual Preview */}
-                    {(imagePreview || existingImage) && !compressing && (
+
+                    {/* Galería de vistas previas */}
+                    {(existingImages.length > 0 || imageFiles.length > 0) && !compressing && (
                       <div
                         style={{
-                          marginTop: '0.75rem',
-                          padding: '0.75rem',
+                          marginTop: '0.85rem',
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(auto-fill, minmax(84px, 1fr))',
+                          gap: '0.65rem',
+                          padding: '0.85rem',
                           background: 'var(--bg-alt, #f8fafc)',
-                          borderRadius: '8px',
+                          borderRadius: '12px',
                           border: '1px solid var(--border-color, #e2e8f0)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '1rem',
                         }}
                       >
-                        <img
-                          src={imagePreview || getProductImageUrl(existingImage)}
-                          alt="Vista previa"
-                          onError={handleProductImageError}
-                          style={{
-                            width: '64px',
-                            height: '64px',
-                            objectFit: 'cover',
-                            borderRadius: '6px',
-                            border: '1px solid var(--border-color, #e2e8f0)',
-                          }}
-                        />
-                        <div style={{ flex: 1, fontSize: '0.85rem' }}>
-                          <span className={`badge ${imagePreview ? 'badge-primary' : 'badge-secondary'}`} style={{ marginBottom: '0.25rem', display: 'inline-block' }}>
-                            {imagePreview ? '✨ Nueva foto seleccionada' : '🖼️ Foto actual'}
-                          </span>
-                          <div style={{ color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '240px' }}>
-                            {imageFile ? imageFile.name : 'Imagen cargada en catálogo'}
-                          </div>
-                        </div>
-                        {imagePreview && (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setImageFile(null)
-                              setImagePreview(null)
+                        {/* Fotos existentes guardadas */}
+                        {existingImages.map((url, idx) => (
+                          <div
+                            key={`exist-${idx}`}
+                            style={{
+                              position: 'relative',
+                              borderRadius: '8px',
+                              overflow: 'hidden',
+                              border: idx === 0 && imageFiles.length === 0 ? '2px solid #16a34a' : '1px solid #cbd5e1',
+                              height: '84px',
+                              background: '#ffffff',
                             }}
-                            className="btn btn-sm btn-outline-danger"
-                            title="Quitar foto nueva"
                           >
-                            <i className="fa fa-times" />
-                          </button>
-                        )}
+                            <img
+                              src={getProductImageUrl(url)}
+                              alt={`Foto ${idx + 1}`}
+                              onError={handleProductImageError}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                            {idx === 0 && imageFiles.length === 0 && (
+                              <span
+                                style={{
+                                  position: 'absolute',
+                                  bottom: 0,
+                                  left: 0,
+                                  right: 0,
+                                  background: 'rgba(22, 163, 74, 0.95)',
+                                  color: '#fff',
+                                  fontSize: '0.62rem',
+                                  textAlign: 'center',
+                                  fontWeight: 800,
+                                  padding: '1px 0',
+                                }}
+                              >
+                                Portada
+                              </span>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveExistingImage(idx)}
+                              title="Quitar foto"
+                              style={{
+                                position: 'absolute',
+                                top: '3px',
+                                right: '3px',
+                                background: 'rgba(220, 38, 38, 0.95)',
+                                color: '#ffffff',
+                                border: 'none',
+                                borderRadius: '50%',
+                                width: '20px',
+                                height: '20px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '0.7rem',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+
+                        {/* Fotos nuevas seleccionadas */}
+                        {imageFiles.map((item, idx) => (
+                          <div
+                            key={`new-${idx}`}
+                            style={{
+                              position: 'relative',
+                              borderRadius: '8px',
+                              overflow: 'hidden',
+                              border: existingImages.length === 0 && idx === 0 ? '2px solid #16a34a' : '2px dashed #3b82f6',
+                              height: '84px',
+                              background: '#ffffff',
+                            }}
+                          >
+                            <img
+                              src={item.previewUrl}
+                              alt={item.name}
+                              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            />
+                            <span
+                              style={{
+                                position: 'absolute',
+                                bottom: 0,
+                                left: 0,
+                                right: 0,
+                                background: existingImages.length === 0 && idx === 0 ? 'rgba(22, 163, 74, 0.95)' : 'rgba(59, 130, 246, 0.85)',
+                                color: '#fff',
+                                fontSize: '0.62rem',
+                                textAlign: 'center',
+                                fontWeight: 800,
+                                padding: '1px 0',
+                              }}
+                            >
+                              {existingImages.length === 0 && idx === 0 ? 'Portada' : 'Nueva'}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveNewImage(idx)}
+                              title="Quitar foto"
+                              style={{
+                                position: 'absolute',
+                                top: '3px',
+                                right: '3px',
+                                background: 'rgba(220, 38, 38, 0.95)',
+                                color: '#ffffff',
+                                border: 'none',
+                                borderRadius: '50%',
+                                width: '20px',
+                                height: '20px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '0.7rem',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
                       </div>
                     )}
                   </div>

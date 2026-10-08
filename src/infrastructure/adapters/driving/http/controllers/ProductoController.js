@@ -38,8 +38,41 @@ class ProductoController {
 
   async crear(req, res) {
     try {
-      const { nombre, precio, imagen, descripcion, categoria, origen, presentacion, cuidado, disponibilidad, id_vendedor, stock, unidad_medida, latitud, longitud, ubicacion_nombre } = req.body;
-      const finalImagen = req.file ? `/uploads/products/${req.file.filename}` : (imagen || '/img/Logo.jpg');
+      const { nombre, precio, imagen, imagenes_existentes, imagenes, descripcion, categoria, origen, presentacion, cuidado, disponibilidad, id_vendedor, stock, unidad_medida, latitud, longitud, ubicacion_nombre } = req.body;
+
+      // Soporte para múltiples archivos subidos
+      let uploadedUrls = [];
+      if (req.files) {
+        const filesList = Array.isArray(req.files) ? req.files : Object.values(req.files).flat();
+        uploadedUrls = filesList.map(f => `/uploads/products/${f.filename}`);
+      } else if (req.file) {
+        uploadedUrls = [`/uploads/products/${req.file.filename}`];
+      }
+
+      // Fotos existentes (si el usuario las envió en formato JSON o string)
+      let existingUrls = [];
+      const rawExistentes = imagenes_existentes || imagenes;
+      if (rawExistentes) {
+        try {
+          const parsed = typeof rawExistentes === 'string' ? JSON.parse(rawExistentes) : rawExistentes;
+          if (Array.isArray(parsed)) existingUrls = parsed;
+          else if (typeof parsed === 'string') existingUrls = [parsed];
+        } catch (e) {
+          if (typeof rawExistentes === 'string') {
+            existingUrls = rawExistentes.split(',').map(s => s.trim()).filter(Boolean);
+          }
+        }
+      }
+
+      const allUrls = [...existingUrls, ...uploadedUrls];
+      let finalImagen = '/img/Logo.jpg';
+      if (allUrls.length > 1) {
+        finalImagen = JSON.stringify(allUrls);
+      } else if (allUrls.length === 1) {
+        finalImagen = allUrls[0];
+      } else if (imagen) {
+        finalImagen = imagen;
+      }
 
       const vendorId = req.user?.id || req.user?.id_usuario || id_vendedor || null;
 
@@ -71,7 +104,7 @@ class ProductoController {
   async actualizar(req, res) {
     try {
       const productId = req.params.id_producto;
-      const { nombre, precio, imagen, descripcion, categoria, origen, presentacion, cuidado, disponibilidad, stock, unidad_medida, latitud, longitud, ubicacion_nombre } = req.body;
+      const { nombre, precio, imagen, imagenes_existentes, imagenes, descripcion, categoria, origen, presentacion, cuidado, disponibilidad, stock, unidad_medida, latitud, longitud, ubicacion_nombre } = req.body;
 
       const current = await this.productoRepository.buscarPorId(productId);
       if (!current) return res.status(404).json({ error: 'Producto no encontrado' });
@@ -86,7 +119,41 @@ class ProductoController {
         }
       }
 
-      const finalImagen = req.file ? `/uploads/products/${req.file.filename}` : (imagen || current.imagen);
+      // Procesar múltiples archivos subidos
+      let uploadedUrls = [];
+      if (req.files) {
+        const filesList = Array.isArray(req.files) ? req.files : Object.values(req.files).flat();
+        uploadedUrls = filesList.map(f => `/uploads/products/${f.filename}`);
+      } else if (req.file) {
+        uploadedUrls = [`/uploads/products/${req.file.filename}`];
+      }
+
+      const rawExistentes = imagenes_existentes !== undefined ? imagenes_existentes : imagenes;
+      let finalImagen;
+      if (uploadedUrls.length > 0 || rawExistentes !== undefined) {
+        let existingUrls = [];
+        if (rawExistentes) {
+          try {
+            const parsed = typeof rawExistentes === 'string' ? JSON.parse(rawExistentes) : rawExistentes;
+            if (Array.isArray(parsed)) existingUrls = parsed;
+            else if (typeof parsed === 'string') existingUrls = [parsed];
+          } catch (e) {
+            if (typeof rawExistentes === 'string') {
+              existingUrls = rawExistentes.split(',').map(s => s.trim()).filter(Boolean);
+            }
+          }
+        }
+        const allUrls = [...existingUrls, ...uploadedUrls];
+        if (allUrls.length > 1) {
+          finalImagen = JSON.stringify(allUrls);
+        } else if (allUrls.length === 1) {
+          finalImagen = allUrls[0];
+        } else {
+          finalImagen = imagen || current.imagen || '/img/Logo.jpg';
+        }
+      } else {
+        finalImagen = imagen || current.imagen;
+      }
 
       const updated = await this.updateProduct.execute(productId, {
         nombre_producto: nombre !== undefined ? nombre : current.nombre_producto,
@@ -171,11 +238,11 @@ class ProductoController {
           }
           const list = rows || [];
           const total = list.length;
-          const promedio = total > 0 ? (list.reduce((acc, r) => acc + Number(r.rating || 5), 0) / total).toFixed(1) : '5.0';
+          const promedio = total > 0 ? parseFloat((list.reduce((acc, r) => acc + Number(r.rating || 5), 0) / total).toFixed(1)) : 0;
           res.json({
             resenas: list,
             total,
-            promedio: parseFloat(promedio)
+            promedio
           });
         }
       );
