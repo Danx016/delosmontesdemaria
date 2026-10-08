@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link, useNavigate } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import { obtenerProducto, listarProductos } from '../api/productos.api'
+import { obtenerProducto, listarProductos, listarResenasProducto, crearResenaProducto } from '../api/productos.api'
 import { useCart } from '../context/CartContext'
 import { useToast } from '../context/ToastContext'
+import { useAuth } from '../context/AuthContext'
 import { getProductImageUrl, handleProductImageError } from '../utils/productImage'
 import { getAvatarUrl, handleAvatarError } from '../utils/avatar'
 import { trackProductView, trackAddToCart } from '../utils/analytics'
@@ -12,7 +13,7 @@ import ProductCard from '../components/ProductCard'
 
 export default function ProductPage() {
   const { id } = useParams()
-  const navigate = useNavigate()
+  const { user } = useAuth()
   const { addItem } = useCart()
   const { addToast } = useToast()
 
@@ -24,10 +25,49 @@ export default function ProductPage() {
   const [added, setAdded] = useState(false)
   const [copiado, setCopiado] = useState(false)
 
+  // Reseñas y calificaciones
+  const [resenas, setResenas] = useState([])
+  const [promedioRating, setPromedioRating] = useState(5.0)
+  const [totalResenas, setTotalResenas] = useState(0)
+  const [mostrarFormulario, setMostrarFormulario] = useState(false)
+  const [enviandoResena, setEnviandoResena] = useState(false)
+  const [fotoPreview, setFotoPreview] = useState('')
+
+  // Formulario de nueva reseña
+  const [formResena, setFormResena] = useState({
+    nombre_usuario: user?.nombre || user?.username || '',
+    ciudad: 'Montes de María',
+    rating: 5,
+    comentario: '',
+    foto_url: '',
+  })
+
+  useEffect(() => {
+    if (user?.nombre || user?.username) {
+      setFormResena((prev) => ({
+        ...prev,
+        nombre_usuario: user.nombre || user.username || '',
+      }))
+    }
+  }, [user])
+
+  const cargarResenas = (prodId) => {
+    listarResenasProducto(prodId)
+      .then((res) => {
+        setResenas(res.data?.resenas || [])
+        setTotalResenas(res.data?.total || 0)
+        setPromedioRating(res.data?.promedio || 5.0)
+      })
+      .catch((err) => {
+        console.error('Error al cargar reseñas:', err)
+      })
+  }
+
   useEffect(() => {
     setLoading(true)
     setError(null)
     setCantidad(1)
+    setMostrarFormulario(false)
 
     obtenerProducto(id)
       .then((res) => {
@@ -44,6 +84,9 @@ export default function ProductPage() {
 
         // Tracking GA4
         trackProductView(prodData)
+
+        // Cargar reseñas del producto
+        cargarResenas(prodData.id_producto)
 
         // Cargar productos relacionados
         listarProductos().then((allRes) => {
@@ -67,6 +110,49 @@ export default function ProductPage() {
       currency: 'COP',
       maximumFractionDigits: 0,
     })
+  }
+
+  const handleSubirFoto = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Convertir a Data URL para guardarla directamente con la reseña
+    const reader = new FileReader()
+    reader.onload = (uploadEvent) => {
+      const dataUrl = uploadEvent.target?.result
+      setFotoPreview(dataUrl)
+      setFormResena((prev) => ({ ...prev, foto_url: dataUrl }))
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleEnviarResena = async (e) => {
+    e.preventDefault()
+    if (!formResena.nombre_usuario.trim() || !formResena.comentario.trim()) {
+      addToast('Por favor ingresa tu nombre y tu comentario.', 'warning')
+      return
+    }
+
+    try {
+      setEnviandoResena(true)
+      await crearResenaProducto(producto.id_producto, formResena)
+      addToast('¡Gracias por tu reseña! Ayuda mucho a nuestros campesinos.', 'success')
+      setMostrarFormulario(false)
+      setFotoPreview('')
+      setFormResena({
+        nombre_usuario: user?.nombre || user?.username || '',
+        ciudad: 'Montes de María',
+        rating: 5,
+        comentario: '',
+        foto_url: '',
+      })
+      cargarResenas(producto.id_producto)
+    } catch (err) {
+      console.error('Error al enviar reseña:', err)
+      addToast('No se pudo guardar la reseña. Inténtalo de nuevo.', 'error')
+    } finally {
+      setEnviandoResena(false)
+    }
   }
 
   if (loading) {
@@ -130,9 +216,10 @@ export default function ProductPage() {
     setTimeout(() => setCopiado(false), 2500)
   }
 
-  // Enlace directo de WhatsApp con mensaje personalizado
+  // Mensaje conversacional contextual para el campesino
+  const vendorGreeting = vendorName && vendorName !== 'Campesino de Montes de María' ? `Don/Doña ${vendorName}` : 'amigo campesino'
   const whatsappMessage = encodeURIComponent(
-    `¡Hola! Estoy interesado en comprar "${prodName}" (${formatCOP(producto.precio)}) que vi en De los Montes de María: ${currentUrl}`
+    `Hola ${vendorGreeting}, vi tu producto "${prodName}" (${formatCOP(producto.precio)}) en De los Montes de María y me interesa comprarlo. ¿Tienen disponibilidad para envío? Enlace: ${currentUrl}`
   )
   const vendorPhone = (producto.vendedor_telefono || producto.telefono || '').replace(/\D/g, '')
   const whatsappUrl = vendorPhone
@@ -172,7 +259,7 @@ export default function ProductPage() {
               border: '1px solid #e2e8f0',
               boxShadow: '0 10px 30px rgba(0,0,0,0.04)',
               overflow: 'hidden',
-              marginBottom: '3rem',
+              marginBottom: '2.5rem',
             }}
           >
             <div className="row g-0">
@@ -267,8 +354,20 @@ export default function ProductPage() {
                   {prodName}
                 </h1>
 
-                {/* Categoría y Municipio */}
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+                {/* Calificación y Categoría */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#eab308' }}>
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <i key={star} className={`fa ${star <= Math.round(promedioRating) ? 'fa-star' : 'fa-star-o'}`} />
+                    ))}
+                    <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9rem', marginLeft: '0.2rem' }}>
+                      {promedioRating}
+                    </span>
+                    <span style={{ color: '#64748b', fontSize: '0.8rem' }}>
+                      ({totalResenas} {totalResenas === 1 ? 'reseña' : 'reseñas'})
+                    </span>
+                  </div>
+
                   {producto.categoria && (
                     <span style={{ background: '#f1f5f9', color: '#475569', fontSize: '0.75rem', fontWeight: 700, padding: '0.25rem 0.65rem', borderRadius: '8px' }}>
                       <i className="fa fa-tag me-1 text-primary" /> {producto.categoria}
@@ -413,6 +512,269 @@ export default function ProductPage() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* SECCIÓN DE RESEÑAS Y CALIFICACIONES CON FOTOS REALES */}
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: '24px',
+              border: '1px solid #e2e8f0',
+              padding: '2.5rem',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.04)',
+              marginBottom: '3rem',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '1.5rem' }}>
+              <div>
+                <h3 style={{ fontWeight: 800, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  ⭐ Calificaciones y Opiniones Reales
+                </h3>
+                <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '0.3rem 0 0 0' }}>
+                  Opiniones verificadas de personas que han comprado cosechas de Montes de María
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setMostrarFormulario(!mostrarFormulario)}
+                className="btn btn-outline-primary"
+                style={{ borderRadius: '999px', fontWeight: 700, padding: '0.55rem 1.25rem', fontSize: '0.85rem' }}
+              >
+                <i className="fa fa-pen me-2" />
+                {mostrarFormulario ? 'Cancelar Opinión' : 'Escribir una Reseña con Foto'}
+              </button>
+            </div>
+
+            {/* FORMULARIO PARA AGREGAR RESEÑA CON FOTO */}
+            {mostrarFormulario && (
+              <form
+                onSubmit={handleEnviarResena}
+                style={{
+                  background: '#f8fafc',
+                  border: '1.5px solid #cbd5e1',
+                  borderRadius: '20px',
+                  padding: '1.75rem',
+                  marginBottom: '2rem',
+                }}
+              >
+                <h5 style={{ fontWeight: 800, color: '#0f172a', marginBottom: '1rem' }}>
+                  Cuéntanos tu experiencia con este producto campesino
+                </h5>
+
+                <div className="row g-3">
+                  <div className="col-md-6">
+                    <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.3rem' }}>
+                      Tu Nombre Completo *
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={formResena.nombre_usuario}
+                      onChange={(e) => setFormResena({ ...formResena, nombre_usuario: e.target.value })}
+                      placeholder="Ej. Carmen Paternina"
+                      required
+                      style={{ borderRadius: '12px' }}
+                    />
+                  </div>
+
+                  <div className="col-md-6">
+                    <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.3rem' }}>
+                      Ciudad / Municipio
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={formResena.ciudad}
+                      onChange={(e) => setFormResena({ ...formResena, ciudad: e.target.value })}
+                      placeholder="Ej. Cartagena, Sincelejo, etc."
+                      style={{ borderRadius: '12px' }}
+                    />
+                  </div>
+
+                  {/* Selector de Estrellas Interactivo */}
+                  <div className="col-12">
+                    <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.4rem' }}>
+                      Calificación (1 a 5 estrellas) *
+                    </label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <i
+                          key={star}
+                          onClick={() => setFormResena({ ...formResena, rating: star })}
+                          className={`fa fa-star fs-3 ${star <= formResena.rating ? 'text-warning' : 'text-secondary opacity-50'}`}
+                          style={{ transition: 'transform 0.1s ease', cursor: 'pointer' }}
+                          title={`${star} estrellas`}
+                        />
+                      ))}
+                      <span style={{ fontWeight: 800, color: '#0f172a', marginLeft: '0.5rem' }}>
+                        {formResena.rating} de 5 estrellas
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="col-12">
+                    <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.3rem' }}>
+                      Comentario y detalles de cómo te llegó el producto *
+                    </label>
+                    <textarea
+                      className="form-control"
+                      rows={3}
+                      value={formResena.comentario}
+                      onChange={(e) => setFormResena({ ...formResena, comentario: e.target.value })}
+                      placeholder="¿Cómo estuvo la frescura, el empaque y el sabor? Cuéntanos..."
+                      required
+                      style={{ borderRadius: '12px' }}
+                    />
+                  </div>
+
+                  {/* Subida de Foto Real */}
+                  <div className="col-12">
+                    <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.3rem' }}>
+                      📷 Sube una foto real del producto recibido (Opcional pero muy valioso)
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleSubirFoto}
+                      className="form-control"
+                      style={{ borderRadius: '12px' }}
+                    />
+                    {fotoPreview && (
+                      <div style={{ marginTop: '0.75rem', position: 'relative', display: 'inline-block' }}>
+                        <img
+                          src={fotoPreview}
+                          alt="Vista previa de reseña"
+                          style={{ width: '120px', height: '120px', objectFit: 'cover', borderRadius: '14px', border: '2px solid #22c55e' }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => { setFotoPreview(''); setFormResena({ ...formResena, foto_url: '' }) }}
+                          className="btn btn-sm btn-danger"
+                          style={{ position: 'absolute', top: '-8px', right: '-8px', borderRadius: '50%', width: '24px', height: '24px', padding: 0 }}
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="col-12 text-end">
+                    <button
+                      type="submit"
+                      disabled={enviandoResena}
+                      className="btn btn-success"
+                      style={{ borderRadius: '999px', fontWeight: 800, padding: '0.65rem 1.75rem' }}
+                    >
+                      {enviandoResena ? 'Publicando...' : 'Publicar Reseña'}
+                    </button>
+                  </div>
+                </div>
+              </form>
+            )}
+
+            {/* LISTA DE RESEÑAS */}
+            {resenas.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '2.5rem', background: '#f8fafc', borderRadius: '16px' }}>
+                <i className="fa fa-comment-dots fs-1 text-muted mb-3" />
+                <h5 style={{ fontWeight: 700, color: '#0f172a' }}>Aún no hay opiniones para esta cosecha</h5>
+                <p style={{ color: '#64748b', fontSize: '0.9rem', maxWidth: '400px', margin: '0 auto 1.25rem auto' }}>
+                  Sé el primero en compartir qué tal te pareció este producto del campo.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setMostrarFormulario(true)}
+                  className="btn btn-sm btn-primary"
+                  style={{ borderRadius: '999px', fontWeight: 700, padding: '0.45rem 1.25rem' }}
+                >
+                  Dejar Primera Reseña
+                </button>
+              </div>
+            ) : (
+              <div className="row g-4">
+                {resenas.map((r) => (
+                  <div className="col-md-6" key={r.id_resena}>
+                    <div
+                      style={{
+                        background: '#f8fafc',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '18px',
+                        padding: '1.25rem',
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <div>
+                        {/* Cabecera de la reseña */}
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
+                          <div>
+                            <strong style={{ color: '#0f172a', fontSize: '0.95rem', display: 'block' }}>
+                              {r.nombre_usuario}
+                            </strong>
+                            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                              {r.ciudad || 'Montes de María'} • {r.fecha_creacion ? new Date(r.fecha_creacion).toLocaleDateString('es-CO') : 'Reciente'}
+                            </span>
+                          </div>
+
+                          <span
+                            style={{
+                              background: '#dcfce7',
+                              color: '#15803d',
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              padding: '0.2rem 0.55rem',
+                              borderRadius: '999px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.3rem',
+                            }}
+                          >
+                            <i className="fa fa-circle-check" /> Compra Verificada
+                          </span>
+                        </div>
+
+                        {/* Estrellas */}
+                        <div style={{ color: '#eab308', fontSize: '0.85rem', marginBottom: '0.65rem' }}>
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <i key={star} className={`fa ${star <= r.rating ? 'fa-star' : 'fa-star-o'}`} />
+                          ))}
+                        </div>
+
+                        {/* Texto del comentario */}
+                        <p style={{ color: '#334155', fontSize: '0.9rem', lineHeight: 1.5, margin: 0, fontStyle: 'italic' }}>
+                          "{r.comentario}"
+                        </p>
+                      </div>
+
+                      {/* Foto Real de la Reseña */}
+                      {r.foto_url && (
+                        <div style={{ marginTop: '0.85rem' }}>
+                          <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, display: 'block', marginBottom: '0.25rem' }}>
+                            Foto real del cliente:
+                          </span>
+                          <img
+                            src={r.foto_url}
+                            alt={`Foto reseña de ${r.nombre_usuario}`}
+                            style={{
+                              width: '80px',
+                              height: '80px',
+                              borderRadius: '12px',
+                              objectFit: 'cover',
+                              border: '1px solid #cbd5e1',
+                              cursor: 'pointer',
+                            }}
+                            onClick={() => window.open(r.foto_url, '_blank')}
+                            title="Ver foto en tamaño completo"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Sección de Cosechas Relacionadas */}

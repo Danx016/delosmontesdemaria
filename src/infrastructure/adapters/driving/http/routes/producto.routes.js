@@ -13,6 +13,8 @@ function createProductoRoutes(productoController) {
   router.get('/categorias', (req, res) => productoController.listarCategorias(req, res));
   router.get('/buscar', (req, res) => productoController.buscar(req, res));
   router.get('/:id_producto', productIdParamRule, handleValidation, (req, res) => productoController.obtenerPorId(req, res));
+  router.get('/:id_producto/resenas', productIdParamRule, handleValidation, (req, res) => productoController.listarResenas(req, res));
+  router.post('/:id_producto/resenas', productIdParamRule, handleValidation, (req, res) => productoController.crearResena(req, res));
 
   // Endpoints para Vendedores y Admin
   router.post('/', verifyToken, verifyVendedor, handleMulterUpload(uploadProductImage.single('imageFile')), productRules, handleValidation, (req, res) => productoController.crear(req, res));

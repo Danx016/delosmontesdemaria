@@ -155,6 +155,64 @@ class ProductoController {
     } catch (error) {
       res.status(500).json({ error: 'Error al buscar productos' });
     }
+  async listarResenas(req, res) {
+    try {
+      const { id_producto } = req.params;
+      const { db } = require('../../../driven/persistence');
+      db.query(
+        'SELECT id_resena, id_producto, nombre_usuario, ciudad, rating, comentario, foto_url, verificado, fecha_creacion FROM producto_resenas WHERE id_producto = ? ORDER BY fecha_creacion DESC',
+        [id_producto],
+        (err, rows) => {
+          if (err) {
+            console.error('Error al obtener reseñas:', err.message);
+            return res.status(500).json({ error: 'Error al consultar reseñas' });
+          }
+          const list = rows || [];
+          const total = list.length;
+          const promedio = total > 0 ? (list.reduce((acc, r) => acc + Number(r.rating || 5), 0) / total).toFixed(1) : '5.0';
+          res.json({
+            resenas: list,
+            total,
+            promedio: parseFloat(promedio)
+          });
+        }
+      );
+    } catch (error) {
+      res.status(500).json({ error: 'Error interno al consultar reseñas' });
+    }
+  }
+
+  async crearResena(req, res) {
+    try {
+      const { id_producto } = req.params;
+      const { nombre_usuario, ciudad, rating, comentario, foto_url } = req.body;
+      const { db } = require('../../../driven/persistence');
+
+      if (!nombre_usuario || !comentario) {
+        return res.status(400).json({ error: 'El nombre y el comentario son obligatorios' });
+      }
+
+      const cleanRating = Math.min(5, Math.max(1, parseInt(rating || 5, 10)));
+      const userId = req.user?.id || req.user?.id_usuario || null;
+
+      db.query(
+        'INSERT INTO producto_resenas (id_producto, id_usuario, nombre_usuario, ciudad, rating, comentario, foto_url, verificado) VALUES (?, ?, ?, ?, ?, ?, ?, 1)',
+        [id_producto, userId, nombre_usuario.trim(), (ciudad || 'Montes de María').trim(), cleanRating, comentario.trim(), foto_url || null],
+        (err, result) => {
+          if (err) {
+            console.error('Error al registrar reseña:', err.message);
+            return res.status(500).json({ error: 'Error al registrar reseña' });
+          }
+          res.status(201).json({
+            success: true,
+            message: '¡Reseña registrada con éxito!',
+            id_resena: result.insertId
+          });
+        }
+      );
+    } catch (error) {
+      res.status(500).json({ error: 'Error interno al registrar reseña' });
+    }
   }
 }
 

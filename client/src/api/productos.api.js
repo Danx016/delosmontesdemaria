@@ -22,3 +22,7 @@ export const actualizarProducto = (id, formData) =>
 export const eliminarProducto = (id) => api.delete(`/productos/${id}`)
 
 export const listarCategoriasPublicas = () => api.get('/productos/categorias')
+
+export const listarResenasProducto = (id) => api.get(`/productos/${id}/resenas`)
+
+export const crearResenaProducto = (id, data) => api.post(`/productos/${id}/resenas`, data)
