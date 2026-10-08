@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from 'react'
+import { useState, useMemo } from 'react'
 import HeroSlideRenderer from './HeroSlideRenderer'
 
 // Catálogo de plantillas y diseños inspirados en Montes de María
@@ -444,16 +444,13 @@ export default function BannerVisualEditorModal({
 
     setSaving(true)
     try {
-      // Estructura completa enriquecida
       const payload = {
         ...data,
         titulo: data.titulo.trim(),
-        // Para compatibilidad hacia atrás con campos directos de la BD
         boton_principal_texto: data.botones[0]?.texto || 'Ver Catálogo',
         boton_principal_link: data.botones[0]?.link || '/catalogo',
         boton_secundario_texto: data.botones[1]?.texto || '',
         boton_secundario_link: data.botones[1]?.link || '',
-        // El campo features almacena el objeto enriquecido
         features: {
           items: data.features,
           botones: data.botones,
@@ -480,59 +477,61 @@ export default function BannerVisualEditorModal({
       style={{
         position: 'fixed',
         inset: 0,
-        backgroundColor: 'rgba(5, 15, 10, 0.88)',
-        backdropFilter: 'blur(10px)',
+        backgroundColor: 'rgba(15, 23, 42, 0.55)',
+        backdropFilter: 'blur(8px)',
         zIndex: 999999,
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
-        color: '#f8fafc',
-        fontFamily: 'system-ui, -apple-system, sans-serif'
+        color: '#0f172a',
+        fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
       }}
     >
-      {/* 1. BARRA SUPERIOR DE HERRAMIENTAS (Studio Toolbar) */}
+      {/* 1. BARRA SUPERIOR DE HERRAMIENTAS (Studio Toolbar - TEMA BLANCO) */}
       <header
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0.75rem 1.25rem',
-          backgroundColor: '#0f172a',
-          borderBottom: '1px solid #1e293b',
+          padding: '0.85rem 1.5rem',
+          backgroundColor: '#ffffff',
+          borderBottom: '1px solid #e2e8f0',
+          boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
           gap: '1rem',
           flexWrap: 'wrap',
           zIndex: 10
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
           <div
             style={{
-              width: '34px',
-              height: '34px',
-              borderRadius: '8px',
-              backgroundColor: '#16a34a',
+              width: '38px',
+              height: '38px',
+              borderRadius: '10px',
+              backgroundColor: '#ecfdf5',
+              border: '1px solid #a7f3d0',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#ffffff',
-              fontSize: '1.1rem',
+              color: '#059669',
+              fontSize: '1.25rem',
               fontWeight: 800
             }}
           >
             🎨
           </div>
           <div>
-            <h2 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#f8fafc' }}>
+            <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', letterSpacing: '-0.3px' }}>
               {isEditing ? 'Editar Banner Visualmente' : 'Estudio de Diseño de Banners'}
             </h2>
-            <p style={{ margin: 0, fontSize: '0.72rem', color: '#94a3b8' }}>
-              Crea desde cero o edita cada botón, texto y elemento en tiempo real con 0 lag.
+            <p style={{ margin: '2px 0 0 0', fontSize: '0.78rem', color: '#64748b' }}>
+              Diseña desde cero o elige una plantilla. Edita textos, botones y elementos con vista previa instantánea.
             </p>
           </div>
         </div>
 
         {/* Acciones de Flujo de Trabajo */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
           {/* Selector de Diseños Previos */}
           <button
             type="button"
@@ -540,15 +539,16 @@ export default function BannerVisualEditorModal({
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '0.4rem',
-              backgroundColor: '#1e293b',
-              color: '#38bdf8',
-              border: '1px solid #334155',
-              padding: '0.45rem 0.85rem',
+              gap: '0.45rem',
+              backgroundColor: '#f0f9ff',
+              color: '#0284c7',
+              border: '1.5px solid #bae6fd',
+              padding: '0.5rem 0.95rem',
               borderRadius: '8px',
               fontSize: '0.82rem',
               fontWeight: 700,
-              cursor: 'pointer'
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
             }}
           >
             <i className="fa fa-th-large" /> ✨ Diseños Previos
@@ -562,15 +562,16 @@ export default function BannerVisualEditorModal({
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '0.4rem',
-              backgroundColor: '#1e293b',
-              color: '#facc15',
-              border: '1px solid #334155',
-              padding: '0.45rem 0.85rem',
+              gap: '0.45rem',
+              backgroundColor: '#fefce8',
+              color: '#854d0e',
+              border: '1.5px solid #fde047',
+              padding: '0.5rem 0.95rem',
               borderRadius: '8px',
               fontSize: '0.82rem',
               fontWeight: 700,
-              cursor: 'pointer'
+              cursor: 'pointer',
+              transition: 'all 0.15s ease'
             }}
           >
             <i className="fa fa-file" /> 📄 Empezar de Cero
@@ -580,24 +581,26 @@ export default function BannerVisualEditorModal({
           <div
             style={{
               display: 'inline-flex',
-              backgroundColor: '#020617',
+              backgroundColor: '#f1f5f9',
               borderRadius: '8px',
-              padding: '2px',
-              border: '1px solid #1e293b'
+              padding: '3px',
+              border: '1px solid #e2e8f0'
             }}
           >
             <button
               type="button"
               onClick={() => setViewDevice('desktop')}
               style={{
-                backgroundColor: viewDevice === 'desktop' ? '#334155' : 'transparent',
-                color: viewDevice === 'desktop' ? '#ffffff' : '#94a3b8',
+                backgroundColor: viewDevice === 'desktop' ? '#ffffff' : 'transparent',
+                color: viewDevice === 'desktop' ? '#0f172a' : '#64748b',
+                boxShadow: viewDevice === 'desktop' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                 border: 'none',
-                padding: '0.35rem 0.65rem',
+                padding: '0.35rem 0.75rem',
                 borderRadius: '6px',
                 fontSize: '0.78rem',
-                fontWeight: 600,
-                cursor: 'pointer'
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
               }}
             >
               🖥️ Escritorio
@@ -606,14 +609,16 @@ export default function BannerVisualEditorModal({
               type="button"
               onClick={() => setViewDevice('mobile')}
               style={{
-                backgroundColor: viewDevice === 'mobile' ? '#334155' : 'transparent',
-                color: viewDevice === 'mobile' ? '#ffffff' : '#94a3b8',
+                backgroundColor: viewDevice === 'mobile' ? '#ffffff' : 'transparent',
+                color: viewDevice === 'mobile' ? '#0f172a' : '#64748b',
+                boxShadow: viewDevice === 'mobile' ? '0 1px 3px rgba(0,0,0,0.08)' : 'none',
                 border: 'none',
-                padding: '0.35rem 0.65rem',
+                padding: '0.35rem 0.75rem',
                 borderRadius: '6px',
                 fontSize: '0.78rem',
-                fontWeight: 600,
-                cursor: 'pointer'
+                fontWeight: 700,
+                cursor: 'pointer',
+                transition: 'all 0.15s ease'
               }}
             >
               📱 Móvil
@@ -628,16 +633,17 @@ export default function BannerVisualEditorModal({
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: '0.4rem',
+              gap: '0.45rem',
               backgroundColor: '#16a34a',
               color: '#ffffff',
               border: 'none',
-              padding: '0.5rem 1.15rem',
+              padding: '0.55rem 1.25rem',
               borderRadius: '8px',
               fontSize: '0.85rem',
               fontWeight: 800,
               cursor: saving ? 'wait' : 'pointer',
-              boxShadow: '0 4px 14px rgba(22, 163, 74, 0.4)'
+              boxShadow: '0 4px 12px rgba(22, 163, 74, 0.35)',
+              transition: 'all 0.15s ease'
             }}
           >
             {saving ? (
@@ -656,17 +662,18 @@ export default function BannerVisualEditorModal({
             type="button"
             onClick={onClose}
             style={{
-              backgroundColor: '#1e293b',
-              color: '#94a3b8',
-              border: 'none',
-              width: '34px',
-              height: '34px',
+              backgroundColor: '#f1f5f9',
+              color: '#64748b',
+              border: '1px solid #e2e8f0',
+              width: '36px',
+              height: '36px',
               borderRadius: '8px',
               fontSize: '1rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center'
+              justifyContent: 'center',
+              transition: 'all 0.15s ease'
             }}
             title="Cerrar sin guardar"
           >
@@ -679,18 +686,19 @@ export default function BannerVisualEditorModal({
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         
         {/* ==============================================================
-            PANEL IZQUIERDO: CAJA DE HERRAMIENTAS Y BLOQUES DINÁMICOS
+            PANEL IZQUIERDO: CAJA DE HERRAMIENTAS Y BLOQUES DINÁMICOS (TEMA BLANCO)
            ============================================================== */}
         <aside
           style={{
-            width: '420px',
+            width: '430px',
             maxWidth: '100%',
-            backgroundColor: '#0b1329',
-            borderRight: '1px solid #1e293b',
+            backgroundColor: '#ffffff',
+            borderRight: '1px solid #e2e8f0',
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
-            flexShrink: 0
+            flexShrink: 0,
+            boxShadow: '2px 0 12px rgba(0,0,0,0.02)'
           }}
         >
           {/* Navegación rápida por categorías de bloques */}
@@ -698,10 +706,10 @@ export default function BannerVisualEditorModal({
             style={{
               display: 'flex',
               overflowX: 'auto',
-              borderBottom: '1px solid #1e293b',
-              backgroundColor: '#090d1a',
-              padding: '0.35rem 0.5rem',
-              gap: '0.3rem'
+              borderBottom: '1px solid #e2e8f0',
+              backgroundColor: '#f8fafc',
+              padding: '0.45rem 0.65rem',
+              gap: '0.35rem'
             }}
           >
             {[
@@ -716,15 +724,17 @@ export default function BannerVisualEditorModal({
                 type="button"
                 onClick={() => setActiveSection(tab.id)}
                 style={{
-                  backgroundColor: activeSection === tab.id ? '#1e293b' : 'transparent',
-                  color: activeSection === tab.id ? '#38bdf8' : '#94a3b8',
-                  border: 'none',
-                  padding: '0.4rem 0.65rem',
+                  backgroundColor: activeSection === tab.id ? '#ffffff' : 'transparent',
+                  color: activeSection === tab.id ? '#16a34a' : '#64748b',
+                  border: activeSection === tab.id ? '1px solid #cbd5e1' : '1px solid transparent',
+                  boxShadow: activeSection === tab.id ? '0 1px 3px rgba(0,0,0,0.05)' : 'none',
+                  padding: '0.4rem 0.75rem',
                   borderRadius: '6px',
                   fontSize: '0.78rem',
                   fontWeight: 700,
                   cursor: 'pointer',
-                  whiteSpace: 'nowrap'
+                  whiteSpace: 'nowrap',
+                  transition: 'all 0.15s ease'
                 }}
               >
                 {tab.label}
@@ -732,16 +742,16 @@ export default function BannerVisualEditorModal({
             ))}
           </nav>
 
-          {/* Contenido del Inspector con scroll suave e inputs ultra veloces */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+          {/* Contenido del Inspector con scroll suave e inputs blancos limpios */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '1.15rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             
             {/* -------------------------------------------------------------
                 SECCIÓN: ESTILO & PLANTILLA BASE
                ------------------------------------------------------------- */}
             {activeSection === 'diseno' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
                     Plantilla Visual del Banner
                   </label>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem' }}>
@@ -757,19 +767,19 @@ export default function BannerVisualEditorModal({
                         type="button"
                         onClick={() => updateField('estilo_plantilla', tpl.id)}
                         style={{
-                          backgroundColor: data.estilo_plantilla === tpl.id ? 'rgba(56, 189, 248, 0.15)' : '#0f172a',
-                          border: data.estilo_plantilla === tpl.id ? '2px solid #38bdf8' : '1px solid #1e293b',
+                          backgroundColor: data.estilo_plantilla === tpl.id ? '#f0fdf4' : '#f8fafc',
+                          border: data.estilo_plantilla === tpl.id ? '2px solid #16a34a' : '1px solid #e2e8f0',
                           borderRadius: '8px',
                           padding: '0.65rem 0.6rem',
                           textAlign: 'left',
                           cursor: 'pointer',
-                          color: '#f8fafc'
+                          transition: 'all 0.15s ease'
                         }}
                       >
-                        <div style={{ fontWeight: 800, fontSize: '0.82rem', color: data.estilo_plantilla === tpl.id ? '#38bdf8' : '#ffffff' }}>
+                        <div style={{ fontWeight: 800, fontSize: '0.82rem', color: data.estilo_plantilla === tpl.id ? '#15803d' : '#1e293b' }}>
                           {tpl.name}
                         </div>
-                        <div style={{ fontSize: '0.68rem', color: '#94a3b8', marginTop: '2px' }}>
+                        <div style={{ fontSize: '0.68rem', color: '#64748b', marginTop: '2px' }}>
                           {tpl.desc}
                         </div>
                       </button>
@@ -778,11 +788,11 @@ export default function BannerVisualEditorModal({
                 </div>
 
                 {/* Color de acento de la marca */}
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
+                <div style={{ backgroundColor: '#f8fafc', padding: '0.85rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
                     Color de Acento de la Marca
                   </label>
-                  <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '0.5rem' }}>
+                  <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap', alignItems: 'center' }}>
                     {PALETA_COLORES.map((c) => (
                       <button
                         key={c.hex}
@@ -794,27 +804,30 @@ export default function BannerVisualEditorModal({
                           height: '28px',
                           borderRadius: '6px',
                           backgroundColor: c.hex,
-                          border: data.color_acento === c.hex ? '3px solid #ffffff' : '1px solid rgba(255,255,255,0.2)',
+                          border: data.color_acento === c.hex ? '3px solid #0f172a' : '1px solid rgba(0,0,0,0.15)',
                           cursor: 'pointer',
-                          boxShadow: data.color_acento === c.hex ? '0 0 10px rgba(255,255,255,0.5)' : 'none'
+                          boxShadow: data.color_acento === c.hex ? '0 0 0 2px #cbd5e1' : 'none'
                         }}
                       />
                     ))}
-                    <input
-                      type="color"
-                      value={data.color_acento || '#22c55e'}
-                      onChange={(e) => updateField('color_acento', e.target.value)}
-                      style={{ width: '30px', height: '30px', border: 'none', background: 'transparent', cursor: 'pointer' }}
-                    />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginLeft: 'auto' }}>
+                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>Selector:</span>
+                      <input
+                        type="color"
+                        value={data.color_acento || '#22c55e'}
+                        onChange={(e) => updateField('color_acento', e.target.value)}
+                        style={{ width: '30px', height: '30px', border: 'none', background: 'transparent', cursor: 'pointer' }}
+                      />
+                    </div>
                   </div>
                 </div>
 
                 {/* Toggles de elementos visibles */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
                     Elementos Visibles en Pantalla
                   </label>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
                     {[
                       { key: 'mostrar_badge', label: '🏷️ Píldora / Insignia Superior' },
                       { key: 'mostrar_cita', label: '💬 Cita / Testimonio de Campesino' },
@@ -827,13 +840,14 @@ export default function BannerVisualEditorModal({
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          backgroundColor: '#0f172a',
-                          padding: '0.55rem 0.75rem',
+                          backgroundColor: '#f8fafc',
+                          padding: '0.6rem 0.85rem',
                           borderRadius: '8px',
-                          border: '1px solid #1e293b',
+                          border: '1px solid #e2e8f0',
                           cursor: 'pointer',
-                          fontSize: '0.8rem',
-                          fontWeight: 600
+                          fontSize: '0.82rem',
+                          fontWeight: 600,
+                          color: '#1e293b'
                         }}
                       >
                         <span>{t.label}</span>
@@ -841,7 +855,7 @@ export default function BannerVisualEditorModal({
                           type="checkbox"
                           checked={Boolean(data[t.key])}
                           onChange={(e) => updateField(t.key, e.target.checked)}
-                          style={{ width: '16px', height: '16px', accentColor: '#16a34a', cursor: 'pointer' }}
+                          style={{ width: '17px', height: '17px', accentColor: '#16a34a', cursor: 'pointer' }}
                         />
                       </label>
                     ))}
@@ -854,10 +868,10 @@ export default function BannerVisualEditorModal({
                 SECCIÓN: TEXTOS, CITA Y BENEFICIOS
                ------------------------------------------------------------- */}
             {activeSection === 'textos' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
                 {/* Insignia Superior */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.3rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
                     Insignia / Categoría Superior
                   </label>
                   <input
@@ -867,11 +881,11 @@ export default function BannerVisualEditorModal({
                     placeholder="Ej: 🌾 LÁCTEOS ARTESANALES / 🥑 COSECHA FRESCA"
                     style={{
                       width: '100%',
-                      backgroundColor: '#0f172a',
-                      border: '1px solid #1e293b',
+                      backgroundColor: '#ffffff',
+                      border: '1.5px solid #cbd5e1',
                       borderRadius: '8px',
-                      padding: '0.55rem 0.75rem',
-                      color: '#f8fafc',
+                      padding: '0.6rem 0.85rem',
+                      color: '#0f172a',
                       fontSize: '0.85rem',
                       boxSizing: 'border-box'
                     }}
@@ -880,7 +894,7 @@ export default function BannerVisualEditorModal({
 
                 {/* Título Principal */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.3rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
                     Título Principal <span style={{ color: '#ef4444' }}>*</span>
                   </label>
                   <textarea
@@ -890,12 +904,12 @@ export default function BannerVisualEditorModal({
                     placeholder="Ej: Queso Costeño y Lácteos Campesinos"
                     style={{
                       width: '100%',
-                      backgroundColor: '#0f172a',
-                      border: '1px solid #1e293b',
+                      backgroundColor: '#ffffff',
+                      border: '1.5px solid #cbd5e1',
                       borderRadius: '8px',
-                      padding: '0.55rem 0.75rem',
-                      color: '#f8fafc',
-                      fontSize: '0.9rem',
+                      padding: '0.6rem 0.85rem',
+                      color: '#0f172a',
+                      fontSize: '0.92rem',
                       fontWeight: 700,
                       boxSizing: 'border-box'
                     }}
@@ -905,7 +919,7 @@ export default function BannerVisualEditorModal({
                 {/* Cita Campesina */}
                 {data.mostrar_cita && (
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#facc15', textTransform: 'uppercase', marginBottom: '0.3rem' }}>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#b45309', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
                       Cita Campesina / Testimonio
                     </label>
                     <textarea
@@ -915,12 +929,13 @@ export default function BannerVisualEditorModal({
                       placeholder='Ej: "Queso costeño fresco elaborado artesanalmente con leche 100% pura..."'
                       style={{
                         width: '100%',
-                        backgroundColor: '#0f172a',
-                        border: '1px solid #d97706',
+                        backgroundColor: '#fffbeb',
+                        border: '1.5px solid #fcd34d',
                         borderRadius: '8px',
-                        padding: '0.55rem 0.75rem',
-                        color: '#fef08a',
-                        fontSize: '0.82rem',
+                        padding: '0.6rem 0.85rem',
+                        color: '#92400e',
+                        fontSize: '0.85rem',
+                        fontStyle: 'italic',
                         boxSizing: 'border-box'
                       }}
                     />
@@ -929,7 +944,7 @@ export default function BannerVisualEditorModal({
 
                 {/* Subtítulo / Descripción */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.3rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
                     Subtítulo o Descripción
                   </label>
                   <textarea
@@ -939,12 +954,12 @@ export default function BannerVisualEditorModal({
                     placeholder="Ej: Directamente desde los Montes de María a tu hogar."
                     style={{
                       width: '100%',
-                      backgroundColor: '#0f172a',
-                      border: '1px solid #1e293b',
+                      backgroundColor: '#ffffff',
+                      border: '1.5px solid #cbd5e1',
                       borderRadius: '8px',
-                      padding: '0.55rem 0.75rem',
-                      color: '#f8fafc',
-                      fontSize: '0.82rem',
+                      padding: '0.6rem 0.85rem',
+                      color: '#0f172a',
+                      fontSize: '0.85rem',
                       boxSizing: 'border-box'
                     }}
                   />
@@ -953,7 +968,7 @@ export default function BannerVisualEditorModal({
                 {/* Productor Verificado */}
                 {data.mostrar_productor && (
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#4ade80', textTransform: 'uppercase', marginBottom: '0.3rem' }}>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#15803d', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
                       Nombre del Productor / Campesino
                     </label>
                     <input
@@ -963,12 +978,12 @@ export default function BannerVisualEditorModal({
                       placeholder="Ej: Montes de María • Productor Local"
                       style={{
                         width: '100%',
-                        backgroundColor: '#0f172a',
-                        border: '1px solid #1e293b',
+                        backgroundColor: '#ffffff',
+                        border: '1.5px solid #cbd5e1',
                         borderRadius: '8px',
-                        padding: '0.55rem 0.75rem',
-                        color: '#f8fafc',
-                        fontSize: '0.82rem',
+                        padding: '0.6rem 0.85rem',
+                        color: '#0f172a',
+                        fontSize: '0.85rem',
                         boxSizing: 'border-box'
                       }}
                     />
@@ -977,10 +992,10 @@ export default function BannerVisualEditorModal({
 
                 {/* Características / Píldoras de Ventajas */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.4rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: '0.45rem' }}>
                     Ventajas y Características (Chips con Check)
                   </label>
-                  <div style={{ display: 'flex', gap: '0.35rem', marginBottom: '0.5rem' }}>
+                  <div style={{ display: 'flex', gap: '0.45rem', marginBottom: '0.6rem' }}>
                     <input
                       type="text"
                       value={newFeatureText}
@@ -989,11 +1004,11 @@ export default function BannerVisualEditorModal({
                       placeholder="Ej: Queso Costeño Fresco"
                       style={{
                         flex: 1,
-                        backgroundColor: '#0f172a',
-                        border: '1px solid #1e293b',
+                        backgroundColor: '#ffffff',
+                        border: '1.5px solid #cbd5e1',
                         borderRadius: '6px',
-                        padding: '0.45rem 0.65rem',
-                        color: '#f8fafc',
+                        padding: '0.5rem 0.75rem',
+                        color: '#0f172a',
                         fontSize: '0.82rem'
                       }}
                     />
@@ -1004,7 +1019,7 @@ export default function BannerVisualEditorModal({
                         backgroundColor: '#16a34a',
                         color: '#ffffff',
                         border: 'none',
-                        padding: '0.45rem 0.75rem',
+                        padding: '0.5rem 0.85rem',
                         borderRadius: '6px',
                         fontWeight: 700,
                         fontSize: '0.8rem',
@@ -1016,7 +1031,7 @@ export default function BannerVisualEditorModal({
                   </div>
 
                   {/* Lista de chips existentes */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                     {data.features.map((feat, fIdx) => (
                       <div
                         key={fIdx}
@@ -1024,15 +1039,16 @@ export default function BannerVisualEditorModal({
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          backgroundColor: '#0f172a',
-                          padding: '0.35rem 0.65rem',
+                          backgroundColor: '#f8fafc',
+                          padding: '0.45rem 0.75rem',
                           borderRadius: '6px',
-                          border: '1px solid #1e293b',
-                          fontSize: '0.78rem'
+                          border: '1px solid #e2e8f0',
+                          fontSize: '0.8rem',
+                          color: '#1e293b'
                         }}
                       >
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                          <i className="fa fa-check-circle" style={{ color: '#4ade80' }} />
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <i className="fa fa-check-circle" style={{ color: '#16a34a' }} />
                           {feat}
                         </span>
                         <button
@@ -1041,9 +1057,9 @@ export default function BannerVisualEditorModal({
                           style={{
                             background: 'transparent',
                             border: 'none',
-                            color: '#ef4444',
+                            color: '#dc2626',
                             cursor: 'pointer',
-                            fontSize: '0.85rem'
+                            fontSize: '0.9rem'
                           }}
                         >
                           ✕
@@ -1056,12 +1072,12 @@ export default function BannerVisualEditorModal({
             )}
 
             {/* -------------------------------------------------------------
-                SECCIÓN: BOTONES DE ACCIÓN (100% DINÁMICOS)
+                SECCIÓN: BOTONES DE ACCIÓN (100% DINÁMICOS - TEMA BLANCO)
                ------------------------------------------------------------- */}
             {activeSection === 'botones' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>
+                  <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>
                     Botones de Acción ({data.botones.length})
                   </label>
                   <button
@@ -1071,14 +1087,15 @@ export default function BannerVisualEditorModal({
                       backgroundColor: '#16a34a',
                       color: '#ffffff',
                       border: 'none',
-                      padding: '0.4rem 0.75rem',
+                      padding: '0.45rem 0.85rem',
                       borderRadius: '6px',
                       fontSize: '0.78rem',
                       fontWeight: 800,
                       cursor: 'pointer',
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: '0.3rem'
+                      gap: '0.35rem',
+                      boxShadow: '0 2px 6px rgba(22, 163, 74, 0.25)'
                     }}
                   >
                     <i className="fa fa-plus" /> Agregar Botón
@@ -1086,7 +1103,7 @@ export default function BannerVisualEditorModal({
                 </div>
 
                 {data.botones.length === 0 ? (
-                  <div style={{ textAlign: 'center', padding: '1.5rem', backgroundColor: '#0f172a', borderRadius: '8px', color: '#94a3b8', fontSize: '0.82rem' }}>
+                  <div style={{ textAlign: 'center', padding: '1.5rem', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.85rem' }}>
                     No hay botones creados. Haz clic en <strong>Agregar Botón</strong> para crear uno.
                   </div>
                 ) : (
@@ -1095,26 +1112,27 @@ export default function BannerVisualEditorModal({
                       <div
                         key={btn.id || bIdx}
                         style={{
-                          backgroundColor: '#0f172a',
-                          border: '1px solid #1e293b',
-                          borderRadius: '8px',
-                          padding: '0.75rem',
+                          backgroundColor: '#f8fafc',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '10px',
+                          padding: '0.85rem',
                           display: 'flex',
                           flexDirection: 'column',
-                          gap: '0.6rem'
+                          gap: '0.65rem',
+                          boxShadow: '0 1px 4px rgba(0,0,0,0.03)'
                         }}
                       >
                         {/* Cabecera del Botón */}
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                          <span style={{ fontWeight: 800, fontSize: '0.82rem', color: '#38bdf8' }}>
+                          <span style={{ fontWeight: 800, fontSize: '0.85rem', color: '#0284c7' }}>
                             Botón #{bIdx + 1}
                           </span>
-                          <div style={{ display: 'flex', gap: '0.3rem' }}>
+                          <div style={{ display: 'flex', gap: '0.35rem' }}>
                             <button
                               type="button"
                               onClick={() => handleMoveButton(bIdx, -1)}
                               disabled={bIdx === 0}
-                              style={{ background: '#1e293b', color: '#ffffff', border: 'none', borderRadius: '4px', width: '22px', height: '22px', cursor: 'pointer', fontSize: '0.7rem' }}
+                              style={{ background: '#ffffff', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '4px', width: '24px', height: '24px', cursor: 'pointer', fontSize: '0.7rem' }}
                             >
                               ▲
                             </button>
@@ -1122,14 +1140,14 @@ export default function BannerVisualEditorModal({
                               type="button"
                               onClick={() => handleMoveButton(bIdx, 1)}
                               disabled={bIdx === data.botones.length - 1}
-                              style={{ background: '#1e293b', color: '#ffffff', border: 'none', borderRadius: '4px', width: '22px', height: '22px', cursor: 'pointer', fontSize: '0.7rem' }}
+                              style={{ background: '#ffffff', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '4px', width: '24px', height: '24px', cursor: 'pointer', fontSize: '0.7rem' }}
                             >
                               ▼
                             </button>
                             <button
                               type="button"
                               onClick={() => handleRemoveButton(bIdx)}
-                              style={{ background: '#451a1a', color: '#f87171', border: 'none', borderRadius: '4px', width: '22px', height: '22px', cursor: 'pointer', fontSize: '0.7rem' }}
+                              style={{ background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5', borderRadius: '4px', width: '24px', height: '24px', cursor: 'pointer', fontSize: '0.7rem' }}
                             >
                               🗑️
                             </button>
@@ -1138,7 +1156,7 @@ export default function BannerVisualEditorModal({
 
                         {/* Texto del Botón */}
                         <div>
-                          <label style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block', marginBottom: '2px' }}>Texto visible</label>
+                          <label style={{ fontSize: '0.72rem', color: '#475569', fontWeight: 700, display: 'block', marginBottom: '2px' }}>Texto visible</label>
                           <input
                             type="text"
                             value={btn.texto || ''}
@@ -1146,12 +1164,12 @@ export default function BannerVisualEditorModal({
                             placeholder="Ej: Comprar Cosecha"
                             style={{
                               width: '100%',
-                              backgroundColor: '#020617',
-                              border: '1px solid #1e293b',
+                              backgroundColor: '#ffffff',
+                              border: '1.5px solid #cbd5e1',
                               borderRadius: '6px',
-                              padding: '0.45rem 0.6rem',
-                              color: '#ffffff',
-                              fontSize: '0.8rem',
+                              padding: '0.5rem 0.65rem',
+                              color: '#0f172a',
+                              fontSize: '0.82rem',
                               boxSizing: 'border-box'
                             }}
                           />
@@ -1159,7 +1177,7 @@ export default function BannerVisualEditorModal({
 
                         {/* Enlace / Link */}
                         <div>
-                          <label style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block', marginBottom: '2px' }}>Enlace / Destino</label>
+                          <label style={{ fontSize: '0.72rem', color: '#475569', fontWeight: 700, display: 'block', marginBottom: '2px' }}>Enlace / Destino</label>
                           <input
                             type="text"
                             value={btn.link || ''}
@@ -1167,28 +1185,28 @@ export default function BannerVisualEditorModal({
                             placeholder="Ej: /catalogo o https://wa.me/57..."
                             style={{
                               width: '100%',
-                              backgroundColor: '#020617',
-                              border: '1px solid #1e293b',
+                              backgroundColor: '#ffffff',
+                              border: '1.5px solid #cbd5e1',
                               borderRadius: '6px',
-                              padding: '0.45rem 0.6rem',
-                              color: '#ffffff',
-                              fontSize: '0.8rem',
+                              padding: '0.5rem 0.65rem',
+                              color: '#0f172a',
+                              fontSize: '0.82rem',
                               boxSizing: 'border-box'
                             }}
                           />
-                          <div style={{ display: 'flex', gap: '0.3rem', marginTop: '4px' }}>
+                          <div style={{ display: 'flex', gap: '0.35rem', marginTop: '4px' }}>
                             {['/catalogo', '/vendedor', 'https://wa.me/573000000000'].map((sug) => (
                               <button
                                 key={sug}
                                 type="button"
                                 onClick={() => handleUpdateButton(bIdx, 'link', sug)}
                                 style={{
-                                  backgroundColor: '#1e293b',
-                                  color: '#cbd5e1',
-                                  border: 'none',
-                                  padding: '2px 6px',
+                                  backgroundColor: '#ffffff',
+                                  color: '#334155',
+                                  border: '1px solid #cbd5e1',
+                                  padding: '2px 8px',
                                   borderRadius: '4px',
-                                  fontSize: '0.65rem',
+                                  fontSize: '0.68rem',
                                   cursor: 'pointer'
                                 }}
                               >
@@ -1201,18 +1219,18 @@ export default function BannerVisualEditorModal({
                         {/* Estilo y Icono */}
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                           <div>
-                            <label style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block', marginBottom: '2px' }}>Estilo Visual</label>
+                            <label style={{ fontSize: '0.72rem', color: '#475569', fontWeight: 700, display: 'block', marginBottom: '2px' }}>Estilo Visual</label>
                             <select
                               value={btn.estilo || 'primary'}
                               onChange={(e) => handleUpdateButton(bIdx, 'estilo', e.target.value)}
                               style={{
                                 width: '100%',
-                                backgroundColor: '#020617',
-                                border: '1px solid #1e293b',
+                                backgroundColor: '#ffffff',
+                                border: '1.5px solid #cbd5e1',
                                 borderRadius: '6px',
                                 padding: '0.45rem',
-                                color: '#ffffff',
-                                fontSize: '0.78rem'
+                                color: '#0f172a',
+                                fontSize: '0.8rem'
                               }}
                             >
                               <option value="primary">🟢 Relleno Principal</option>
@@ -1224,23 +1242,23 @@ export default function BannerVisualEditorModal({
                           </div>
 
                           <div>
-                            <label style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block', marginBottom: '2px' }}>Icono</label>
+                            <label style={{ fontSize: '0.72rem', color: '#475569', fontWeight: 700, display: 'block', marginBottom: '2px' }}>Icono</label>
                             <select
                               value={btn.icono || 'fa-arrow-right'}
                               onChange={(e) => handleUpdateButton(bIdx, 'icono', e.target.value)}
                               style={{
                                 width: '100%',
-                                backgroundColor: '#020617',
-                                border: '1px solid #1e293b',
+                                backgroundColor: '#ffffff',
+                                border: '1.5px solid #cbd5e1',
                                 borderRadius: '6px',
                                 padding: '0.45rem',
-                                color: '#ffffff',
-                                fontSize: '0.78rem'
+                                color: '#0f172a',
+                                fontSize: '0.8rem'
                               }}
                             >
                               {ICONOS_BOTON.map((ico) => (
                                 <option key={ico.val} value={ico.val}>
-                                  {ico.label} ({ico.val.replace('fa-', '')})
+                                  {ico.label}
                                 </option>
                               ))}
                             </select>
@@ -1257,102 +1275,102 @@ export default function BannerVisualEditorModal({
                 SECCIÓN: TARJETA DE PRODUCTO FLOTANTE & CUPÓN
                ------------------------------------------------------------- */}
             {activeSection === 'tarjeta' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#f8fafc', padding: '0.65rem 0.85rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 800, color: '#1e293b' }}>
                     Tarjeta de Producto Flotante
                   </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', cursor: 'pointer' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.82rem', fontWeight: 700, color: '#16a34a', cursor: 'pointer' }}>
                     <span>Activa</span>
                     <input
                       type="checkbox"
                       checked={Boolean(data.mostrar_tarjeta)}
                       onChange={(e) => updateField('mostrar_tarjeta', e.target.checked)}
-                      style={{ accentColor: '#16a34a' }}
+                      style={{ accentColor: '#16a34a', width: '16px', height: '16px' }}
                     />
                   </label>
                 </div>
 
                 {data.mostrar_tarjeta && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.7rem', color: '#94a3b8', marginBottom: '2px' }}>Nombre del Producto</label>
+                      <label style={{ display: 'block', fontSize: '0.72rem', color: '#475569', fontWeight: 700, marginBottom: '2px' }}>Nombre del Producto</label>
                       <input
                         type="text"
                         value={data.tarjeta_titulo || ''}
                         onChange={(e) => updateField('tarjeta_titulo', e.target.value)}
                         placeholder="Ej: Queso Costeño"
-                        style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '6px', padding: '0.5rem', color: '#fff', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                        style={{ width: '100%', backgroundColor: '#ffffff', border: '1.5px solid #cbd5e1', borderRadius: '6px', padding: '0.55rem', color: '#0f172a', fontSize: '0.85rem', boxSizing: 'border-box' }}
                       />
                     </div>
 
                     <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '0.5rem' }}>
                       <div>
-                        <label style={{ display: 'block', fontSize: '0.7rem', color: '#94a3b8', marginBottom: '2px' }}>Precio y Unidad</label>
+                        <label style={{ display: 'block', fontSize: '0.72rem', color: '#475569', fontWeight: 700, marginBottom: '2px' }}>Precio y Unidad</label>
                         <input
                           type="text"
                           value={data.tarjeta_precio || ''}
                           onChange={(e) => updateField('tarjeta_precio', e.target.value)}
                           placeholder="Ej: $25.000 COP / kg"
-                          style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '6px', padding: '0.5rem', color: '#facc15', fontWeight: 700, fontSize: '0.82rem', boxSizing: 'border-box' }}
+                          style={{ width: '100%', backgroundColor: '#ffffff', border: '1.5px solid #cbd5e1', borderRadius: '6px', padding: '0.55rem', color: '#16a34a', fontWeight: 800, fontSize: '0.85rem', boxSizing: 'border-box' }}
                         />
                       </div>
                       <div>
-                        <label style={{ display: 'block', fontSize: '0.7rem', color: '#94a3b8', marginBottom: '2px' }}>Sello Superior</label>
+                        <label style={{ display: 'block', fontSize: '0.72rem', color: '#475569', fontWeight: 700, marginBottom: '2px' }}>Sello Superior</label>
                         <input
                           type="text"
                           value={data.tarjeta_badge_top || ''}
                           onChange={(e) => updateField('tarjeta_badge_top', e.target.value)}
                           placeholder="Ej: 🧀 100% Artesanal"
-                          style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '6px', padding: '0.5rem', color: '#fff', fontSize: '0.82rem', boxSizing: 'border-box' }}
+                          style={{ width: '100%', backgroundColor: '#ffffff', border: '1.5px solid #cbd5e1', borderRadius: '6px', padding: '0.55rem', color: '#0f172a', fontSize: '0.85rem', boxSizing: 'border-box' }}
                         />
                       </div>
                     </div>
 
                     {/* Imagen de Producto */}
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.7rem', color: '#94a3b8', marginBottom: '2px' }}>Imagen del Producto</label>
+                    <div style={{ backgroundColor: '#f8fafc', padding: '0.85rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                      <label style={{ display: 'block', fontSize: '0.72rem', color: '#475569', fontWeight: 700, marginBottom: '4px' }}>Foto del Producto</label>
                       <input
                         type="text"
                         value={data.tarjeta_imagen || ''}
                         onChange={(e) => updateField('tarjeta_imagen', e.target.value)}
                         placeholder="URL de imagen o sube un archivo abajo"
-                        style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '6px', padding: '0.5rem', color: '#fff', fontSize: '0.8rem', boxSizing: 'border-box', marginBottom: '4px' }}
+                        style={{ width: '100%', backgroundColor: '#ffffff', border: '1.5px solid #cbd5e1', borderRadius: '6px', padding: '0.5rem', color: '#0f172a', fontSize: '0.8rem', boxSizing: 'border-box', marginBottom: '6px' }}
                       />
                       <input
                         type="file"
                         accept="image/*"
                         onChange={(e) => handleFileChange('tarjeta_imagen', e)}
-                        style={{ fontSize: '0.75rem', color: '#94a3b8' }}
+                        style={{ fontSize: '0.78rem', color: '#475569' }}
                       />
                     </div>
                   </div>
                 )}
 
                 {/* Cupón Promocional Opcional */}
-                <div style={{ marginTop: '0.5rem', borderTop: '1px solid #1e293b', paddingTop: '0.85rem' }}>
-                  <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#f59e0b', textTransform: 'uppercase', display: 'block', marginBottom: '0.4rem' }}>
+                <div style={{ marginTop: '0.5rem', borderTop: '1px solid #e2e8f0', paddingTop: '0.85rem' }}>
+                  <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#b45309', textTransform: 'uppercase', display: 'block', marginBottom: '0.5rem' }}>
                     🎟️ Cupón de Descuento (Opcional)
                   </label>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                     <div>
-                      <label style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block', marginBottom: '2px' }}>Código</label>
+                      <label style={{ fontSize: '0.72rem', color: '#475569', fontWeight: 700, display: 'block', marginBottom: '2px' }}>Código</label>
                       <input
                         type="text"
                         value={data.cupon_codigo || ''}
                         onChange={(e) => updateField('cupon_codigo', e.target.value.toUpperCase())}
                         placeholder="Ej: QUESO15"
-                        style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '6px', padding: '0.45rem', color: '#facc15', fontWeight: 800, fontFamily: 'monospace', fontSize: '0.85rem', boxSizing: 'border-box' }}
+                        style={{ width: '100%', backgroundColor: '#ffffff', border: '1.5px solid #cbd5e1', borderRadius: '6px', padding: '0.5rem', color: '#d97706', fontWeight: 800, fontFamily: 'monospace', fontSize: '0.88rem', boxSizing: 'border-box' }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block', marginBottom: '2px' }}>Texto Promocional</label>
+                      <label style={{ fontSize: '0.72rem', color: '#475569', fontWeight: 700, display: 'block', marginBottom: '2px' }}>Texto Promocional</label>
                       <input
                         type="text"
                         value={data.cupon_texto || ''}
                         onChange={(e) => updateField('cupon_texto', e.target.value)}
                         placeholder="Ej: 15% de descuento"
-                        style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '6px', padding: '0.45rem', color: '#fff', fontSize: '0.8rem', boxSizing: 'border-box' }}
+                        style={{ width: '100%', backgroundColor: '#ffffff', border: '1.5px solid #cbd5e1', borderRadius: '6px', padding: '0.5rem', color: '#0f172a', fontSize: '0.82rem', boxSizing: 'border-box' }}
                       />
                     </div>
                   </div>
@@ -1364,9 +1382,9 @@ export default function BannerVisualEditorModal({
                 SECCIÓN: FONDO, IMAGEN Y EFECTOS
                ------------------------------------------------------------- */}
             {activeSection === 'fondo' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.3rem' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
+                <div style={{ backgroundColor: '#f8fafc', padding: '0.85rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
                     Imagen de Fondo del Banner
                   </label>
                   <input
@@ -1374,34 +1392,36 @@ export default function BannerVisualEditorModal({
                     value={data.imagen_fondo || ''}
                     onChange={(e) => updateField('imagen_fondo', e.target.value)}
                     placeholder="URL de imagen de fondo"
-                    style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '6px', padding: '0.5rem', color: '#fff', fontSize: '0.8rem', boxSizing: 'border-box', marginBottom: '6px' }}
+                    style={{ width: '100%', backgroundColor: '#ffffff', border: '1.5px solid #cbd5e1', borderRadius: '6px', padding: '0.55rem', color: '#0f172a', fontSize: '0.82rem', boxSizing: 'border-box', marginBottom: '6px' }}
                   />
                   <input
                     type="file"
                     accept="image/*"
                     onChange={(e) => handleFileChange('imagen_fondo', e)}
-                    style={{ fontSize: '0.75rem', color: '#94a3b8' }}
+                    style={{ fontSize: '0.78rem', color: '#475569' }}
                   />
                 </div>
 
                 {/* Galería rápida de fondos campestres */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.72rem', color: '#94a3b8', marginBottom: '0.4rem' }}>Fondos Campestres Recomendados</label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.4rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.74rem', color: '#475569', fontWeight: 700, marginBottom: '0.45rem' }}>Fondos Campestres Recomendados</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.45rem' }}>
                     {FONDOS_PRESET.map((f, idx) => (
                       <button
                         key={idx}
                         type="button"
                         onClick={() => updateField('imagen_fondo', f.url)}
                         style={{
-                          backgroundColor: data.imagen_fondo === f.url ? '#16a34a' : '#0f172a',
-                          border: '1px solid #1e293b',
+                          backgroundColor: data.imagen_fondo === f.url ? '#ecfdf5' : '#ffffff',
+                          border: data.imagen_fondo === f.url ? '2px solid #16a34a' : '1px solid #e2e8f0',
                           borderRadius: '6px',
-                          padding: '0.35rem 0.5rem',
-                          color: '#ffffff',
-                          fontSize: '0.72rem',
+                          padding: '0.4rem 0.6rem',
+                          color: data.imagen_fondo === f.url ? '#15803d' : '#1e293b',
+                          fontWeight: data.imagen_fondo === f.url ? 800 : 500,
+                          fontSize: '0.74rem',
                           textAlign: 'left',
-                          cursor: 'pointer'
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease'
                         }}
                       >
                         {f.label}
@@ -1411,12 +1431,12 @@ export default function BannerVisualEditorModal({
                 </div>
 
                 {/* Desenfoque (Blur) en tiempo real */}
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase' }}>
+                <div style={{ backgroundColor: '#f8fafc', padding: '0.85rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <label style={{ fontSize: '0.78rem', fontWeight: 800, color: '#475569', textTransform: 'uppercase' }}>
                       Desenfoque de Fondo (Blur)
                     </label>
-                    <span style={{ fontSize: '0.78rem', color: '#38bdf8', fontWeight: 700 }}>
+                    <span style={{ fontSize: '0.82rem', color: '#0284c7', fontWeight: 800 }}>
                       {data.filtro_blur || 0}px
                     </span>
                   </div>
@@ -1427,30 +1447,30 @@ export default function BannerVisualEditorModal({
                     step="1"
                     value={data.filtro_blur || 0}
                     onChange={(e) => updateField('filtro_blur', Number(e.target.value))}
-                    style={{ width: '100%', accentColor: '#38bdf8', cursor: 'pointer' }}
+                    style={{ width: '100%', accentColor: '#0284c7', cursor: 'pointer' }}
                   />
                 </div>
 
                 {/* Orden de diapositiva y activo */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid #1e293b' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid #e2e8f0' }}>
                   <div>
-                    <label style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block', marginBottom: '2px' }}>Orden en Carrusel</label>
+                    <label style={{ fontSize: '0.72rem', color: '#475569', fontWeight: 700, display: 'block', marginBottom: '2px' }}>Orden en Carrusel</label>
                     <input
                       type="number"
                       value={data.orden || 0}
                       onChange={(e) => updateField('orden', Number(e.target.value))}
-                      style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '6px', padding: '0.45rem', color: '#fff', fontSize: '0.8rem', boxSizing: 'border-box' }}
+                      style={{ width: '100%', backgroundColor: '#ffffff', border: '1.5px solid #cbd5e1', borderRadius: '6px', padding: '0.5rem', color: '#0f172a', fontSize: '0.85rem', boxSizing: 'border-box' }}
                     />
                   </div>
                   <div>
-                    <label style={{ fontSize: '0.7rem', color: '#94a3b8', display: 'block', marginBottom: '2px' }}>Estado</label>
+                    <label style={{ fontSize: '0.72rem', color: '#475569', fontWeight: 700, display: 'block', marginBottom: '2px' }}>Estado</label>
                     <select
                       value={data.activo !== undefined ? data.activo : 1}
                       onChange={(e) => updateField('activo', Number(e.target.value))}
-                      style={{ width: '100%', backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '6px', padding: '0.45rem', color: '#fff', fontSize: '0.8rem' }}
+                      style={{ width: '100%', backgroundColor: '#ffffff', border: '1.5px solid #cbd5e1', borderRadius: '6px', padding: '0.5rem', color: '#0f172a', fontSize: '0.82rem' }}
                     >
-                      <option value={1}>Activo (Visible)</option>
-                      <option value={0}>Inactivo (Borrador)</option>
+                      <option value={1}>🟢 Activo (Visible)</option>
+                      <option value={0}>🔴 Inactivo (Borrador)</option>
                     </select>
                   </div>
                 </div>
@@ -1461,18 +1481,18 @@ export default function BannerVisualEditorModal({
         </aside>
 
         {/* ==============================================================
-            PANEL DERECHO: CANVAS INTERACTIVO EN VIVO (Live Visual Stage)
+            PANEL DERECHO: CANVAS INTERACTIVO EN VIVO (Mesa de Trabajo Luminosa)
            ============================================================== */}
         <main
           style={{
             flex: 1,
-            backgroundColor: '#020617',
+            backgroundColor: '#f1f5f9',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
             overflowY: 'auto',
-            padding: '1.5rem',
+            padding: '1.75rem',
             position: 'relative'
           }}
         >
@@ -1484,33 +1504,33 @@ export default function BannerVisualEditorModal({
               transition: 'max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               borderRadius: '16px',
               overflow: 'hidden',
-              boxShadow: '0 25px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.08)',
-              backgroundColor: '#07160c'
+              boxShadow: '0 20px 45px rgba(15, 23, 42, 0.12), 0 0 0 1px rgba(15, 23, 42, 0.08)',
+              backgroundColor: '#ffffff'
             }}
           >
-            {/* Barra simulada del navegador */}
+            {/* Barra simulada del navegador (Limpia, blanca) */}
             <div
               style={{
-                backgroundColor: '#0f172a',
-                padding: '0.45rem 0.85rem',
-                borderBottom: '1px solid #1e293b',
+                backgroundColor: '#ffffff',
+                padding: '0.55rem 1rem',
+                borderBottom: '1px solid #e2e8f0',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                fontSize: '0.72rem',
-                color: '#94a3b8'
+                fontSize: '0.75rem',
+                color: '#64748b'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                <span style={{ width: '9px', height: '9px', borderRadius: '50%', backgroundColor: '#ef4444' }} />
-                <span style={{ width: '9px', height: '9px', borderRadius: '50%', backgroundColor: '#f59e0b' }} />
-                <span style={{ width: '9px', height: '9px', borderRadius: '50%', backgroundColor: '#22c55e' }} />
-                <span style={{ marginLeft: '8px', color: '#cbd5e1', fontWeight: 600 }}>
-                  delosmontesdemaria.dev {viewDevice === 'mobile' ? '(Vista Móvil)' : '(Vista Escritorio)'}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#ef4444' }} />
+                <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#f59e0b' }} />
+                <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#22c55e' }} />
+                <span style={{ marginLeft: '10px', color: '#334155', fontWeight: 600 }}>
+                  delosmontesdemaria.dev {viewDevice === 'mobile' ? '(Vista Celular)' : '(Vista Escritorio)'}
                 </span>
               </div>
-              <div style={{ fontSize: '0.68rem', color: '#4ade80', fontWeight: 700 }}>
-                ⚡ Vista Previa Interactiva en Vivo
+              <div style={{ fontSize: '0.72rem', color: '#16a34a', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <i className="fa fa-bolt" /> Vista Previa Interactiva en Vivo
               </div>
             </div>
 
@@ -1518,7 +1538,6 @@ export default function BannerVisualEditorModal({
             <HeroSlideRenderer
               slide={{
                 ...data,
-                // Mapear compatibilidad de variables
                 accentColor: data.color_acento,
                 backgroundImage: data.imagen_fondo,
                 categoryName: data.categoria_nombre,
@@ -1533,41 +1552,41 @@ export default function BannerVisualEditorModal({
             />
           </div>
 
-          <p style={{ marginTop: '0.85rem', fontSize: '0.75rem', color: '#64748b', textAlign: 'center' }}>
-            Los botones, desenfoques y textos se actualizan instantáneamente sin recargar la página.
+          <p style={{ marginTop: '1rem', fontSize: '0.78rem', color: '#64748b', textAlign: 'center' }}>
+            ✨ Los cambios de botones, títulos, tarjeta y colores se reflejan en tiempo real con 0 lag.
           </p>
         </main>
       </div>
 
       {/* ==============================================================
-          MODAL FLOTANTE DE DISEÑOS PREVIOS / PLANTILLAS
+          MODAL FLOTANTE DE DISEÑOS PREVIOS / PLANTILLAS (TEMA BLANCO)
          ============================================================== */}
       {showPresetsModal && (
         <div
           style={{
             position: 'fixed',
             inset: 0,
-            backgroundColor: 'rgba(0,0,0,0.75)',
+            backgroundColor: 'rgba(15, 23, 42, 0.55)',
             backdropFilter: 'blur(8px)',
             zIndex: 1000000,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: '1rem'
+            padding: '1.25rem'
           }}
         >
           <div
             style={{
-              backgroundColor: '#0f172a',
-              border: '1px solid #1e293b',
+              backgroundColor: '#ffffff',
+              border: '1px solid #e2e8f0',
               borderRadius: '16px',
-              maxWidth: '850px',
+              maxWidth: '860px',
               width: '100%',
               maxHeight: '90vh',
               display: 'flex',
               flexDirection: 'column',
               overflow: 'hidden',
-              boxShadow: '0 25px 60px rgba(0,0,0,0.8)'
+              boxShadow: '0 25px 60px rgba(0,0,0,0.2)'
             }}
           >
             <div
@@ -1575,15 +1594,15 @@ export default function BannerVisualEditorModal({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '1rem 1.25rem',
-                borderBottom: '1px solid #1e293b'
+                padding: '1.15rem 1.5rem',
+                borderBottom: '1px solid #e2e8f0'
               }}
             >
               <div>
-                <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#f8fafc' }}>
+                <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>
                   ✨ Galería de Diseños Previos & Plantillas
                 </h3>
-                <p style={{ margin: 0, fontSize: '0.78rem', color: '#94a3b8' }}>
+                <p style={{ margin: '2px 0 0 0', fontSize: '0.8rem', color: '#64748b' }}>
                   Elige cualquiera como punto de partida. Luego podrás editar o borrar cualquier botón o texto.
                 </p>
               </div>
@@ -1591,32 +1610,39 @@ export default function BannerVisualEditorModal({
                 type="button"
                 onClick={() => setShowPresetsModal(false)}
                 style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: '#94a3b8',
-                  fontSize: '1.2rem',
-                  cursor: 'pointer'
+                  background: '#f1f5f9',
+                  border: '1px solid #e2e8f0',
+                  color: '#64748b',
+                  fontSize: '1.1rem',
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
                 }}
               >
                 ✕
               </button>
             </div>
 
-            <div style={{ flex: 1, overflowY: 'auto', padding: '1.25rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1rem' }}>
+            <div style={{ flex: 1, overflowY: 'auto', padding: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '1.15rem' }}>
               {PRESET_HERO_DESIGNS.map((p) => (
                 <div
                   key={p.id}
                   style={{
-                    backgroundColor: '#1e293b',
+                    backgroundColor: '#ffffff',
                     borderRadius: '12px',
-                    border: '1px solid #334155',
+                    border: '1px solid #e2e8f0',
                     overflow: 'hidden',
                     display: 'flex',
                     flexDirection: 'column',
-                    transition: 'transform 0.2s ease, border-color 0.2s ease'
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                    transition: 'transform 0.2s ease, box-shadow 0.2s ease'
                   }}
                 >
-                  <div style={{ height: '90px', position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ height: '95px', position: 'relative', overflow: 'hidden' }}>
                     <img
                       src={p.imagen_fondo}
                       alt={p.nombre}
@@ -1626,7 +1652,7 @@ export default function BannerVisualEditorModal({
                       style={{
                         position: 'absolute',
                         inset: 0,
-                        background: `linear-gradient(to top, #1e293b 0%, rgba(30, 41, 59, 0.4) 100%)`
+                        background: `linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.1) 100%)`
                       }}
                     />
                     <span
@@ -1636,9 +1662,9 @@ export default function BannerVisualEditorModal({
                         left: '8px',
                         backgroundColor: p.color_acento,
                         color: '#ffffff',
-                        fontSize: '0.65rem',
+                        fontSize: '0.68rem',
                         fontWeight: 800,
-                        padding: '2px 6px',
+                        padding: '2px 8px',
                         borderRadius: '4px'
                       }}
                     >
@@ -1646,12 +1672,12 @@ export default function BannerVisualEditorModal({
                     </span>
                   </div>
 
-                  <div style={{ padding: '0.85rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                  <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                     <div>
-                      <h4 style={{ margin: '0 0 4px 0', fontSize: '0.92rem', fontWeight: 800, color: '#f8fafc' }}>
+                      <h4 style={{ margin: '0 0 4px 0', fontSize: '0.95rem', fontWeight: 800, color: '#0f172a' }}>
                         {p.nombre}
                       </h4>
-                      <p style={{ margin: 0, fontSize: '0.72rem', color: '#94a3b8', lineHeight: 1.35 }}>
+                      <p style={{ margin: 0, fontSize: '0.76rem', color: '#64748b', lineHeight: 1.4 }}>
                         {p.subtitulo_desc}
                       </p>
                     </div>
@@ -1660,16 +1686,17 @@ export default function BannerVisualEditorModal({
                       type="button"
                       onClick={() => handleApplyPreset(p)}
                       style={{
-                        marginTop: '0.85rem',
+                        marginTop: '1rem',
                         backgroundColor: '#16a34a',
                         color: '#ffffff',
                         border: 'none',
-                        padding: '0.45rem',
+                        padding: '0.5rem',
                         borderRadius: '6px',
-                        fontSize: '0.78rem',
+                        fontSize: '0.82rem',
                         fontWeight: 700,
                         cursor: 'pointer',
-                        width: '100%'
+                        width: '100%',
+                        boxShadow: '0 2px 6px rgba(22,163,74,0.2)'
                       }}
                     >
                       Cargar Este Diseño
