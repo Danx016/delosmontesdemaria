@@ -154,61 +154,34 @@ export default function ProductCard({ producto }) {
             </p>
           )}
 
-          {/* Card Footer: Price & Add button & WhatsApp Direct */}
-          <div className="product-card-footer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.4rem' }}>
+          {/* Card Footer: Price & Add button */}
+          <div className="product-card-footer">
             <div className="product-card-pricing">
               <span className="price-tag-label">Precio</span>
               <span className="price-tag-value">{formatCOP(producto.precio)}</span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
-                title={`Preguntar por WhatsApp sobre ${prodTitle}`}
-                style={{
-                  background: '#22c55e',
-                  color: '#ffffff',
-                  borderRadius: '10px',
-                  width: '36px',
-                  height: '36px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  textDecoration: 'none',
-                  fontSize: '1.1rem',
-                  transition: 'all 0.15s ease',
-                  flexShrink: 0,
-                  boxShadow: '0 2px 6px rgba(34, 197, 94, 0.3)'
-                }}
-              >
-                <i className="fab fa-whatsapp" />
-              </a>
-
-              <button
-                type="button"
-                onClick={handleAdd}
-                disabled={isOutOfStock}
-                className={`btn-product-add ${added ? 'added' : ''}`}
-                title="Agregar al carrito"
-                aria-label={isOutOfStock ? 'Producto agotado' : added ? 'Producto agregado al carrito' : 'Agregar al carrito'}
-                style={{ minHeight: 'var(--touch-target-min)' }}
-              >
-                {added ? (
-                  <>
-                    <i className="fa fa-check" />
-                    <span>¡Listo!</span>
-                  </>
-                ) : (
-                  <>
-                    <i className="fa fa-shopping-cart" />
-                    <span>Comprar</span>
-                  </>
-                )}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleAdd}
+              disabled={isOutOfStock}
+              className={`btn-product-add ${added ? 'added' : ''}`}
+              title="Agregar al carrito"
+              aria-label={isOutOfStock ? 'Producto agotado' : added ? 'Producto agregado al carrito' : 'Agregar al carrito'}
+              style={{ minHeight: 'var(--touch-target-min)' }}
+            >
+              {added ? (
+                <>
+                  <i className="fa fa-check" />
+                  <span>¡Listo!</span>
+                </>
+              ) : (
+                <>
+                  <i className="fa fa-shopping-cart" />
+                  <span>Comprar</span>
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>
