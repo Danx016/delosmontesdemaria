@@ -105,6 +105,93 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
     )
   }
 
+  const renderSingleBtn = (btn, index, extraClass = '') => {
+    if (!btn || !btn.texto) return null
+    const text = btn.texto
+    const link = btn.link || '/catalogo'
+    const icon = btn.icono || ''
+    const estiloBtn = btn.estilo || (index === 0 ? 'primary' : 'secondary')
+
+    let inlineStyle = {}
+    let baseClass = 'btn-ofercampo-secondary'
+
+    if (estiloBtn === 'primary') {
+      baseClass = 'btn-ofercampo-primary'
+      inlineStyle = { backgroundColor: accent, borderColor: accent, color: '#ffffff' }
+    } else if (estiloBtn === 'whatsapp') {
+      baseClass = 'btn-ofercampo-primary'
+      inlineStyle = { backgroundColor: '#25D366', borderColor: '#25D366', color: '#ffffff' }
+    } else if (estiloBtn === 'amber') {
+      baseClass = 'btn-ofercampo-primary'
+      inlineStyle = { backgroundColor: '#ea580c', borderColor: '#ea580c', color: '#ffffff' }
+    } else if (estiloBtn === 'outline') {
+      baseClass = 'btn-ofercampo-secondary'
+      inlineStyle = { background: 'transparent', border: '1.5px solid rgba(255,255,255,0.85)', color: '#ffffff' }
+    } else {
+      baseClass = 'btn-ofercampo-secondary'
+      inlineStyle = { background: 'rgba(255,255,255,0.18)', border: '1px solid rgba(255,255,255,0.3)', color: '#ffffff' }
+    }
+
+    if (isPreview) {
+      return (
+        <span
+          key={btn.id || index}
+          className={`${baseClass} ${extraClass}`}
+          style={{ ...inlineStyle, cursor: 'default' }}
+          title={`Enlace: ${link}`}
+        >
+          {icon && <i className={`fa ${icon}`} style={{ marginRight: '6px' }} />}
+          {text}
+        </span>
+      )
+    }
+
+    const isExternal = link.startsWith('http') || link.startsWith('wa.me') || link.startsWith('mailto:') || link.startsWith('tel:')
+    if (isExternal) {
+      return (
+        <a
+          key={btn.id || index}
+          href={link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`${baseClass} ${extraClass}`}
+          style={inlineStyle}
+        >
+          {icon && <i className={`fa ${icon}`} style={{ marginRight: '6px' }} />}
+          {text}
+        </a>
+      )
+    }
+
+    return (
+      <Link
+        key={btn.id || index}
+        to={link}
+        className={`${baseClass} ${extraClass}`}
+        style={inlineStyle}
+      >
+        {icon && <i className={`fa ${icon}`} style={{ marginRight: '6px' }} />}
+        {text}
+      </Link>
+    )
+  }
+
+  const renderAllButtons = (extraClass = '') => {
+    if (Array.isArray(slide.botones) && slide.botones.length > 0) {
+      return (
+        <div className="ofercampo-actions" style={{ gap: isPreview ? '0.4rem' : undefined, flexWrap: 'wrap' }}>
+          {slide.botones.map((btn, idx) => renderSingleBtn(btn, idx, extraClass))}
+        </div>
+      )
+    }
+    return (
+      <div className="ofercampo-actions" style={{ gap: isPreview ? '0.4rem' : undefined, flexWrap: 'wrap' }}>
+        {renderPrimaryBtn(extraClass)}
+        {renderSecondaryBtn(extraClass)}
+      </div>
+    )
+  }
+
   const features = Array.isArray(slide.features)
     ? slide.features
     : typeof slide.features === 'string'
@@ -193,20 +280,51 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
             ESTILO 1: CLÁSICO AGRO & TARJETA FLOTANTE (Split Hero)
            ========================================================================= */}
         {estilo === 'clasico' && (
-          <div className="ofercampo-hero-grid" style={{ display: 'grid', gridTemplateColumns: isPreview ? '1.15fr 0.85fr' : undefined, gap: isPreview ? '0.75rem' : undefined, alignItems: 'center' }}>
-            <div className="ofercampo-hero-left" style={{ alignItems: 'flex-start' }}>
-              <div className="ofercampo-badge" style={{ marginBottom: isPreview ? '0.4rem' : undefined, padding: isPreview ? '0.2rem 0.6rem' : undefined }}>
-                <img src={catThumb} alt={catName} className="ofercampo-badge-thumb" style={{ width: isPreview ? '20px' : undefined, height: isPreview ? '20px' : undefined }} onError={(e) => { e.target.src = '/img/Logo.jpg' }} />
-                <span className="ofercampo-badge-title" style={{ fontSize: isPreview ? '0.74rem' : undefined }}>{catName}</span>
-              </div>
+          <div className="ofercampo-hero-grid" style={{ display: 'grid', gridTemplateColumns: (slide.mostrar_tarjeta === false) ? '1fr' : (isPreview ? '1.15fr 0.85fr' : undefined), gap: isPreview ? '0.75rem' : undefined, alignItems: 'center' }}>
+            <div className="ofercampo-hero-left" style={{ alignItems: 'flex-start', maxWidth: (slide.mostrar_tarjeta === false) ? '850px' : undefined }}>
+              {slide.mostrar_badge !== false && (catName || badgeTop) && (
+                <div className="ofercampo-badge" style={{ marginBottom: isPreview ? '0.4rem' : undefined, padding: isPreview ? '0.2rem 0.6rem' : undefined }}>
+                  <img src={catThumb} alt={catName} className="ofercampo-badge-thumb" style={{ width: isPreview ? '20px' : undefined, height: isPreview ? '20px' : undefined }} onError={(e) => { e.target.src = '/img/Logo.jpg' }} />
+                  <span className="ofercampo-badge-title" style={{ fontSize: isPreview ? '0.74rem' : undefined }}>{catName}</span>
+                </div>
+              )}
 
               <h1 className="ofercampo-title" style={{ fontSize: isPreview ? '1.15rem' : undefined, marginBottom: isPreview ? '0.35rem' : undefined, lineHeight: isPreview ? 1.25 : undefined, opacity: (!slide.title && !slide.titulo && isPreview) ? 0.75 : 1 }}>
                 {(slide.title || slide.titulo) ? (slide.title || slide.titulo) : (isPreview ? '(Escribe el título de tu diseño aquí)' : 'Cosechas Frescas y Tradición')}
               </h1>
 
+              {/* Cita campestre opcional */}
+              {slide.cita && (
+                <div
+                  style={{
+                    background: 'rgba(255,255,255,0.12)',
+                    borderLeft: '4px solid #f59e0b',
+                    borderRadius: '0 8px 8px 0',
+                    padding: isPreview ? '0.3rem 0.55rem' : '0.6rem 1rem',
+                    marginBottom: isPreview ? '0.45rem' : '0.85rem',
+                    backdropFilter: 'blur(8px)',
+                    maxWidth: '650px',
+                  }}
+                >
+                  <p style={{ margin: 0, fontStyle: 'italic', fontSize: isPreview ? '0.72rem' : '0.92rem', color: '#fef3c7', lineHeight: 1.4 }}>
+                    “{slide.cita}”
+                  </p>
+                </div>
+              )}
+
               <p className="ofercampo-subtitle" style={{ fontSize: isPreview ? '0.78rem' : undefined, marginBottom: isPreview ? '0.5rem' : undefined, lineHeight: isPreview ? 1.35 : undefined, opacity: (!slide.subtitle && !slide.subtitulo && isPreview) ? 0.7 : 1 }}>
                 {(slide.subtitle !== undefined && slide.subtitle !== '') ? slide.subtitle : (slide.subtitulo ? slide.subtitulo : (isPreview ? '(Escribe el subtítulo o descripción aquí)' : 'Directamente desde los Montes de María.'))}
               </p>
+
+              {/* Fila de Productor Verificado */}
+              {(slide.mostrar_productor && vendorName) && (
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem', background: 'rgba(0,0,0,0.35)', padding: isPreview ? '0.15rem 0.45rem' : '0.3rem 0.75rem', borderRadius: '999px', marginBottom: isPreview ? '0.45rem' : '0.8rem', fontSize: isPreview ? '0.68rem' : '0.82rem' }}>
+                  <span style={{ fontWeight: 800, color: '#4ade80' }}>ML</span>
+                  <span style={{ color: '#ffffff', fontWeight: 600 }}>{vendorName}</span>
+                  <i className="fa fa-check-circle" style={{ color: '#4ade80' }} />
+                  {badgeTop && <span style={{ color: '#fef08a' }}>• {badgeTop}</span>}
+                </div>
+              )}
 
               {features.length > 0 && (
                 <div className="ofercampo-features" style={{ marginBottom: isPreview ? '0.6rem' : undefined, gap: isPreview ? '0.35rem' : undefined }}>
@@ -218,13 +336,10 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
                 </div>
               )}
 
-              <div className="ofercampo-actions" style={{ gap: isPreview ? '0.4rem' : undefined }}>
-                {renderPrimaryBtn(isPreview ? 'btn-sm' : '')}
-                {renderSecondaryBtn(isPreview ? 'btn-sm' : '')}
-              </div>
+              {renderAllButtons(isPreview ? 'btn-sm' : '')}
             </div>
 
-            <div className="ofercampo-hero-right">
+            {slide.mostrar_tarjeta !== false && (
               <div className="ofercampo-visual-card" style={{ maxWidth: isPreview ? '220px' : '360px', padding: isPreview ? '0.75rem' : undefined, borderRadius: isPreview ? '12px' : undefined }}>
                 <div className="ofercampo-product-preview-box" style={{ height: isPreview ? '105px' : '200px', marginBottom: isPreview ? '0.4rem' : undefined, position: 'relative' }}>
                   <img src={prodImg || '/img/Logo.jpg'} alt={prodTitle || 'Producto'} onError={(e) => { e.target.src = '/img/Logo.jpg' }} />
@@ -251,7 +366,7 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         )}
 
@@ -313,9 +428,8 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
               </div>
             )}
 
-            <div style={{ display: 'flex', justifyContent: 'center', gap: isPreview ? '0.45rem' : '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
-              {renderPrimaryBtn(isPreview ? 'btn-sm' : 'btn-lg-pulse')}
-              {renderSecondaryBtn(isPreview ? 'btn-sm' : '')}
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              {renderAllButtons(isPreview ? 'btn-sm' : 'btn-lg-pulse')}
             </div>
           </div>
         )}
@@ -397,10 +511,7 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
                 </div>
               )}
 
-              <div className="ofercampo-actions" style={{ gap: isPreview ? '0.4rem' : undefined }}>
-                {renderPrimaryBtn(isPreview ? 'btn-sm' : '', slide.boton_principal_texto || '¡Comprar con Descuento!', 'fa-bolt')}
-                {renderSecondaryBtn(isPreview ? 'btn-sm' : '')}
-              </div>
+              {renderAllButtons(isPreview ? 'btn-sm' : '')}
             </div>
 
             {/* Right: Product Flash Card with Ribbon */}
@@ -481,10 +592,7 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
                 {(slide.subtitle !== undefined && slide.subtitle !== '') ? slide.subtitle : (slide.subtitulo ? slide.subtitulo : (isPreview ? '(Escribe el subtítulo o descripción aquí)' : 'Conectamos a campesinos de Bolívar y Sucre con familias de toda Colombia sin intermediarios.'))}
               </p>
 
-              <div className="ofercampo-actions" style={{ gap: isPreview ? '0.4rem' : undefined }}>
-                {renderPrimaryBtn(isPreview ? 'btn-sm' : '')}
-                {renderSecondaryBtn(isPreview ? 'btn-sm' : '')}
-              </div>
+              {renderAllButtons(isPreview ? 'btn-sm' : '')}
             </div>
 
             {/* Right: Dynamic Feature Pillars Grid from Database */}
@@ -618,10 +726,7 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
                 </div>
               )}
 
-              <div className="ofercampo-actions" style={{ gap: isPreview ? '0.4rem' : undefined }}>
-                {renderPrimaryBtn(isPreview ? 'btn-sm' : '', slide.boton_principal_texto || 'Comprar Cosecha', 'fa-seedling')}
-                {renderSecondaryBtn(isPreview ? 'btn-sm' : '', slide.boton_secundario_texto || 'Conocer Productor', 'fa-store')}
-              </div>
+              {renderAllButtons(isPreview ? 'btn-sm' : '')}
             </div>
 
             {/* Right: Rustic Postal Card with Product Photo from Database */}

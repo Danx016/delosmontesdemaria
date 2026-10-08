@@ -7,17 +7,25 @@ class BannerController {
   obtenerBannersPublicos = async (req, res) => {
     try {
       const banners = await this.bannerRepository.obtenerActivos();
-      // Parse features if stored as JSON
+      // Parse features if stored as JSON (supports arrays and rich metadata objects)
       const parsed = banners.map(b => {
         let feats = [];
+        let extra = {};
         try {
-          feats = typeof b.features === 'string' ? JSON.parse(b.features) : (b.features || []);
+          const raw = typeof b.features === 'string' ? JSON.parse(b.features) : (b.features || []);
+          if (Array.isArray(raw)) {
+            feats = raw;
+          } else if (raw && typeof raw === 'object') {
+            feats = Array.isArray(raw.items) ? raw.items : [];
+            extra = raw;
+          }
         } catch {
           feats = [];
         }
         return {
           ...b,
-          features: Array.isArray(feats) ? feats : []
+          ...extra,
+          features: feats
         };
       });
       res.json({ success: true, banners: parsed });
@@ -33,14 +41,22 @@ class BannerController {
       const banners = await this.bannerRepository.obtenerTodos();
       const parsed = banners.map(b => {
         let feats = [];
+        let extra = {};
         try {
-          feats = typeof b.features === 'string' ? JSON.parse(b.features) : (b.features || []);
+          const raw = typeof b.features === 'string' ? JSON.parse(b.features) : (b.features || []);
+          if (Array.isArray(raw)) {
+            feats = raw;
+          } else if (raw && typeof raw === 'object') {
+            feats = Array.isArray(raw.items) ? raw.items : [];
+            extra = raw;
+          }
         } catch {
           feats = [];
         }
         return {
           ...b,
-          features: Array.isArray(feats) ? feats : []
+          ...extra,
+          features: feats
         };
       });
       res.json({ success: true, banners: parsed });

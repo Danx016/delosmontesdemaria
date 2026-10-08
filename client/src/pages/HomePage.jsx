@@ -191,6 +191,7 @@ export default function HomePage() {
   const slides = useMemo(() => {
     if (dbBanners && dbBanners.length > 0) {
       return dbBanners.map((b, idx) => ({
+        ...b,
         id: b.id_banner || idx + 1,
         estilo_plantilla: b.estilo_plantilla || 'clasico',
         filtro_blur: b.filtro_blur !== undefined ? b.filtro_blur : 0,
@@ -202,6 +203,9 @@ export default function HomePage() {
         title: b.titulo,
         subtitle: b.subtitulo,
         features: Array.isArray(b.features) ? b.features : [],
+        botones: Array.isArray(b.botones) ? b.botones : null,
+        cita: b.cita || null,
+        mostrar_tarjeta: b.mostrar_tarjeta !== undefined ? b.mostrar_tarjeta : true,
         primaryBtn: {
           text: b.boton_principal_texto || 'Ver Catálogo',
           link: b.boton_principal_link || '/catalogo',
