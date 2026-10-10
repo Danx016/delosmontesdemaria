@@ -127,9 +127,44 @@ export default function ProductPage() {
 
     const reader = new FileReader()
     reader.onload = (uploadEvent) => {
-      const dataUrl = uploadEvent.target?.result
-      setFotoPreview(dataUrl)
-      setFormResena((prev) => ({ ...prev, foto_url: dataUrl }))
+      const rawData = uploadEvent.target?.result
+      if (!rawData) return
+
+      const img = new Image()
+      img.onload = () => {
+        try {
+          const canvas = document.createElement('canvas')
+          const maxDim = 900
+          let width = img.width
+          let height = img.height
+
+          if (width > height) {
+            if (width > maxDim) {
+              height = Math.round((height * maxDim) / width)
+              width = maxDim
+            }
+          } else {
+            if (height > maxDim) {
+              width = Math.round((width * maxDim) / height)
+              height = maxDim
+            }
+          }
+
+          canvas.width = width
+          canvas.height = height
+          const ctx = canvas.getContext('2d')
+          ctx.drawImage(img, 0, 0, width, height)
+          const compressed = canvas.toDataURL('image/jpeg', 0.8)
+
+          setFotoPreview(compressed)
+          setFormResena((prev) => ({ ...prev, foto_url: compressed }))
+        } catch {
+          // Fallback a la imagen original si falla canvas
+          setFotoPreview(rawData)
+          setFormResena((prev) => ({ ...prev, foto_url: rawData }))
+        }
+      }
+      img.src = rawData
     }
     reader.readAsDataURL(file)
   }
@@ -147,6 +182,7 @@ export default function ProductPage() {
       addToast('¡Gracias por tu reseña! Ayuda mucho a nuestros campesinos.', 'success')
       setMostrarFormulario(false)
       setFotoPreview('')
+      setHoverRating(0)
       setFormResena({
         nombre_usuario: user?.nombre || user?.username || '',
         ciudad: 'Montes de María',
@@ -157,7 +193,8 @@ export default function ProductPage() {
       cargarResenas(producto.id_producto)
     } catch (err) {
       console.error('Error al enviar reseña:', err)
-      addToast('No se pudo guardar la reseña. Inténtalo de nuevo.', 'error')
+      const errorMsg = err.response?.data?.error || err.response?.data?.message || 'No se pudo guardar la reseña. Inténtalo de nuevo.'
+      addToast(errorMsg, 'error')
     } finally {
       setEnviandoResena(false)
     }

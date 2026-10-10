@@ -40,17 +40,27 @@ class MySQLProductoRepository extends ProductoRepository {
     });
   }
 
+  _getBaseQuery() {
+    return `
+      SELECT p.*, 
+             COALESCE(r.promedio_rating, 0) as promedio_rating,
+             COALESCE(r.total_resenas, 0) as total_resenas,
+             u.nombre as vendedor_nombre, u.apodo as vendedor_apodo, u.avatar as vendedor_avatar, u.foto_portada as vendedor_portada,
+             c.nombre_categoria as categoria_nombre, c.slug as categoria_slug, c.icono as categoria_icono, c.color as categoria_color
+      FROM productos p
+      LEFT JOIN usuarios u ON u.id_usuario = COALESCE(p.id_vendedor, p.id_proveedor)
+      LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug) = LOWER(p.categoria) OR LOWER(c.nombre_categoria) = LOWER(p.categoria))
+      LEFT JOIN (
+        SELECT id_producto, ROUND(AVG(rating), 1) as promedio_rating, COUNT(id_resena) as total_resenas 
+        FROM producto_resenas 
+        GROUP BY id_producto
+      ) r ON r.id_producto = p.id_producto
+    `;
+  }
+
   async buscarPorId(id) {
     return new Promise((resolve, reject) => {
-      const sql = `
-        SELECT p.*, 
-               u.nombre as vendedor_nombre, u.apodo as vendedor_apodo, u.avatar as vendedor_avatar, u.foto_portada as vendedor_portada,
-               c.nombre_categoria as categoria_nombre, c.slug as categoria_slug, c.icono as categoria_icono, c.color as categoria_color
-        FROM productos p
-        LEFT JOIN usuarios u ON u.id_usuario = COALESCE(p.id_vendedor, p.id_proveedor)
-        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug) = LOWER(p.categoria) OR LOWER(c.nombre_categoria) = LOWER(p.categoria))
-        WHERE p.id_producto = ?
-      `;
+      const sql = `${this._getBaseQuery()} WHERE p.id_producto = ?`;
       db.query(sql, [id], (err, rows) => {
         if (err) return reject(err);
         if (rows.length === 0) return resolve(null);
@@ -167,15 +177,7 @@ class MySQLProductoRepository extends ProductoRepository {
 
   async listarTodos() {
     return new Promise((resolve, reject) => {
-      const sql = `
-        SELECT p.*, 
-               u.nombre as vendedor_nombre, u.apodo as vendedor_apodo, u.avatar as vendedor_avatar, u.foto_portada as vendedor_portada,
-               c.nombre_categoria as categoria_nombre, c.slug as categoria_slug, c.icono as categoria_icono, c.color as categoria_color
-        FROM productos p
-        LEFT JOIN usuarios u ON u.id_usuario = COALESCE(p.id_vendedor, p.id_proveedor)
-        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug) = LOWER(p.categoria) OR LOWER(c.nombre_categoria) = LOWER(p.categoria))
-        ORDER BY p.id_producto DESC
-      `;
+      const sql = `${this._getBaseQuery()} ORDER BY p.id_producto DESC`;
       db.query(sql, (err, rows) => {
         if (err) return reject(err);
         resolve(rows.map(row => new Producto(row)));
@@ -189,16 +191,7 @@ class MySQLProductoRepository extends ProductoRepository {
 
   async listarPorVendedor(idVendedor) {
     return new Promise((resolve, reject) => {
-      const sql = `
-        SELECT p.*, 
-               u.nombre as vendedor_nombre, u.apodo as vendedor_apodo, u.avatar as vendedor_avatar, u.foto_portada as vendedor_portada,
-               c.nombre_categoria as categoria_nombre, c.slug as categoria_slug, c.icono as categoria_icono, c.color as categoria_color
-        FROM productos p
-        LEFT JOIN usuarios u ON u.id_usuario = COALESCE(p.id_vendedor, p.id_proveedor)
-        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug) = LOWER(p.categoria) OR LOWER(c.nombre_categoria) = LOWER(p.categoria))
-        WHERE p.id_vendedor = ? OR p.id_proveedor = ?
-        ORDER BY p.id_producto DESC
-      `;
+      const sql = `${this._getBaseQuery()} WHERE p.id_vendedor = ? OR p.id_proveedor = ? ORDER BY p.id_producto DESC`;
       db.query(sql, [idVendedor, idVendedor], (err, rows) => {
         if (err) return reject(err);
         resolve(rows.map(row => new Producto(row)));
@@ -208,16 +201,7 @@ class MySQLProductoRepository extends ProductoRepository {
 
   async listarPorCategoria(categoria) {
     return new Promise((resolve, reject) => {
-      const sql = `
-        SELECT p.*, 
-               u.nombre as vendedor_nombre, u.apodo as vendedor_apodo, u.avatar as vendedor_avatar, u.foto_portada as vendedor_portada,
-               c.nombre_categoria as categoria_nombre, c.slug as categoria_slug, c.icono as categoria_icono, c.color as categoria_color
-        FROM productos p
-        LEFT JOIN usuarios u ON u.id_usuario = COALESCE(p.id_vendedor, p.id_proveedor)
-        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug) = LOWER(p.categoria) OR LOWER(c.nombre_categoria) = LOWER(p.categoria))
-        WHERE p.categoria = ? OR c.slug = ? OR c.nombre_categoria = ?
-        ORDER BY p.id_producto DESC
-      `;
+      const sql = `${this._getBaseQuery()} WHERE p.categoria = ? OR c.slug = ? OR c.nombre_categoria = ? ORDER BY p.id_producto DESC`;
       db.query(sql, [categoria, categoria, categoria], (err, rows) => {
         if (err) return reject(err);
         resolve(rows.map(row => new Producto(row)));
@@ -227,16 +211,7 @@ class MySQLProductoRepository extends ProductoRepository {
 
   async listarPorProveedor(idProveedor) {
     return new Promise((resolve, reject) => {
-      const sql = `
-        SELECT p.*, 
-               u.nombre as vendedor_nombre, u.apodo as vendedor_apodo, u.avatar as vendedor_avatar, u.foto_portada as vendedor_portada,
-               c.nombre_categoria as categoria_nombre, c.slug as categoria_slug, c.icono as categoria_icono, c.color as categoria_color
-        FROM productos p
-        LEFT JOIN usuarios u ON u.id_usuario = COALESCE(p.id_vendedor, p.id_proveedor)
-        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug) = LOWER(p.categoria) OR LOWER(c.nombre_categoria) = LOWER(p.categoria))
-        WHERE p.id_proveedor = ? OR p.id_vendedor = ?
-        ORDER BY p.id_producto DESC
-      `;
+      const sql = `${this._getBaseQuery()} WHERE p.id_proveedor = ? OR p.id_vendedor = ? ORDER BY p.id_producto DESC`;
       db.query(sql, [idProveedor, idProveedor], (err, rows) => {
         if (err) return reject(err);
         resolve(rows.map(row => new Producto(row)));
@@ -247,16 +222,7 @@ class MySQLProductoRepository extends ProductoRepository {
   async buscar(termino) {
     return new Promise((resolve, reject) => {
       const term = `%${termino}%`;
-      const sql = `
-        SELECT p.*, 
-               u.nombre as vendedor_nombre, u.apodo as vendedor_apodo, u.avatar as vendedor_avatar, u.foto_portada as vendedor_portada,
-               c.nombre_categoria as categoria_nombre, c.slug as categoria_slug, c.icono as categoria_icono, c.color as categoria_color
-        FROM productos p
-        LEFT JOIN usuarios u ON u.id_usuario = COALESCE(p.id_vendedor, p.id_proveedor)
-        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug) = LOWER(p.categoria) OR LOWER(c.nombre_categoria) = LOWER(p.categoria))
-        WHERE p.nombre_producto LIKE ? OR p.descripcion LIKE ? OR p.categoria LIKE ? OR c.nombre_categoria LIKE ?
-        ORDER BY p.id_producto DESC
-      `;
+      const sql = `${this._getBaseQuery()} WHERE p.nombre_producto LIKE ? OR p.descripcion LIKE ? OR p.categoria LIKE ? OR c.nombre_categoria LIKE ? ORDER BY p.id_producto DESC`;
       db.query(sql, [term, term, term, term], (err, rows) => {
         if (err) return reject(err);
         resolve(rows.map(row => new Producto(row)));
@@ -267,16 +233,7 @@ class MySQLProductoRepository extends ProductoRepository {
   async buscarLimitado(termino, limite = 5) {
     return new Promise((resolve, reject) => {
       const term = `%${termino}%`;
-      const sql = `
-        SELECT p.*, 
-               u.nombre as vendedor_nombre, u.apodo as vendedor_apodo, u.avatar as vendedor_avatar, u.foto_portada as vendedor_portada,
-               c.nombre_categoria as categoria_nombre, c.slug as categoria_slug, c.icono as categoria_icono, c.color as categoria_color
-        FROM productos p
-        LEFT JOIN usuarios u ON u.id_usuario = COALESCE(p.id_vendedor, p.id_proveedor)
-        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug) = LOWER(p.categoria) OR LOWER(c.nombre_categoria) = LOWER(p.categoria))
-        WHERE p.nombre_producto LIKE ? OR p.descripcion LIKE ? OR p.categoria LIKE ? OR c.nombre_categoria LIKE ?
-        LIMIT ?
-      `;
+      const sql = `${this._getBaseQuery()} WHERE p.nombre_producto LIKE ? OR p.descripcion LIKE ? OR p.categoria LIKE ? OR c.nombre_categoria LIKE ? LIMIT ?`;
       db.query(sql, [term, term, term, term, limite], (err, rows) => {
         if (err) return reject(err);
         resolve(rows.map(row => new Producto(row)));

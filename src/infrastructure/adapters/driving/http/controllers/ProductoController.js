@@ -8,9 +8,10 @@ const DeleteProduct = require('../../../../../application/use-cases/product/Dele
 const SearchProducts = require('../../../../../application/use-cases/product/SearchProducts');
 
 class ProductoController {
-  constructor({ productoRepository, categoriaRepository }) {
+  constructor({ productoRepository, categoriaRepository, cache }) {
     this.productoRepository = productoRepository;
     this.categoriaRepository = categoriaRepository;
+    this.cache = cache;
     this.createProduct = new CreateProduct(productoRepository);
     this.updateProduct = new UpdateProduct(productoRepository);
     this.deleteProduct = new DeleteProduct(productoRepository);
@@ -271,6 +272,9 @@ class ProductoController {
           if (err) {
             console.error('Error al registrar reseña:', err.message);
             return res.status(500).json({ error: 'Error al registrar reseña' });
+          }
+          if (this.cache) {
+            this.cache.delPattern('productos:*').catch(() => {});
           }
           res.status(201).json({
             success: true,

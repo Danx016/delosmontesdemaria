@@ -30,7 +30,10 @@ class Producto {
     categoria_color,
     latitud,
     longitud,
-    ubicacion_nombre
+    ubicacion_nombre,
+    promedio_rating,
+    rating,
+    total_resenas
   }) {
     this.id_producto = id_producto;
     this.id_vendedor = id_vendedor || id_proveedor || null;
@@ -59,6 +62,8 @@ class Producto {
     this.latitud = latitud !== undefined && latitud !== null && latitud !== '' ? parseFloat(latitud) : null;
     this.longitud = longitud !== undefined && longitud !== null && longitud !== '' ? parseFloat(longitud) : null;
     this.ubicacion_nombre = ubicacion_nombre || null;
+    this.promedio_rating = Number(promedio_rating || rating || 0);
+    this.total_resenas = Number(total_resenas || 0);
   }
 
   // Métodos de negocio
@@ -153,7 +158,10 @@ class Producto {
       categoria_color: this.categoria_color,
       latitud: this.latitud,
       longitud: this.longitud,
-      ubicacion_nombre: this.ubicacion_nombre
+      ubicacion_nombre: this.ubicacion_nombre,
+      promedio_rating: this.promedio_rating,
+      rating: this.promedio_rating,
+      total_resenas: this.total_resenas
     };
   }
 }

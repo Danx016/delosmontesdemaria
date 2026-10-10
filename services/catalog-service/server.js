@@ -58,7 +58,8 @@ const bannerRepository = new MySQLBannerRepository();
 
 const productoController = new ProductoController({
   productoRepository,
-  categoriaRepository
+  categoriaRepository,
+  cache
 });
 const bannerController = new BannerController(bannerRepository);
 
