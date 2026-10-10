@@ -1,14 +1,21 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
-import ProductDetailModal from './ProductDetailModal'
 import { getProductImageUrl, handleProductImageError } from '../utils/productImage'
 import { getAvatarUrl, handleAvatarError } from '../utils/avatar'
 
 export default function ProductCard({ producto }) {
+  const navigate = useNavigate()
   const { addItem } = useCart()
   const [added, setAdded] = useState(false)
-  const [showDetailModal, setShowDetailModal] = useState(false)
+
+  const prodId = producto.id_producto || producto.id || producto.id_prod
+
+  const handleCardClick = () => {
+    if (prodId) {
+      navigate(`/producto/${prodId}`)
+    }
+  }
 
   const handleAdd = (e) => {
     if (e) {
@@ -46,12 +53,11 @@ export default function ProductCard({ producto }) {
     : `https://wa.me/?text=${whatsappMsg}`
 
   return (
-    <>
-      <div
-        className="marketplace-product-card"
-        onClick={() => setShowDetailModal(true)}
-        style={{ cursor: 'pointer', transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}
-      >
+    <div
+      className="marketplace-product-card"
+      onClick={handleCardClick}
+      style={{ cursor: 'pointer', transition: 'transform 0.2s ease, box-shadow 0.2s ease' }}
+    >
         {/* Product Image Container */}
         <div className="product-card-media">
           <img
@@ -187,13 +193,5 @@ export default function ProductCard({ producto }) {
           </div>
         </div>
       </div>
-
-      {/* In-depth Product Details Modal */}
-      <ProductDetailModal
-        producto={producto}
-        isOpen={showDetailModal}
-        onClose={() => setShowDetailModal(false)}
-      />
-    </>
   )
 }
