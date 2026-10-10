@@ -490,34 +490,7 @@ export default function HomePage() {
           )}
         </section>
 
-        {/* Value Proposition Strip */}
-        <section className="benefits-section app-container">
-          <div className="benefits-grid">
-            <div className="benefit-item">
-              <div className="benefit-icon-box"><i className="fa fa-truck-fast" /></div>
-              <div className="benefit-text">
-                <h4>Envíos Directos</h4>
-                <p>Despachos garantizados desde la finca hasta tu puerta.</p>
-              </div>
-            </div>
 
-            <div className="benefit-item">
-              <div className="benefit-icon-box"><i className="fa fa-shield-alt" /></div>
-              <div className="benefit-text">
-                <h4>Pagos 100% Protegidos</h4>
-                <p>Paga con Contra Entrega en efectivo al recibir tus productos con total tranquilidad.</p>
-              </div>
-            </div>
-
-            <div className="benefit-item">
-              <div className="benefit-icon-box"><i className="fa fa-headset" /></div>
-              <div className="benefit-text">
-                <h4>Soporte & Asesoría</h4>
-                <p>Atención en línea y respuesta inmediata a tus consultas.</p>
-              </div>
-            </div>
-          </div>
-        </section>
       </main>
 
       <Footer />
