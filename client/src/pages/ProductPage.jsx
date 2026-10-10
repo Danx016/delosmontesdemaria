@@ -176,9 +176,15 @@ export default function ProductPage() {
       return
     }
 
+    const prodId = producto?.id_producto || producto?.id || id
+    if (!prodId) {
+      addToast('Error al identificar el producto.', 'error')
+      return
+    }
+
     try {
       setEnviandoResena(true)
-      await crearResenaProducto(producto.id_producto, formResena)
+      await crearResenaProducto(prodId, formResena)
       addToast('¡Gracias por tu reseña! Ayuda mucho a nuestros campesinos.', 'success')
       setMostrarFormulario(false)
       setFotoPreview('')
@@ -190,7 +196,7 @@ export default function ProductPage() {
         comentario: '',
         foto_url: '',
       })
-      cargarResenas(producto.id_producto)
+      cargarResenas(prodId)
     } catch (err) {
       console.error('Error al enviar reseña:', err)
       const errorMsg = err.response?.data?.error || err.response?.data?.message || 'No se pudo guardar la reseña. Inténtalo de nuevo.'
@@ -204,10 +210,11 @@ export default function ProductPage() {
     if (!window.confirm('¿Seguro que deseas eliminar esta reseña como Administrador? Esta acción no se puede deshacer.')) {
       return
     }
+    const prodId = producto?.id_producto || producto?.id || id
     try {
-      await eliminarResenaProducto(producto.id_producto, idResena)
+      await eliminarResenaProducto(prodId, idResena)
       addToast('Reseña eliminada exitosamente.', 'success')
-      cargarResenas(producto.id_producto)
+      cargarResenas(prodId)
     } catch (err) {
       console.error('Error al eliminar reseña:', err)
       addToast(err.response?.data?.message || err.response?.data?.error || 'No se pudo eliminar la reseña.', 'error')

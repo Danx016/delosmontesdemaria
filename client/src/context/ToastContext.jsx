@@ -30,6 +30,7 @@ export function ToastProvider({ children }) {
     warning: (msg, title = '') => addToast('warning', msg, title),
     info: (msg, title = '') => addToast('info', msg, title),
     remove: removeToast,
+    addToast: (msg, type = 'info', title = '') => addToast(type, msg, title),
   }
 
   // Global window fallback so any non-React code or utility can show toasts
@@ -38,7 +39,7 @@ export function ToastProvider({ children }) {
   }
 
   return (
-    <ToastContext.Provider value={{ toast, toasts, removeToast }}>
+    <ToastContext.Provider value={{ toast, toasts, removeToast, addToast }}>
       {children}
     </ToastContext.Provider>
   )
@@ -53,7 +54,20 @@ export function useToast() {
       warning: (msg) => console.warn('Toast warning:', msg),
       info: (msg) => console.info('Toast info:', msg),
       remove: () => {},
+      addToast: (msg, type = 'info') => console.log(`Toast ${type}:`, msg),
     }
   }
-  return ctx.toast
+
+  const helperAddToast = (msg, type = 'info', title = '') => {
+    if (ctx.toast[type]) {
+      ctx.toast[type](msg, title)
+    } else {
+      ctx.toast.info(msg, title)
+    }
+  }
+
+  return {
+    ...ctx.toast,
+    addToast: helperAddToast,
+  }
 }
