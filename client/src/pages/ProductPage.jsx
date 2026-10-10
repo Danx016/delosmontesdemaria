@@ -33,6 +33,7 @@ export default function ProductPage() {
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [enviandoResena, setEnviandoResena] = useState(false)
   const [fotoPreview, setFotoPreview] = useState('')
+  const [hoverRating, setHoverRating] = useState(0)
 
   // Formulario de nueva reseña
   const [formResena, setFormResena] = useState({
@@ -773,22 +774,48 @@ export default function ProductPage() {
                 </div>
 
                 {/* Selector de Estrellas Interactivo */}
-                <div style={{ marginBottom: '1rem' }}>
+                <div style={{ marginBottom: '1.25rem' }}>
                   <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.4rem' }}>
                     Calificación (1 a 5 estrellas) *
                   </label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <i
-                        key={star}
-                        onClick={() => setFormResena({ ...formResena, rating: star })}
-                        className={`fa fa-star fs-3 ${star <= formResena.rating ? 'text-warning' : 'text-secondary opacity-50'}`}
-                        style={{ cursor: 'pointer', transition: 'transform 0.1s ease' }}
-                        title={`${star} estrellas`}
-                      />
-                    ))}
-                    <span style={{ fontWeight: 800, color: '#0f172a', marginLeft: '0.5rem' }}>
-                      {formResena.rating} de 5 estrellas
+                  <div
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                    onMouseLeave={() => setHoverRating(0)}
+                  >
+                    {[1, 2, 3, 4, 5].map((star) => {
+                      const activo = star <= (hoverRating || formResena.rating);
+                      return (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setFormResena({ ...formResena, rating: star })}
+                          onMouseEnter={() => setHoverRating(star)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            padding: '0.2rem',
+                            cursor: 'pointer',
+                            outline: 'none',
+                            lineHeight: 1,
+                            transition: 'transform 0.15s ease',
+                            transform: hoverRating === star ? 'scale(1.2)' : 'scale(1)',
+                          }}
+                          title={`${star} estrellas`}
+                          aria-label={`${star} estrellas`}
+                        >
+                          <i
+                            className={`fa ${activo ? 'fa-star' : 'fa-star-o'}`}
+                            style={{
+                              color: activo ? '#f59e0b' : '#cbd5e1',
+                              fontSize: '1.75rem',
+                              transition: 'color 0.15s ease',
+                            }}
+                          />
+                        </button>
+                      );
+                    })}
+                    <span style={{ fontWeight: 800, color: '#0f172a', marginLeft: '0.6rem', fontSize: '0.95rem' }}>
+                      {hoverRating || formResena.rating} de 5 estrellas
                     </span>
                   </div>
                 </div>
