@@ -287,6 +287,39 @@ class ProductoController {
       res.status(500).json({ error: 'Error interno al registrar reseña' });
     }
   }
+
+  async eliminarResena(req, res) {
+    try {
+      const id_resena = req.params.id_resena;
+      const { db } = require('../../../driven/persistence');
+
+      db.query(
+        'DELETE FROM producto_resenas WHERE id_resena = ?',
+        [id_resena],
+        (err, result) => {
+          if (err) {
+            console.error('Error al eliminar reseña:', err.message);
+            return res.status(500).json({ error: 'Error al eliminar reseña de la base de datos' });
+          }
+
+          if (result.affectedRows === 0) {
+            return res.status(404).json({ error: 'La reseña no existe o ya fue eliminada' });
+          }
+
+          if (this.cache) {
+            this.cache.delPattern('productos:*').catch(() => {});
+          }
+
+          res.json({
+            success: true,
+            message: 'Reseña eliminada correctamente por el administrador'
+          });
+        }
+      );
+    } catch (error) {
+      res.status(500).json({ error: 'Error interno al procesar la eliminación de la reseña' });
+    }
+  }
 }
 
 module.exports = ProductoController;

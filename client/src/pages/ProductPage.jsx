@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import { obtenerProducto, listarProductos, listarResenasProducto, crearResenaProducto } from '../api/productos.api'
+import { obtenerProducto, listarProductos, listarResenasProducto, crearResenaProducto, eliminarResenaProducto } from '../api/productos.api'
 import { useCart } from '../context/CartContext'
 import { useToast } from '../context/ToastContext'
 import { useAuth } from '../context/AuthContext'
@@ -13,7 +13,7 @@ import ProductCard from '../components/ProductCard'
 
 export default function ProductPage() {
   const { id } = useParams()
-  const { user } = useAuth()
+  const { user, isAdmin } = useAuth()
   const { addItem } = useCart()
   const { addToast } = useToast()
 
@@ -197,6 +197,20 @@ export default function ProductPage() {
       addToast(errorMsg, 'error')
     } finally {
       setEnviandoResena(false)
+    }
+  }
+
+  const handleEliminarResena = async (idResena) => {
+    if (!window.confirm('¿Seguro que deseas eliminar esta reseña como Administrador? Esta acción no se puede deshacer.')) {
+      return
+    }
+    try {
+      await eliminarResenaProducto(producto.id_producto, idResena)
+      addToast('Reseña eliminada exitosamente.', 'success')
+      cargarResenas(producto.id_producto)
+    } catch (err) {
+      console.error('Error al eliminar reseña:', err)
+      addToast(err.response?.data?.message || err.response?.data?.error || 'No se pudo eliminar la reseña.', 'error')
     }
   }
 
@@ -959,21 +973,47 @@ export default function ProductPage() {
                           </span>
                         </div>
 
-                        <span
-                          style={{
-                            background: '#dcfce7',
-                            color: '#15803d',
-                            fontSize: '0.72rem',
-                            fontWeight: 700,
-                            padding: '0.2rem 0.55rem',
-                            borderRadius: '999px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.3rem',
-                          }}
-                        >
-                          <i className="fa fa-circle-check" /> Compra Verificada
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                          <span
+                            style={{
+                              background: '#dcfce7',
+                              color: '#15803d',
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              padding: '0.2rem 0.55rem',
+                              borderRadius: '999px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.3rem',
+                            }}
+                          >
+                            <i className="fa fa-circle-check" /> Compra Verificada
+                          </span>
+
+                          {isAdmin && (
+                            <button
+                              type="button"
+                              onClick={() => handleEliminarResena(r.id_resena)}
+                              className="btn btn-sm btn-outline-danger"
+                              style={{
+                                padding: '0.2rem 0.55rem',
+                                fontSize: '0.75rem',
+                                borderRadius: '8px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.35rem',
+                                fontWeight: 700,
+                                borderColor: '#fca5a5',
+                                color: '#dc2626',
+                                background: '#fef2f2'
+                              }}
+                              title="Eliminar esta reseña (Acción de Administrador)"
+                            >
+                              <i className="fa fa-trash-alt" />
+                              <span>Eliminar</span>
+                            </button>
+                          )}
+                        </div>
                       </div>
 
                       {/* Estrellas */}

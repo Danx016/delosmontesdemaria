@@ -26,3 +26,9 @@ export const listarCategoriasPublicas = () => api.get('/productos/categorias')
 export const listarResenasProducto = (id) => api.get(`/productos/${id}/resenas`)
 
 export const crearResenaProducto = (id, data) => api.post(`/productos/${id}/resenas`, data)
+
+export const eliminarResenaProducto = (idProducto, idResena) =>
+  api.delete(`/productos/${idProducto}/resenas/${idResena}`)
+
+export const eliminarResenaAdmin = (idResena) =>
+  api.delete(`/productos/resenas/${idResena}`)

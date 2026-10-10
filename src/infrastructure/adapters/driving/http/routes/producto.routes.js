@@ -2,7 +2,7 @@
  * Rutas: Productos
  */
 const express = require('express');
-const { verifyToken, verifyVendedor } = require('../middleware/auth');
+const { verifyToken, verifyAdmin, verifyVendedor } = require('../middleware/auth');
 const { uploadProductImage, handleMulterUpload } = require('../middleware/upload');
 const { productRules, productIdParamRule, handleValidation } = require('../middleware/validate');
 
@@ -15,6 +15,8 @@ function createProductoRoutes(productoController) {
   router.get('/:id_producto', productIdParamRule, handleValidation, (req, res) => productoController.obtenerPorId(req, res));
   router.get('/:id_producto/resenas', productIdParamRule, handleValidation, (req, res) => productoController.listarResenas(req, res));
   router.post('/:id_producto/resenas', productIdParamRule, handleValidation, (req, res) => productoController.crearResena(req, res));
+  router.delete('/:id_producto/resenas/:id_resena', verifyToken, verifyAdmin, (req, res) => productoController.eliminarResena(req, res));
+  router.delete('/resenas/:id_resena', verifyToken, verifyAdmin, (req, res) => productoController.eliminarResena(req, res));
 
   // Endpoints para Vendedores y Admin
   router.post('/', verifyToken, verifyVendedor, handleMulterUpload(uploadProductImage.any()), productRules, handleValidation, (req, res) => productoController.crear(req, res));
