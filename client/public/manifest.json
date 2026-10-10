@@ -1,0 +1,23 @@
+{
+  "short_name": "De Los Montes De María",
+  "name": "De Los Montes De María - Mercado Campesino",
+  "description": "Tienda en línea de productos agropecuarios, agrícolas y campesinos de la región de los Montes de María.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#2e7d32",
+  "icons": [
+    {
+      "src": "/img/Logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/img/Logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}

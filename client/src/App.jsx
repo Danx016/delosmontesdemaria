@@ -51,6 +51,32 @@ function RouteAnalyticsTracker() {
 
   useEffect(() => {
     trackPageView(location.pathname + location.search)
+
+    // Actualizar título del navegador con formato limpio y separado
+    const path = location.pathname
+    if (path === '/') {
+      document.title = 'De Los Montes De María - Mercado Campesino'
+    } else if (path.startsWith('/categorias') || path.startsWith('/catalogo')) {
+      document.title = 'Catálogo Campesino - De Los Montes De María'
+    } else if (path.startsWith('/carrito')) {
+      document.title = 'Carrito de Compras - De Los Montes De María'
+    } else if (path.startsWith('/checkout') || path.startsWith('/pagar')) {
+      document.title = 'Finalizar Pedido - De Los Montes De María'
+    } else if (path.startsWith('/buscar')) {
+      document.title = 'Búsqueda de Cosechas - De Los Montes De María'
+    } else if (path.startsWith('/vendedores') || path.startsWith('/vendedor')) {
+      document.title = 'Productores y Familias - De Los Montes De María'
+    } else if (path.startsWith('/soporte')) {
+      document.title = 'Centro de Ayuda - De Los Montes De María'
+    } else if (path.startsWith('/admin')) {
+      document.title = 'Panel Administrativo - De Los Montes De María'
+    } else if (path.startsWith('/login') || path.startsWith('/iniciar-sesion')) {
+      document.title = 'Iniciar Sesión - De Los Montes De María'
+    } else if (path.startsWith('/registro')) {
+      document.title = 'Registro - De Los Montes De María'
+    } else if (!path.startsWith('/producto/')) {
+      document.title = 'De Los Montes De María'
+    }
   }, [location])
 
   return null

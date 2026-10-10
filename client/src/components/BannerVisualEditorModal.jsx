@@ -1526,7 +1526,7 @@ export default function BannerVisualEditorModal({
                 <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#f59e0b' }} />
                 <span style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#22c55e' }} />
                 <span style={{ marginLeft: '10px', color: '#334155', fontWeight: 600 }}>
-                  delosmontesdemaria.dev {viewDevice === 'mobile' ? '(Vista Celular)' : '(Vista Escritorio)'}
+                  De Los Montes De María {viewDevice === 'mobile' ? '(Vista Celular)' : '(Vista Escritorio)'}
                 </span>
               </div>
               <div style={{ fontSize: '0.72rem', color: '#16a34a', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '4px' }}>
