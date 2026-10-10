@@ -309,8 +309,6 @@ export default function HomePage() {
       <Navbar />
 
       <main className="main-content-wrap">
-        <h1 className="visually-hidden">De Los Montes De María - Mercado Campesino Directo</h1>
-
         {/* Dynamic Multi-Style Hero Carousel */}
         <section
           className="ofercampo-hero-wrapper"
