@@ -747,58 +747,93 @@ export default function ProductPage() {
             </div>
           </div>
 
-          {/* SECCIÓN DE RESEÑAS Y CALIFICACIONES CON FOTOS REALES */}
+          {/* SECCIÓN DE OPINIONES DEL PRODUCTO */}
           <div
             style={{
               background: '#ffffff',
-              borderRadius: '24px',
+              borderRadius: '16px',
               border: '1px solid #e2e8f0',
-              padding: '2.5rem',
-              boxShadow: '0 10px 30px rgba(0,0,0,0.04)',
-              marginBottom: '3rem',
+              padding: '2rem',
+              marginBottom: '2.5rem',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '1.5rem' }}>
+            {/* Cabecera de opiniones estilo e-commerce auténtico */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1.25rem', paddingBottom: '1.5rem', borderBottom: '1px solid #e2e8f0' }}>
               <div>
-                <h3 style={{ fontWeight: 800, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                  ⭐ Calificaciones y Opiniones Reales
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#0f172a', margin: 0 }}>
+                  Opiniones del producto
                 </h3>
-                <p style={{ color: '#64748b', fontSize: '0.9rem', margin: '0.3rem 0 0 0' }}>
-                  Opiniones verificadas de personas que han comprado cosechas de Montes de María
-                </p>
+                {totalResenas > 0 ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginTop: '0.4rem' }}>
+                    <span style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>
+                      {promedioRating.toFixed(1)}
+                    </span>
+                    <div>
+                      <div style={{ color: '#f59e0b', fontSize: '0.9rem', lineHeight: 1 }}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <i
+                            key={star}
+                            className={`fa ${
+                              star <= Math.floor(promedioRating)
+                                ? 'fa-star'
+                                : star - 0.5 <= promedioRating
+                                ? 'fa-star-half-o'
+                                : 'fa-star-o'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                        {totalResenas} {totalResenas === 1 ? 'opinión' : 'opiniones'}
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <p style={{ color: '#64748b', fontSize: '0.88rem', margin: '0.3rem 0 0 0' }}>
+                    Aún no hay opiniones sobre este producto.
+                  </p>
+                )}
               </div>
 
               <button
                 type="button"
                 onClick={() => setMostrarFormulario(!mostrarFormulario)}
-                className="btn btn-outline-primary"
-                style={{ borderRadius: '999px', fontWeight: 700, padding: '0.55rem 1.25rem', fontSize: '0.85rem' }}
+                className="btn btn-outline-secondary"
+                style={{
+                  borderRadius: '10px',
+                  fontWeight: 600,
+                  fontSize: '0.85rem',
+                  padding: '0.5rem 1rem',
+                  color: '#1e293b',
+                  borderColor: '#cbd5e1',
+                  background: '#ffffff'
+                }}
               >
-                <i className="fa fa-pen me-2" />
-                {mostrarFormulario ? 'Cancelar Opinión' : 'Escribir una Reseña con Foto'}
+                {mostrarFormulario ? 'Cancelar' : 'Calificar producto'}
               </button>
             </div>
 
-            {/* FORMULARIO PARA AGREGAR RESEÑA CON FOTO */}
+            {/* FORMULARIO PARA AGREGAR RESEÑA */}
             {mostrarFormulario && (
               <form
                 onSubmit={handleEnviarResena}
                 style={{
                   background: '#f8fafc',
-                  border: '1.5px solid #cbd5e1',
-                  borderRadius: '20px',
-                  padding: '1.75rem',
-                  marginBottom: '2rem',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '12px',
+                  padding: '1.5rem',
+                  marginTop: '1.5rem',
+                  marginBottom: '1.5rem',
                 }}
               >
-                <h5 style={{ fontWeight: 800, color: '#0f172a', marginBottom: '1.25rem' }}>
-                  Cuéntanos tu experiencia con esta cosecha del campo
-                </h5>
+                <h4 style={{ fontSize: '1rem', fontWeight: 700, color: '#0f172a', marginBottom: '1rem' }}>
+                  Escribe tu opinión
+                </h4>
 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.85rem', marginBottom: '1rem' }}>
                   <div>
-                    <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.3rem' }}>
-                      Tu Nombre Completo *
+                    <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '0.3rem' }}>
+                      Tu nombre *
                     </label>
                     <input
                       type="text"
@@ -806,31 +841,31 @@ export default function ProductPage() {
                       onChange={(e) => setFormResena({ ...formResena, nombre_usuario: e.target.value })}
                       placeholder="Ej. Carmen Paternina"
                       required
-                      style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '12px', border: '1.5px solid #cbd5e1', fontSize: '0.9rem' }}
+                      style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem', background: '#ffffff' }}
                     />
                   </div>
 
                   <div>
-                    <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.3rem' }}>
-                      Ciudad / Municipio
+                    <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '0.3rem' }}>
+                      Ciudad (opcional)
                     </label>
                     <input
                       type="text"
                       value={formResena.ciudad}
                       onChange={(e) => setFormResena({ ...formResena, ciudad: e.target.value })}
-                      placeholder="Ej. Cartagena, Sincelejo, etc."
-                      style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '12px', border: '1.5px solid #cbd5e1', fontSize: '0.9rem' }}
+                      placeholder="Ej. Cartagena, Sincelejo"
+                      style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem', background: '#ffffff' }}
                     />
                   </div>
                 </div>
 
-                {/* Selector de Estrellas Interactivo */}
-                <div style={{ marginBottom: '1.25rem' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.4rem' }}>
-                    Calificación (1 a 5 estrellas) *
+                {/* Selector de Estrellas */}
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '0.3rem' }}>
+                    Calificación general *
                   </label>
                   <div
-                    style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                    style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}
                     onMouseLeave={() => setHoverRating(0)}
                   >
                     {[1, 2, 3, 4, 5].map((star) => {
@@ -844,12 +879,10 @@ export default function ProductPage() {
                           style={{
                             background: 'none',
                             border: 'none',
-                            padding: '0.2rem',
+                            padding: '0.15rem',
                             cursor: 'pointer',
                             outline: 'none',
                             lineHeight: 1,
-                            transition: 'transform 0.15s ease',
-                            transform: hoverRating === star ? 'scale(1.2)' : 'scale(1)',
                           }}
                           title={`${star} estrellas`}
                           aria-label={`${star} estrellas`}
@@ -858,57 +891,56 @@ export default function ProductPage() {
                             className={`fa ${activo ? 'fa-star' : 'fa-star-o'}`}
                             style={{
                               color: activo ? '#f59e0b' : '#cbd5e1',
-                              fontSize: '1.75rem',
-                              transition: 'color 0.15s ease',
+                              fontSize: '1.5rem',
                             }}
                           />
                         </button>
                       );
                     })}
-                    <span style={{ fontWeight: 800, color: '#0f172a', marginLeft: '0.6rem', fontSize: '0.95rem' }}>
-                      {hoverRating || formResena.rating} de 5 estrellas
+                    <span style={{ fontWeight: 600, color: '#475569', marginLeft: '0.5rem', fontSize: '0.85rem' }}>
+                      {hoverRating || formResena.rating} de 5
                     </span>
                   </div>
                 </div>
 
                 {/* Comentario */}
                 <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.3rem' }}>
-                    Comentario y detalles de cómo te llegó el producto *
+                  <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '0.3rem' }}>
+                    Tu comentario *
                   </label>
                   <textarea
                     rows={3}
                     value={formResena.comentario}
                     onChange={(e) => setFormResena({ ...formResena, comentario: e.target.value })}
-                    placeholder="¿Cómo estuvo la frescura, el empaque y el sabor? Cuéntanos..."
+                    placeholder="Cuenta qué tal te pareció el producto..."
                     required
-                    style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '12px', border: '1.5px solid #cbd5e1', fontSize: '0.9rem' }}
+                    style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.88rem', background: '#ffffff' }}
                   />
                 </div>
 
-                {/* Subida de Foto Real */}
-                <div style={{ marginBottom: '1.5rem' }}>
-                  <label style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '0.3rem' }}>
-                    📷 Sube una foto real del producto recibido (Opcional pero muy valioso)
+                {/* Foto adjunta */}
+                <div style={{ marginBottom: '1.25rem' }}>
+                  <label style={{ fontSize: '0.82rem', fontWeight: 600, color: '#475569', display: 'block', marginBottom: '0.3rem' }}>
+                    Adjuntar foto (opcional)
                   </label>
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handleSubirFoto}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '12px', border: '1.5px solid #cbd5e1', background: '#ffffff', fontSize: '0.85rem' }}
+                    style={{ width: '100%', padding: '0.45rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#ffffff', fontSize: '0.82rem' }}
                   />
                   {fotoPreview && (
-                    <div style={{ marginTop: '0.75rem', position: 'relative', display: 'inline-block' }}>
+                    <div style={{ marginTop: '0.65rem', position: 'relative', display: 'inline-block' }}>
                       <img
                         src={fotoPreview}
-                        alt="Vista previa de reseña"
-                        style={{ width: '120px', height: '120px', objectFit: 'cover', borderRadius: '14px', border: '2px solid #22c55e' }}
+                        alt="Vista previa"
+                        style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #cbd5e1' }}
                       />
                       <button
                         type="button"
                         onClick={() => { setFotoPreview(''); setFormResena({ ...formResena, foto_url: '' }) }}
                         className="btn btn-sm btn-danger"
-                        style={{ position: 'absolute', top: '-8px', right: '-8px', borderRadius: '50%', width: '24px', height: '24px', padding: 0 }}
+                        style={{ position: 'absolute', top: '-6px', right: '-6px', borderRadius: '50%', width: '20px', height: '20px', padding: 0, fontSize: '0.75rem', lineHeight: 1 }}
                       >
                         &times;
                       </button>
@@ -916,143 +948,146 @@ export default function ProductPage() {
                   )}
                 </div>
 
-                <div style={{ textAlign: 'right' }}>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.65rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => setMostrarFormulario(false)}
+                    className="btn btn-sm btn-light"
+                    style={{ borderRadius: '8px', fontWeight: 600, padding: '0.45rem 1rem', border: '1px solid #cbd5e1' }}
+                  >
+                    Cancelar
+                  </button>
                   <button
                     type="submit"
                     disabled={enviandoResena}
-                    className="btn btn-success"
-                    style={{ borderRadius: '999px', fontWeight: 800, padding: '0.65rem 1.75rem' }}
+                    className="btn btn-sm btn-success"
+                    style={{ borderRadius: '8px', fontWeight: 700, padding: '0.45rem 1.25rem' }}
                   >
-                    {enviandoResena ? 'Publicando...' : 'Publicar Reseña'}
+                    {enviandoResena ? 'Publicando...' : 'Publicar opinión'}
                   </button>
                 </div>
               </form>
             )}
 
-            {/* LISTA DE RESEÑAS */}
+            {/* LISTA DE RESEÑAS EN FORMATO LIMPIO / VERTICAL */}
             {resenas.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '2.5rem', background: '#f8fafc', borderRadius: '16px' }}>
-                <i className="fa fa-comment-dots fs-1 text-muted mb-3" />
-                <h5 style={{ fontWeight: 700, color: '#0f172a' }}>Aún no hay opiniones para esta cosecha</h5>
-                <p style={{ color: '#64748b', fontSize: '0.9rem', maxWidth: '400px', margin: '0 auto 1.25rem auto' }}>
-                  Sé el primero en compartir qué tal te pareció este producto del campo.
+              <div style={{ padding: '2rem 1rem', textAlign: 'center', color: '#64748b' }}>
+                <p style={{ margin: 0, fontSize: '0.9rem' }}>
+                  Sé la primera persona en compartir una opinión sobre este producto.
                 </p>
-                <button
-                  type="button"
-                  onClick={() => setMostrarFormulario(true)}
-                  className="btn btn-sm btn-primary"
-                  style={{ borderRadius: '999px', fontWeight: 700, padding: '0.45rem 1.25rem' }}
-                >
-                  Dejar Primera Reseña
-                </button>
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.25rem' }}>
-                {resenas.map((r) => (
-                  <div
-                    key={r.id_resena}
-                    style={{
-                      background: '#f8fafc',
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '18px',
-                      padding: '1.25rem',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <div>
-                      {/* Cabecera de la reseña */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.65rem' }}>
-                        <div>
-                          <strong style={{ color: '#0f172a', fontSize: '0.95rem', display: 'block' }}>
-                            {r.nombre_usuario}
-                          </strong>
-                          <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                            {r.ciudad || 'Montes de María'} • {r.fecha_creacion ? new Date(r.fecha_creacion).toLocaleDateString('es-CO') : 'Reciente'}
-                          </span>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {resenas.map((r, idx) => {
+                  const iniciales = (r.nombre_usuario || 'U')
+                    .trim()
+                    .split(/\s+/)
+                    .slice(0, 2)
+                    .map((w) => w[0])
+                    .join('')
+                    .toUpperCase();
+
+                  return (
+                    <div
+                      key={r.id_resena}
+                      style={{
+                        paddingTop: '1.25rem',
+                        paddingBottom: '1.25rem',
+                        borderBottom: idx === resenas.length - 1 ? 'none' : '1px solid #f1f5f9',
+                      }}
+                    >
+                      {/* Cabecera del usuario */}
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                          <div
+                            style={{
+                              width: '34px',
+                              height: '34px',
+                              borderRadius: '50%',
+                              background: '#f1f5f9',
+                              color: '#475569',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontWeight: 700,
+                              fontSize: '0.78rem',
+                              border: '1px solid #e2e8f0',
+                            }}
+                          >
+                            {iniciales}
+                          </div>
+                          <div>
+                            <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#1e293b', display: 'block', lineHeight: 1.2 }}>
+                              {r.nombre_usuario}
+                            </span>
+                            <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                              {r.ciudad && `${r.ciudad} • `}
+                              {r.fecha_creacion ? new Date(r.fecha_creacion).toLocaleDateString('es-CO', { year: 'numeric', month: 'short', day: 'numeric' }) : 'Reciente'}
+                            </span>
+                          </div>
                         </div>
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
-                          <span
+                        {isAdmin && (
+                          <button
+                            type="button"
+                            onClick={() => handleEliminarResena(r.id_resena)}
                             style={{
-                              background: '#dcfce7',
-                              color: '#15803d',
-                              fontSize: '0.72rem',
-                              fontWeight: 700,
-                              padding: '0.2rem 0.55rem',
-                              borderRadius: '999px',
+                              background: 'transparent',
+                              border: 'none',
+                              color: '#94a3b8',
+                              fontSize: '0.8rem',
+                              cursor: 'pointer',
                               display: 'flex',
                               alignItems: 'center',
                               gap: '0.3rem',
+                              padding: '0.2rem 0.4rem',
+                              borderRadius: '6px',
+                              transition: 'color 0.15s ease',
                             }}
+                            onMouseEnter={(e) => { e.currentTarget.style.color = '#ef4444' }}
+                            onMouseLeave={(e) => { e.currentTarget.style.color = '#94a3b8' }}
+                            title="Eliminar opinión (Admin)"
                           >
-                            <i className="fa fa-circle-check" /> Compra Verificada
-                          </span>
-
-                          {isAdmin && (
-                            <button
-                              type="button"
-                              onClick={() => handleEliminarResena(r.id_resena)}
-                              className="btn btn-sm btn-outline-danger"
-                              style={{
-                                padding: '0.2rem 0.55rem',
-                                fontSize: '0.75rem',
-                                borderRadius: '8px',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '0.35rem',
-                                fontWeight: 700,
-                                borderColor: '#fca5a5',
-                                color: '#dc2626',
-                                background: '#fef2f2'
-                              }}
-                              title="Eliminar esta reseña (Acción de Administrador)"
-                            >
-                              <i className="fa fa-trash-alt" />
-                              <span>Eliminar</span>
-                            </button>
-                          )}
-                        </div>
+                            <i className="fa fa-trash-alt" />
+                            <span>Eliminar</span>
+                          </button>
+                        )}
                       </div>
 
                       {/* Estrellas */}
-                      <div style={{ color: '#eab308', fontSize: '0.85rem', marginBottom: '0.65rem' }}>
+                      <div style={{ color: '#f59e0b', fontSize: '0.8rem', marginBottom: '0.45rem' }}>
                         {[1, 2, 3, 4, 5].map((star) => (
-                          <i key={star} className={`fa ${star <= r.rating ? 'fa-star' : 'fa-star-o'}`} />
+                          <i key={star} className={`fa ${star <= r.rating ? 'fa-star' : 'fa-star-o'}`} style={{ marginRight: '1px' }} />
                         ))}
                       </div>
 
-                      {/* Texto del comentario */}
-                      <p style={{ color: '#334155', fontSize: '0.9rem', lineHeight: 1.5, margin: 0, fontStyle: 'italic' }}>
-                        "{r.comentario}"
+                      {/* Texto de la opinión */}
+                      <p style={{ color: '#334155', fontSize: '0.9rem', lineHeight: 1.55, margin: 0 }}>
+                        {r.comentario}
                       </p>
-                    </div>
 
-                    {/* Foto Real de la Reseña */}
-                    {r.foto_url && (
-                      <div style={{ marginTop: '0.85rem' }}>
-                        <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, display: 'block', marginBottom: '0.25rem' }}>
-                          Foto real del cliente:
-                        </span>
-                        <img
-                          src={r.foto_url}
-                          alt={`Foto reseña de ${r.nombre_usuario}`}
-                          style={{
-                            width: '80px',
-                            height: '80px',
-                            borderRadius: '12px',
-                            objectFit: 'cover',
-                            border: '1px solid #cbd5e1',
-                            cursor: 'pointer',
-                          }}
-                          onClick={() => window.open(r.foto_url, '_blank')}
-                          title="Ver foto en tamaño completo"
-                        />
-                      </div>
-                    )}
-                  </div>
-                ))}
+                      {/* Foto adjunta si existe */}
+                      {r.foto_url && (
+                        <div style={{ marginTop: '0.65rem' }}>
+                          <img
+                            src={r.foto_url}
+                            alt="Foto adjunta"
+                            style={{
+                              width: '72px',
+                              height: '72px',
+                              borderRadius: '8px',
+                              objectFit: 'cover',
+                              border: '1px solid #cbd5e1',
+                              cursor: 'pointer',
+                            }}
+                            onClick={() => window.open(r.foto_url, '_blank')}
+                            title="Ver foto"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
