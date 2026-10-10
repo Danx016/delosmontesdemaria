@@ -439,29 +439,6 @@ export default function ProductPage() {
                   )
                 })()}
 
-                {/* Badge Región */}
-                <span
-                  style={{
-                    position: 'absolute',
-                    top: '1rem',
-                    left: '1rem',
-                    background: 'rgba(255, 255, 255, 0.95)',
-                    backdropFilter: 'blur(8px)',
-                    color: '#15803d',
-                    padding: '0.4rem 0.9rem',
-                    borderRadius: '999px',
-                    fontSize: '0.78rem',
-                    fontWeight: 800,
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
-                    zIndex: 5,
-                  }}
-                >
-                  <i className="fa fa-seedling text-success" /> Montes de María Oficial
-                </span>
-
                 {/* Stock Badge */}
                 <span
                   style={{
