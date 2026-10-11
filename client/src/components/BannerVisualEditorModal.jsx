@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import HeroSlideRenderer from './HeroSlideRenderer'
+import { listarVendedores } from '../api/usuario.api'
 
 // Catálogo de plantillas y diseños inspirados en Montes de María
 export const PRESET_HERO_DESIGNS = [
@@ -230,6 +231,7 @@ export const BLANK_BANNER = {
   tarjeta_badge_top: '',
   tarjeta_vendedor_nombre: '',
   tarjeta_vendedor_rating: '',
+  tarjeta_vendedor_id: '',
   cupon_codigo: '',
   cupon_texto: '',
   activo: 1,
@@ -331,6 +333,7 @@ export function normalizeBannerData(raw) {
     }
   }
 
+  if (clone.tarjeta_vendedor_id === undefined) clone.tarjeta_vendedor_id = raw?.tarjeta_vendedor_id || ''
   if (clone.mostrar_tarjeta === undefined) clone.mostrar_tarjeta = true
   if (clone.mostrar_cita === undefined) clone.mostrar_cita = Boolean(clone.cita)
   if (clone.mostrar_productor === undefined) clone.mostrar_productor = Boolean(clone.tarjeta_vendedor_nombre)
@@ -345,10 +348,131 @@ export default function BannerVisualEditorModal({
   onSave,
   initialData = null,
   isEditing = false,
-  existingBanners = []
+  existingBanners = [],
+  usuarios = []
 }) {
   // Inicializar estado interno de manera aislada sincronizado con initialData
   const [data, setData] = useState(() => normalizeBannerData(initialData))
+
+  // Lista de vendedores campesinos para selección
+  const [vendedoresList, setVendedoresList] = useState([])
+  const [loadingVendedores, setLoadingVendedores] = useState(false)
+
+  // Cargar vendedores y campesinos registrados
+  useEffect(() => {
+    if (!isOpen) return
+    let isMounted = true
+
+    if (Array.isArray(usuarios) && usuarios.length > 0) {
+      setVendedoresList(usuarios)
+    }
+
+    setLoadingVendedores(true)
+    listarVendedores()
+      .then((res) => {
+        if (!isMounted) return
+        const vens = res.data || []
+        if (vens.length > 0) {
+          setVendedoresList(() => {
+            const map = new Map()
+            ;(usuarios || []).forEach((u) => {
+              if (u && (u.id_usuario || u.id)) map.set(Number(u.id_usuario || u.id), u)
+            })
+            vens.forEach((v) => {
+              if (v && (v.id_usuario || v.id)) {
+                const idNum = Number(v.id_usuario || v.id)
+                map.set(idNum, { ...(map.get(idNum) || {}), ...v, es_vendedor_campesino: true })
+              }
+            })
+            return Array.from(map.values())
+          })
+        }
+      })
+      .catch((err) => {
+        console.warn('Error al cargar lista de vendedores para banner:', err)
+      })
+      .finally(() => {
+        if (isMounted) setLoadingVendedores(false)
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [isOpen, usuarios])
+
+  // Separar campesinos de otros usuarios de la plataforma
+  const isCampesinoUser = (u) => {
+    if (!u) return false
+    if (u.es_vendedor_campesino) return true
+    const rId = Number(u.id_rol ?? (typeof u.rol === 'number' ? u.rol : null))
+    if (rId === 2) return true
+    const rName = String(u.rolNombre || u.nombre_rol || (typeof u.rol === 'string' ? u.rol : '')).toLowerCase()
+    return rName.includes('vendedor') || rName.includes('campesino')
+  }
+
+  const { campesinosList, otrosUsuariosList } = useMemo(() => {
+    const campesinos = []
+    const otros = []
+    vendedoresList.forEach((u) => {
+      if (isCampesinoUser(u)) campesinos.push(u)
+      else otros.push(u)
+    })
+    return { campesinosList: campesinos, otrosUsuariosList: otros }
+  }, [vendedoresList])
+
+  // Manejador al seleccionar un vendedor de la lista
+  const handleSelectVendor = (e) => {
+    const val = e.target.value
+    if (!val || val === 'custom') {
+      updateField('tarjeta_vendedor_id', '')
+      return
+    }
+
+    const found = vendedoresList.find((v) => String(v.id_usuario || v.id) === String(val))
+    if (found) {
+      const vId = Number(found.id_usuario || found.id)
+      const vName = found.nombre || found.apodo || 'Productor de Montes de María'
+      const vLoc = found.municipio || found.direccion || ''
+      const formatted = vLoc ? `${vName} • ${vLoc}` : `${vName} • Productor Local`
+
+      updateField('tarjeta_vendedor_id', vId)
+      updateField('tarjeta_vendedor_nombre', formatted)
+      if (!data.tarjeta_vendedor_rating) {
+        updateField('tarjeta_vendedor_rating', '⭐ 5.0 Productor Verificado')
+      }
+    }
+  }
+
+  // Vincular botón de banner al perfil del vendedor seleccionado
+  const handleVincularBotonVendedor = (vId) => {
+    if (!vId) return
+    const vendorLink = `/vendedor/${vId}`
+    setData((prev) => {
+      const currentBtns = [...(prev.botones || [])]
+      const vBtnIdx = currentBtns.findIndex(b => b.link && (b.link.startsWith('/vendedor') || b.link === '/vendedores'))
+      if (vBtnIdx >= 0) {
+        currentBtns[vBtnIdx] = {
+          ...currentBtns[vBtnIdx],
+          link: vendorLink,
+          texto: currentBtns[vBtnIdx].texto || 'Conocer Productor'
+        }
+      } else if (currentBtns.length > 1) {
+        currentBtns[1] = {
+          ...currentBtns[1],
+          link: vendorLink
+        }
+      } else {
+        currentBtns.push({
+          id: `b_${Date.now()}`,
+          texto: 'Conocer Productor',
+          link: vendorLink,
+          icono: 'fa-store',
+          estilo: 'secondary'
+        })
+      }
+      return { ...prev, botones: currentBtns }
+    })
+  }
 
   // Sincronizar estado cada vez que se abra o cambie el banner a editar
   useEffect(() => {
@@ -503,6 +627,9 @@ export default function BannerVisualEditorModal({
         ...data,
         id_banner: data.id_banner,
         titulo: data.titulo.trim(),
+        tarjeta_vendedor_id: data.tarjeta_vendedor_id || 47,
+        tarjeta_vendedor_nombre: data.tarjeta_vendedor_nombre || '',
+        tarjeta_vendedor_rating: data.tarjeta_vendedor_rating || '',
         boton_principal_texto: data.botones[0]?.texto || 'Ver Catálogo',
         boton_principal_link: data.botones[0]?.link || '/catalogo',
         boton_secundario_texto: data.botones[1]?.texto || '',
@@ -1022,26 +1149,192 @@ export default function BannerVisualEditorModal({
 
                 {/* Productor Verificado */}
                 {data.mostrar_productor && (
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#15803d', textTransform: 'uppercase', marginBottom: '0.35rem' }}>
-                      Nombre del Productor / Campesino
-                    </label>
-                    <input
-                      type="text"
-                      value={data.tarjeta_vendedor_nombre || ''}
-                      onChange={(e) => updateField('tarjeta_vendedor_nombre', e.target.value)}
-                      placeholder="Ej: Montes de María • Productor Local"
-                      style={{
-                        width: '100%',
-                        backgroundColor: '#ffffff',
-                        border: '1.5px solid #cbd5e1',
-                        borderRadius: '8px',
-                        padding: '0.6rem 0.85rem',
-                        color: '#0f172a',
-                        fontSize: '0.85rem',
-                        boxSizing: 'border-box'
-                      }}
-                    />
+                  <div
+                    style={{
+                      backgroundColor: '#f0fdf4',
+                      border: '1.5px solid #86efac',
+                      borderRadius: '10px',
+                      padding: '0.85rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.65rem'
+                    }}
+                  >
+                    {/* Selector de vendedor registrado */}
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+                        <label
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.4rem',
+                            fontSize: '0.78rem',
+                            fontWeight: 800,
+                            color: '#15803d',
+                            textTransform: 'uppercase',
+                            margin: 0
+                          }}
+                        >
+                          <i className="fa fa-user-check" />
+                          Seleccionar Vendedor / Campesino
+                        </label>
+                        {data.tarjeta_vendedor_id ? (
+                          <span
+                            style={{
+                              fontSize: '0.7rem',
+                              fontWeight: 700,
+                              backgroundColor: '#dcfce7',
+                              color: '#15803d',
+                              padding: '2px 8px',
+                              borderRadius: '999px',
+                              border: '1px solid #86efac'
+                            }}
+                          >
+                            ID #{data.tarjeta_vendedor_id}
+                          </span>
+                        ) : null}
+                      </div>
+
+                      <select
+                        value={data.tarjeta_vendedor_id ? String(data.tarjeta_vendedor_id) : (data.tarjeta_vendedor_nombre ? 'custom' : '')}
+                        onChange={handleSelectVendor}
+                        style={{
+                          width: '100%',
+                          backgroundColor: '#ffffff',
+                          border: '1.5px solid #86efac',
+                          borderRadius: '8px',
+                          padding: '0.6rem 0.85rem',
+                          color: '#0f172a',
+                          fontSize: '0.85rem',
+                          fontWeight: 600,
+                          boxSizing: 'border-box',
+                          cursor: 'pointer',
+                          outline: 'none'
+                        }}
+                      >
+                        <option value="">-- Elige un vendedor o campesino registrado --</option>
+                        {campesinosList.length > 0 && (
+                          <optgroup label="👨‍🌾 Campesinos y Vendedores de Montes de María">
+                            {campesinosList.map((v) => (
+                              <option key={v.id_usuario || v.id} value={v.id_usuario || v.id}>
+                                {v.nombre || v.apodo} {v.municipio || v.direccion ? `• ${v.municipio || v.direccion}` : ''} {v.categoria_productos ? `(${v.categoria_productos})` : ''}
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
+                        {otrosUsuariosList.length > 0 && (
+                          <optgroup label="👥 Otros Usuarios de la Plataforma">
+                            {otrosUsuariosList.map((u) => (
+                              <option key={u.id_usuario || u.id} value={u.id_usuario || u.id}>
+                                {u.nombre || u.apodo} ({u.correo})
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
+                        <option value="custom">✏️ Nombre manual / personalizado</option>
+                      </select>
+                      {loadingVendedores && (
+                        <span style={{ fontSize: '0.72rem', color: '#16a34a', marginTop: '3px', display: 'block' }}>
+                          <i className="fa fa-spinner fa-spin" style={{ marginRight: '4px' }} /> Cargando lista de campesinos...
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Nombre del Productor / Campesino Editable */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 800, color: '#166534', textTransform: 'uppercase', marginBottom: '0.25rem' }}>
+                        Nombre del Productor / Campesino
+                      </label>
+                      <input
+                        type="text"
+                        value={data.tarjeta_vendedor_nombre || ''}
+                        onChange={(e) => updateField('tarjeta_vendedor_nombre', e.target.value)}
+                        placeholder="Ej: Finca La Serranía • San Jacinto"
+                        style={{
+                          width: '100%',
+                          backgroundColor: '#ffffff',
+                          border: '1.5px solid #cbd5e1',
+                          borderRadius: '8px',
+                          padding: '0.6rem 0.85rem',
+                          color: '#0f172a',
+                          fontSize: '0.85rem',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                    </div>
+
+                    {/* Insignia o Rating del Productor */}
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.74rem', fontWeight: 800, color: '#166534', textTransform: 'uppercase', marginBottom: '0.25rem' }}>
+                        Insignia o Rating del Productor
+                      </label>
+                      <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
+                        <input
+                          type="text"
+                          value={data.tarjeta_vendedor_rating || ''}
+                          onChange={(e) => updateField('tarjeta_vendedor_rating', e.target.value)}
+                          placeholder="Ej: ⭐ 5.0 Productor Local"
+                          style={{
+                            flex: 1,
+                            minWidth: '150px',
+                            backgroundColor: '#ffffff',
+                            border: '1.5px solid #cbd5e1',
+                            borderRadius: '8px',
+                            padding: '0.5rem 0.75rem',
+                            color: '#0f172a',
+                            fontSize: '0.82rem',
+                            boxSizing: 'border-box'
+                          }}
+                        />
+                        {['⭐ 5.0', '🌱 100% Orgánico', '🚚 Envío Hoy'].map((chip) => (
+                          <button
+                            key={chip}
+                            type="button"
+                            onClick={() => updateField('tarjeta_vendedor_rating', chip)}
+                            style={{
+                              backgroundColor: '#ffffff',
+                              border: '1px solid #86efac',
+                              color: '#15803d',
+                              borderRadius: '6px',
+                              padding: '0.35rem 0.6rem',
+                              fontSize: '0.72rem',
+                              fontWeight: 700,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            {chip}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Botón rápido para vincular al perfil del vendedor */}
+                    {data.tarjeta_vendedor_id ? (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '0.35rem', borderTop: '1px dashed #bbf7d0' }}>
+                        <span style={{ fontSize: '0.72rem', color: '#166534' }}>
+                          Perfil: <code>/vendedor/{data.tarjeta_vendedor_id}</code>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleVincularBotonVendedor(data.tarjeta_vendedor_id)}
+                          style={{
+                            backgroundColor: '#16a34a',
+                            color: '#ffffff',
+                            border: 'none',
+                            borderRadius: '6px',
+                            padding: '0.3rem 0.65rem',
+                            fontSize: '0.72rem',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <i className="fa fa-link" /> Vincular a botón del banner
+                        </button>
+                      </div>
+                    ) : null}
                   </div>
                 )}
 
@@ -1382,6 +1675,50 @@ export default function BannerVisualEditorModal({
                       </div>
                     </div>
 
+                    {/* Productor Asignado en Tarjeta */}
+                    <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', padding: '0.65rem 0.75rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.3rem' }}>
+                        <label style={{ fontSize: '0.72rem', color: '#166534', fontWeight: 700 }}>
+                          <i className="fa fa-user-check" style={{ marginRight: '4px' }} /> Productor / Vendedor Asignado
+                        </label>
+                        {data.tarjeta_vendedor_id ? (
+                          <span style={{ fontSize: '0.68rem', color: '#15803d', fontWeight: 700 }}>ID #{data.tarjeta_vendedor_id}</span>
+                        ) : null}
+                      </div>
+                      <select
+                        value={data.tarjeta_vendedor_id ? String(data.tarjeta_vendedor_id) : (data.tarjeta_vendedor_nombre ? 'custom' : '')}
+                        onChange={handleSelectVendor}
+                        style={{
+                          width: '100%',
+                          backgroundColor: '#ffffff',
+                          border: '1px solid #86efac',
+                          borderRadius: '6px',
+                          padding: '0.45rem 0.65rem',
+                          color: '#0f172a',
+                          fontSize: '0.8rem',
+                          fontWeight: 600,
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <option value="">-- Seleccionar vendedor registrado --</option>
+                        {campesinosList.map((v) => (
+                          <option key={v.id_usuario || v.id} value={v.id_usuario || v.id}>
+                            👨‍🌾 {v.nombre || v.apodo} {v.municipio || v.direccion ? `• ${v.municipio || v.direccion}` : ''}
+                          </option>
+                        ))}
+                        {otrosUsuariosList.length > 0 && (
+                          <optgroup label="Otros usuarios">
+                            {otrosUsuariosList.map((u) => (
+                              <option key={u.id_usuario || u.id} value={u.id_usuario || u.id}>
+                                👤 {u.nombre || u.apodo}
+                              </option>
+                            ))}
+                          </optgroup>
+                        )}
+                        <option value="custom">✏️ Personalizado (Escribir en textos)</option>
+                      </select>
+                    </div>
+
                     {/* Imagen de Producto */}
                     <div style={{ backgroundColor: '#f8fafc', padding: '0.85rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                       <label style={{ display: 'block', fontSize: '0.72rem', color: '#475569', fontWeight: 700, marginBottom: '4px' }}>Foto del Producto</label>
@@ -1601,7 +1938,9 @@ export default function BannerVisualEditorModal({
                 showcaseImage: data.tarjeta_imagen,
                 floatPillTop: data.tarjeta_badge_top,
                 farmerName: data.tarjeta_vendedor_nombre,
-                floatPillBottom: data.tarjeta_vendedor_rating
+                floatPillBottom: data.tarjeta_vendedor_rating,
+                vendorId: data.tarjeta_vendedor_id,
+                tarjeta_vendedor_id: data.tarjeta_vendedor_id
               }}
               isPreview={true}
             />

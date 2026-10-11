@@ -3950,6 +3950,7 @@ export default function AdminPage() {
               initialData={editingBanner}
               isEditing={Boolean(editingBanner?.id_banner)}
               existingBanners={banners}
+              usuarios={usuarios}
             />
           )}
 
