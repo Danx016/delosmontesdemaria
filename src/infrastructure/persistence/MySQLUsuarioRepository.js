@@ -51,8 +51,11 @@ class MySQLUsuarioRepository extends UsuarioRepository {
     return new Promise((resolve, reject) => {
       db.query('SELECT * FROM usuarios WHERE id_usuario = ?', [id], (err, rows) => {
         if (err) return reject(err);
-        if (!rows || rows.length === 0) return resolve(null);
-        resolve(new Usuario(rows[0]));
+        if (rows && rows.length > 0) return resolve(new Usuario(rows[0]));
+        db.query('SELECT * FROM db_auth.usuarios WHERE id_usuario = ?', [id], (errAuth, rowsAuth) => {
+          if (!errAuth && rowsAuth && rowsAuth.length > 0) return resolve(new Usuario(rowsAuth[0]));
+          resolve(null);
+        });
       });
     });
   }
@@ -61,18 +64,25 @@ class MySQLUsuarioRepository extends UsuarioRepository {
     return new Promise((resolve, reject) => {
       db.query('SELECT * FROM usuarios WHERE apodo = ?', [apodo], (err, rows) => {
         if (err) return reject(err);
-        if (!rows || rows.length === 0) return resolve(null);
-        resolve(new Usuario(rows[0]));
+        if (rows && rows.length > 0) return resolve(new Usuario(rows[0]));
+        db.query('SELECT * FROM db_auth.usuarios WHERE apodo = ?', [apodo], (errAuth, rowsAuth) => {
+          if (!errAuth && rowsAuth && rowsAuth.length > 0) return resolve(new Usuario(rowsAuth[0]));
+          resolve(null);
+        });
       });
     });
   }
 
   async buscarPorCorreo(correo) {
     return new Promise((resolve, reject) => {
-      db.query('SELECT * FROM usuarios WHERE correo = ?', [correo], (err, rows) => {
+      const cleanEmail = (correo || '').trim().toLowerCase();
+      db.query('SELECT * FROM usuarios WHERE LOWER(TRIM(correo)) = ?', [cleanEmail], (err, rows) => {
         if (err) return reject(err);
-        if (!rows || rows.length === 0) return resolve(null);
-        resolve(new Usuario(rows[0]));
+        if (rows && rows.length > 0) return resolve(new Usuario(rows[0]));
+        db.query('SELECT * FROM db_auth.usuarios WHERE LOWER(TRIM(correo)) = ?', [cleanEmail], (errAuth, rowsAuth) => {
+          if (!errAuth && rowsAuth && rowsAuth.length > 0) return resolve(new Usuario(rowsAuth[0]));
+          resolve(null);
+        });
       });
     });
   }
@@ -81,8 +91,11 @@ class MySQLUsuarioRepository extends UsuarioRepository {
     return new Promise((resolve, reject) => {
       db.query('SELECT * FROM usuarios WHERE apodo = ? OR correo = ?', [termino, termino], (err, rows) => {
         if (err) return reject(err);
-        if (!rows || rows.length === 0) return resolve(null);
-        resolve(new Usuario(rows[0]));
+        if (rows && rows.length > 0) return resolve(new Usuario(rows[0]));
+        db.query('SELECT * FROM db_auth.usuarios WHERE apodo = ? OR correo = ?', [termino, termino], (errAuth, rowsAuth) => {
+          if (!errAuth && rowsAuth && rowsAuth.length > 0) return resolve(new Usuario(rowsAuth[0]));
+          resolve(null);
+        });
       });
     });
   }
@@ -91,8 +104,11 @@ class MySQLUsuarioRepository extends UsuarioRepository {
     return new Promise((resolve, reject) => {
       db.query('SELECT * FROM usuarios WHERE google_id = ?', [googleId], (err, rows) => {
         if (err) return reject(err);
-        if (!rows || rows.length === 0) return resolve(null);
-        resolve(new Usuario(rows[0]));
+        if (rows && rows.length > 0) return resolve(new Usuario(rows[0]));
+        db.query('SELECT * FROM db_auth.usuarios WHERE google_id = ?', [googleId], (errAuth, rowsAuth) => {
+          if (!errAuth && rowsAuth && rowsAuth.length > 0) return resolve(new Usuario(rowsAuth[0]));
+          resolve(null);
+        });
       });
     });
   }
@@ -123,8 +139,9 @@ class MySQLUsuarioRepository extends UsuarioRepository {
       const sql = `UPDATE usuarios SET ${campos.join(', ')} WHERE id_usuario = ?`;
 
       db.query(sql, valores, (err, result) => {
+        // Actualizar también en db_auth si existe
+        db.query(`UPDATE db_auth.usuarios SET ${campos.join(', ')} WHERE id_usuario = ?`, valores, () => {});
         if (err) return reject(err);
-        if (result.affectedRows === 0) return resolve(null);
         this.buscarPorId(id).then(resolve).catch(reject);
       });
     });
@@ -134,8 +151,8 @@ class MySQLUsuarioRepository extends UsuarioRepository {
     const hashedPassword = await bcrypt.hash(nuevaContrasena, 12);
     return new Promise((resolve, reject) => {
       db.query('UPDATE usuarios SET contrasena = ?, reset_code = NULL, reset_expires = NULL WHERE id_usuario = ?', [hashedPassword, id], (err, result) => {
+        db.query('UPDATE db_auth.usuarios SET contrasena = ?, reset_code = NULL, reset_expires = NULL WHERE id_usuario = ?', [hashedPassword, id], () => {});
         if (err) return reject(err);
-        if (result.affectedRows === 0) return resolve(null);
         this.buscarPorId(id).then(resolve).catch(reject);
       });
     });
@@ -144,6 +161,7 @@ class MySQLUsuarioRepository extends UsuarioRepository {
   async actualizarCreditos(id, creditos) {
     return new Promise((resolve, reject) => {
       db.query('UPDATE usuarios SET creditos = ? WHERE id_usuario = ?', [creditos, id], (err, result) => {
+        db.query('UPDATE db_auth.usuarios SET creditos = ? WHERE id_usuario = ?', [creditos, id], () => {});
         if (err) return reject(err);
         if (result.affectedRows === 0) return resolve(null);
         this.buscarPorId(id).then(resolve).catch(reject);
@@ -154,6 +172,7 @@ class MySQLUsuarioRepository extends UsuarioRepository {
   async descontarCreditos(id, monto) {
     return new Promise((resolve, reject) => {
       db.query('UPDATE usuarios SET creditos = creditos - ? WHERE id_usuario = ?', [monto, id], (err, result) => {
+        db.query('UPDATE db_auth.usuarios SET creditos = creditos - ? WHERE id_usuario = ?', [monto, id], () => {});
         if (err) return reject(err);
         resolve(result.affectedRows > 0);
       });
@@ -163,6 +182,7 @@ class MySQLUsuarioRepository extends UsuarioRepository {
   async guardarResetCode(idUsuario, codigo, expiracion) {
     return new Promise((resolve, reject) => {
       db.query('UPDATE usuarios SET reset_code = ?, reset_expires = ? WHERE id_usuario = ?', [codigo, expiracion, idUsuario], (err) => {
+        db.query('UPDATE db_auth.usuarios SET reset_code = ?, reset_expires = ? WHERE id_usuario = ?', [codigo, expiracion, idUsuario], () => {});
         if (err) return reject(err);
         resolve(true);
       });
@@ -172,6 +192,7 @@ class MySQLUsuarioRepository extends UsuarioRepository {
   async limpiarResetCode(idUsuario) {
     return new Promise((resolve, reject) => {
       db.query('UPDATE usuarios SET reset_code = NULL, reset_expires = NULL WHERE id_usuario = ?', [idUsuario], (err) => {
+        db.query('UPDATE db_auth.usuarios SET reset_code = NULL, reset_expires = NULL WHERE id_usuario = ?', [idUsuario], () => {});
         if (err) return reject(err);
         resolve(true);
       });
