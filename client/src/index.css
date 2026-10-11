@@ -5547,17 +5547,26 @@ h1, h2, h3, h4, h5, h6 {
   .catalog-main-layout {
     grid-template-columns: 1fr;
   }
+  .catalog-sidebar {
+    position: static !important;
+  }
 }
 
 /* Left Sidebar */
+.catalog-sidebar {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 90px;
+  align-self: start;
+  z-index: 10;
+}
+
 .catalog-sidebar-card {
   background: var(--card-bg, #ffffff);
   border: 1px solid var(--border-color, #e2e8f0);
   border-radius: 14px;
   padding: 1.25rem;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
-  position: sticky;
-  top: 90px;
 }
 
 .catalog-filter-head {
