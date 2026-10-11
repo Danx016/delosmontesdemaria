@@ -206,12 +206,6 @@ export default function Navbar() {
             </li>
 
             <li role="none">
-              <Link to="/vendedores" className={`nav-link-item ${isActive('/vendedores') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)} role="menuitem" tabIndex="0">
-                <i className="fa fa-users" /> <span>Vendedores</span>
-              </Link>
-            </li>
-
-            <li role="none">
               <Link to="/carrito" className={`nav-link-item nav-cart-item ${isActive('/carrito') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)} role="menuitem" tabIndex="0" aria-label={`Carrito de compras${count > 0 ? ` con ${count} productos` : ''}`}>
                 <i className="fa fa-shopping-cart" />
                 <span>Carrito</span>
