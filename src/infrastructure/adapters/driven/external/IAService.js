@@ -955,46 +955,202 @@ PAUTAS CRÍTICAS:
 
     // 1. Acciones pendientes de seguridad (cambio de clave / verificación de código)
     const pendingInput = this.pendingInput.get(session_id);
+
+    // 1.A. Usuario está ingresando la nueva contraseña
     if (pendingInput && pendingInput.action === 'set_new_password') {
-      if (cleanMsg.length < 8) return 'La contraseña debe tener al menos 8 caracteres. Intenta de nuevo:';
+      if (cleanMsg.length < 8) {
+        return '⚠️ La nueva contraseña debe tener **al menos 8 caracteres** para tu seguridad. Por favor, escribe tu nueva contraseña:';
+      }
       this.pendingInput.delete(session_id);
       if (usuarioRepository) {
-        await usuarioRepository.actualizarContrasena(pendingInput.id_usuario, cleanMsg);
+        try {
+          await usuarioRepository.actualizarContrasena(pendingInput.id_usuario, cleanMsg);
+          if (usuarioRepository.limpiarResetCode) {
+            await usuarioRepository.limpiarResetCode(pendingInput.id_usuario);
+          }
+          return '🎉 **¡Tu contraseña ha sido actualizada con éxito!**\n\nTu nueva clave ya está activa y registrada en el sistema. Puedes iniciar sesión con ella cuando lo desees.';
+        } catch (err) {
+          console.error('[Soporte IA] Error actualizando contraseña:', err);
+          return '❌ Ocurrió un error al actualizar la contraseña en el sistema. Por favor intenta de nuevo o solicita un asesor humano.';
+        }
       }
       return '✅ Tu contraseña ha sido actualizada exitosamente.';
     }
 
-    if (/^\d{6}$/.test(cleanMsg) && this.pendingVerifications.has(session_id)) {
-      const pv = this.pendingVerifications.get(session_id);
-      if (Date.now() > pv.expires) {
-        this.pendingVerifications.delete(session_id);
-        return '⚠️ El código ha expirado. Por favor solicita el cambio nuevamente.';
-      }
-      if (cleanMsg === pv.code) {
-        this.pendingVerifications.delete(session_id);
-        if (pv.action === 'cambiar_nombre') {
-          if (usuarioRepository) await usuarioRepository.actualizar(pv.id_usuario, { nombre: pv.data.nuevo_nombre });
-          return `✅ Tu nombre ha sido actualizado a **${pv.data.nuevo_nombre}**.`;
-        }
-        if (pv.action === 'cambiar_apodo') {
-          if (usuarioRepository) await usuarioRepository.actualizar(pv.id_usuario, { apodo: pv.data.nuevo_apodo });
-          return `✅ Tu apodo ha sido actualizado a **${pv.data.nuevo_apodo}**.`;
-        }
-        if (pv.action === 'cambiar_correo') {
-          if (usuarioRepository) await usuarioRepository.actualizar(pv.id_usuario, { correo: pv.data.nuevo_correo });
-          return `✅ Tu correo ha sido actualizado a **${pv.data.nuevo_correo}**.`;
-        }
-        if (pv.action === 'cambiar_password') {
-          this.pendingInput.set(session_id, { action: 'set_new_password', id_usuario: pv.id_usuario });
-          return '🔒 Código verificado correctamente. Por favor escribe tu **nueva contraseña** (mínimo 8 caracteres):';
-        }
-        if (pv.action === 'eliminar_cuenta') {
-          if (usuarioRepository) await usuarioRepository.eliminar(pv.id_usuario);
-          return 'Tu cuenta ha sido eliminada permanentemente del sistema.';
+    // 1.B. Usuario está proporcionando su correo para recuperar contraseña
+    if (pendingInput && pendingInput.action === 'awaiting_email_for_password') {
+      const emailMatch = cleanMsg.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+      if (emailMatch && usuarioRepository?.buscarPorCorreo) {
+        const inputEmail = emailMatch[0].toLowerCase();
+        try {
+          const userFound = await usuarioRepository.buscarPorCorreo(inputEmail);
+          if (!userFound) {
+            return `⚠️ El correo **${inputEmail}** no se encuentra registrado en nuestra plataforma.\n\nPor favor verifica que esté bien escrito o ingresa el correo exacto con el que creaste tu cuenta:`;
+          }
+          this.pendingInput.delete(session_id);
+          const code = Math.floor(100000 + Math.random() * 900000).toString();
+          const expires = Date.now() + 10 * 60 * 1000;
+          this.pendingVerifications.set(session_id, {
+            code,
+            action: 'cambiar_password',
+            id_usuario: userFound.id_usuario,
+            expires,
+            correo: userFound.correo
+          });
+          if (usuarioRepository.guardarResetCode) {
+            try {
+              await usuarioRepository.guardarResetCode(userFound.id_usuario, code, new Date(expires));
+            } catch (e) {
+              console.warn('[Soporte IA] Error guardando reset_code:', e.message);
+            }
+          }
+          if (this.emailService) {
+            try {
+              await this.emailService.sendPasswordResetEmail(userFound.correo, code);
+            } catch (e) {
+              console.error('[Soporte IA] Error enviando correo de reset:', e.message);
+            }
+          }
+          const [uP, dom] = userFound.correo.split('@');
+          const masked = uP.length > 2 ? `${uP.slice(0, 2)}***@${dom}` : `${uP.slice(0, 1)}***@${dom}`;
+          return `🔒 **Código de Seguridad Enviado**\n\nAcabamos de enviar un código de verificación de 6 dígitos a **${masked}**.\n\n📨 *Por favor, revisa tu bandeja de entrada o spam y escribe aquí en el chat el código de 6 dígitos para continuar:*`;
+        } catch (err) {
+          console.error('[Soporte IA] Error buscando correo:', err);
+          return '❌ Ocurrió un error al verificar el correo. Por favor intenta nuevamente:';
         }
       } else {
-        return '❌ Código incorrecto. Por favor verifica e intenta de nuevo.';
+        return '✉️ Por favor escribe una dirección de **correo electrónico válida** (ej: nombre@gmail.com) para enviarte el código de recuperación:';
       }
+    }
+
+    // 1.C. Usuario ingresó un código de 6 dígitos
+    if (/^\d{6}$/.test(cleanMsg)) {
+      let pv = this.pendingVerifications.get(session_id);
+
+      // Si no está en memoria de esta sesión, verificar si coincide con el reset_code del usuario en BD
+      if (!pv && id_usuario && usuarioRepository?.buscarPorId) {
+        try {
+          const uDb = await usuarioRepository.buscarPorId(id_usuario);
+          if (uDb && uDb.resetCodeValido && uDb.resetCodeValido(cleanMsg)) {
+            pv = { code: cleanMsg, action: 'cambiar_password', id_usuario: uDb.id_usuario, expires: Date.now() + 60000 };
+          }
+        } catch (e) {}
+      }
+
+      if (pv) {
+        if (Date.now() > pv.expires) {
+          this.pendingVerifications.delete(session_id);
+          return '⚠️ El código de verificación ha expirado (validez de 10 minutos). Por favor solicita el cambio de contraseña nuevamente diciendo: *"quiero cambiar mi contraseña"*.';
+        }
+        if (cleanMsg === pv.code) {
+          this.pendingVerifications.delete(session_id);
+          if (pv.action === 'cambiar_nombre') {
+            if (usuarioRepository) await usuarioRepository.actualizar(pv.id_usuario, { nombre: pv.data.nuevo_nombre });
+            return `✅ Tu nombre ha sido actualizado a **${pv.data.nuevo_nombre}**.`;
+          }
+          if (pv.action === 'cambiar_apodo') {
+            if (usuarioRepository) await usuarioRepository.actualizar(pv.id_usuario, { apodo: pv.data.nuevo_apodo });
+            return `✅ Tu apodo ha sido actualizado a **${pv.data.nuevo_apodo}**.`;
+          }
+          if (pv.action === 'cambiar_correo') {
+            if (usuarioRepository) await usuarioRepository.actualizar(pv.id_usuario, { correo: pv.data.nuevo_correo });
+            return `✅ Tu correo ha sido actualizado a **${pv.data.nuevo_correo}**.`;
+          }
+          if (pv.action === 'cambiar_password') {
+            this.pendingInput.set(session_id, { action: 'set_new_password', id_usuario: pv.id_usuario });
+            return '🔒 **¡Código verificado con éxito!**\n\nPor favor, escribe ahora tu **nueva contraseña** (debe tener mínimo 8 caracteres):';
+          }
+          if (pv.action === 'eliminar_cuenta') {
+            if (usuarioRepository) await usuarioRepository.eliminar(pv.id_usuario);
+            return 'Tu cuenta ha sido eliminada permanentemente del sistema.';
+          }
+        } else {
+          return '❌ Código de verificación incorrecto. Por favor revisa el código de 6 dígitos enviado a tu correo e intenta de nuevo.';
+        }
+      }
+    }
+
+    // 1.D. Detección de intención de Cambio / Recuperación de Contraseña
+    const isPasswordResetRequest = /\b(olvid[eé]|cambiar|recuperar|restablecer|modificar)\b[\s\S]{0,35}\b(contrase[nñ]a|clave|password|acceso)\b/i.test(cleanMsg) ||
+      /\b(contrase[nñ]a|clave|password)\b[\s\S]{0,35}\b(olvid[eé]|cambiar|recuperar|restablecer|perd[ií]|modificar)\b/i.test(cleanMsg) ||
+      /\b(cambiar clave|cambiar contrase[nñ]a|olvide mi clave|olvide mi contrase[nñ]a|restablecer clave|restablecer contrase[nñ]a)\b/i.test(cleanMsg);
+
+    if (isPasswordResetRequest) {
+      let targetUser = null;
+      if (id_usuario && usuarioRepository?.buscarPorId) {
+        try { targetUser = await usuarioRepository.buscarPorId(id_usuario); } catch (e) {}
+      }
+
+      const emailInMsg = cleanMsg.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+      if (!targetUser && emailInMsg && usuarioRepository?.buscarPorCorreo) {
+        try { targetUser = await usuarioRepository.buscarPorCorreo(emailInMsg[0].toLowerCase()); } catch (e) {}
+      }
+
+      if (!targetUser && ticket?.correo_cliente && ticket.correo_cliente !== 'cliente@montesdemaria.com' && usuarioRepository?.buscarPorCorreo) {
+        try { targetUser = await usuarioRepository.buscarPorCorreo(ticket.correo_cliente.toLowerCase()); } catch (e) {}
+      }
+
+      if (targetUser && targetUser.correo) {
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const expires = Date.now() + 10 * 60 * 1000;
+        this.pendingVerifications.set(session_id, {
+          code,
+          action: 'cambiar_password',
+          id_usuario: targetUser.id_usuario,
+          expires,
+          correo: targetUser.correo
+        });
+
+        if (usuarioRepository.guardarResetCode) {
+          try {
+            await usuarioRepository.guardarResetCode(targetUser.id_usuario, code, new Date(expires));
+          } catch (e) {
+            console.warn('[Soporte IA] Error guardando reset_code:', e.message);
+          }
+        }
+
+        if (this.emailService) {
+          try {
+            await this.emailService.sendPasswordResetEmail(targetUser.correo, code);
+          } catch (e) {
+            console.error('[Soporte IA] Error enviando correo de reset:', e.message);
+          }
+        }
+
+        const [uP, dom] = targetUser.correo.split('@');
+        const masked = uP.length > 2 ? `${uP.slice(0, 2)}***@${dom}` : `${uP.slice(0, 1)}***@${dom}`;
+
+        return `🔒 **Solicitud de Cambio de Contraseña**\n\nCon gusto te ayudo a actualizar tu clave. He enviado un código de seguridad de 6 dígitos a tu correo registrado (**${masked}**).\n\n📨 *Por favor, revisa tu bandeja de entrada o spam e ingresa el código de 6 dígitos aquí en el chat para continuar:*`;
+      } else {
+        this.pendingInput.set(session_id, { action: 'awaiting_email_for_password' });
+        return `🔒 **Recuperación y Cambio de Contraseña**\n\nCon gusto te ayudo a restablecer tu clave de acceso.\n\nPor favor, escribe el **correo electrónico** asociado a tu cuenta para enviarte un código de seguridad de 6 dígitos:`;
+      }
+    }
+
+    // 1.E. Detección de Cambio de Nombre
+    const changeNameMatch = cleanMsg.match(/\b(?:cambiar|actualizar|modificar)\s+(?:mi\s+)?nombre\s+(?:a|por)?\s*[:=]?\s*([A-Za-zÁÉÍÓÚáéíóúñÑ\s]{2,40})/i);
+    if (changeNameMatch && id_usuario && usuarioRepository?.buscarPorId) {
+      const nuevoNombre = changeNameMatch[1].trim();
+      try {
+        const targetUser = await usuarioRepository.buscarPorId(id_usuario);
+        if (targetUser && targetUser.correo) {
+          const code = Math.floor(100000 + Math.random() * 900000).toString();
+          const expires = Date.now() + 10 * 60 * 1000;
+          this.pendingVerifications.set(session_id, {
+            code,
+            action: 'cambiar_nombre',
+            id_usuario: targetUser.id_usuario,
+            expires,
+            data: { nuevo_nombre: nuevoNombre }
+          });
+          if (this.emailService) {
+            await this.emailService.sendPasswordResetEmail(targetUser.correo, code);
+          }
+          const [uP, dom] = targetUser.correo.split('@');
+          const masked = uP.length > 2 ? `${uP.slice(0, 2)}***@${dom}` : `${uP.slice(0, 1)}***@${dom}`;
+          return `🔒 Para confirmar el cambio de tu nombre a **"${nuevoNombre}"**, hemos enviado un código de seguridad de 6 dígitos a **${masked}**.\n\nPor favor, escribe el código aquí en el chat para confirmar:`;
+        }
+      } catch (e) {}
     }
 
     // 2. Cargar contexto enriquecido del usuario y de la tienda
@@ -1089,6 +1245,7 @@ CONOCIMIENTO OPERATIVO Y POLÍTICAS DE LA PLATAFORMA:
 4. 🌱 **Vender / Registro de Campesinos**: Cualquier agricultor o campesino puede unirse en /register seleccionando el rol "Campesino / Productor". Al registrarse, puede publicar cosechas y gestionar sus ventas desde su panel.
 5. 🛡️ **Garantía y Devoluciones**: Garantía de satisfacción de 48 horas tras recibir el paquete. Si un producto llega en mal estado, el cliente puede adjuntar una foto en este chat de soporte para reenvío o reembolso inmediato.
 6. 👨‍💼 **Atención con Asesor Humano**: Si el cliente solicita hablar con una persona o tiene un reclamo complejo, indícale cordialmente que puede usar el botón "Hablar con un asesor" o escribir "asesor" para ser transferido de inmediato.
+7. 🔐 **Cambio y Recuperación de Contraseña**: Esta función es completamente asistida por el sistema. Si el cliente solicita cambiar su contraseña o recuperarla, indícale amablemente que el sistema le enviará un código de seguridad de 6 dígitos a su correo electrónico registrado para proceder con el cambio seguro aquí mismo en el chat.
 
 INSTRUCCIONES DE RESPUESTA:
 - Responde siempre en español, de forma muy educada, cálida, empática, concisa y profesional.
@@ -1158,6 +1315,11 @@ INSTRUCCIONES DE RESPUESTA:
     // 1. Saludos
     if (/^(hola|buen|buenos|buenas|saludos|hey|alo|hello)\b/.test(cleanMsg)) {
       return `¡Hola, **${clienteNombre}**! 👋 Bienvenido al canal de soporte de **De los Montes de María** 🌾.\n\nEstoy aquí para ayudarte en tiempo real con:\n- 📦 **Rastreo y estado de tus pedidos**\n- 🚚 **Tiempos de entrega y envíos nacionales**\n- 💳 **Pagos, facturas y transacciones**\n- 🌱 **Información de cosechas y productos**\n- 👨‍🌾 **Registro de campesinos y ventas**\n\n¿En qué podemos colaborarte hoy?`;
+    }
+
+    // 1.B. Contraseña y recuperación de cuenta
+    if (/\b(contrase[nñ]a|clave|password|acceso|olvid[eé]|recuperar clave|cambiar clave|recuperar contrase[nñ]a|cambiar contrase[nñ]a)\b/.test(cleanMsg)) {
+      return `🔒 **Cambio y Recuperación de Contraseña:**\n\nPuedo ayudarte a cambiar o restablecer tu contraseña directamente aquí en el chat.\n\nEscribe *"quiero cambiar mi contraseña"* o indícame tu correo electrónico registrado y te enviaremos un código de seguridad de 6 dígitos para validarlo de inmediato.`;
     }
 
     // 2. Pedidos, compras y rastreo

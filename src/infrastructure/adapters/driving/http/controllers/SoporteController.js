@@ -49,7 +49,13 @@ class SoporteController {
 
       const ticketCode = generateTicketCode();
       const sessionId = session_id || ('sess_' + Math.random().toString(36).substring(2, 11) + Date.now());
-      const userId = (req.user && (req.user.id || req.user.id_usuario)) || null;
+      let userId = (req.user && (req.user.id || req.user.id_usuario)) || null;
+      if (!userId && correo && correo !== 'cliente@montesdemaria.com' && this.usuarioRepository?.buscarPorCorreo) {
+        try {
+          const u = await this.usuarioRepository.buscarPorCorreo(correo.trim());
+          if (u) userId = u.id_usuario || u.id;
+        } catch (e) {}
+      }
 
       const ticket = await this.soporteRepository.crearTicket({
         ticket_code: ticketCode,
@@ -274,11 +280,19 @@ class SoporteController {
         return res.json({ ok: true, transferido: true, escalated: true, reply: avisoPase, respuestaBot: avisoPase });
       }
 
+      let effectiveUserId = req.user?.id || req.user?.id_usuario || ticket.id_usuario || null;
+      if (!effectiveUserId && ticket.correo_cliente && ticket.correo_cliente !== 'cliente@montesdemaria.com' && this.usuarioRepository?.buscarPorCorreo) {
+        try {
+          const u = await this.usuarioRepository.buscarPorCorreo(ticket.correo_cliente.trim());
+          if (u) effectiveUserId = u.id_usuario || u.id;
+        } catch (e) {}
+      }
+
       const respuestaBot = await this.processSupportAIChat.execute({
         session_id: ticket.session_id,
         ticket,
         mensaje: cleanMsg,
-        id_usuario: req.user?.id || null
+        id_usuario: effectiveUserId
       });
 
       await this.soporteRepository.agregarMensaje({
