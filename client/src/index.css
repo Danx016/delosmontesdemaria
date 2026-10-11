@@ -91,7 +91,7 @@ html {
   scroll-behavior: smooth;
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
   -webkit-text-size-adjust: 100%;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -105,7 +105,7 @@ body {
   min-height: 100vh;
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
   position: relative;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -117,7 +117,7 @@ body {
   min-height: 100vh;
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 a {
@@ -5540,25 +5540,22 @@ h1, h2, h3, h4, h5, h6 {
   display: grid;
   grid-template-columns: 260px 1fr;
   gap: 2rem;
-  align-items: start;
+  align-items: stretch;
 }
 
 @media (max-width: 900px) {
   .catalog-main-layout {
     grid-template-columns: 1fr;
   }
-  .catalog-sidebar {
+  .catalog-sidebar-card {
     position: static !important;
   }
 }
 
 /* Left Sidebar */
 .catalog-sidebar {
-  position: -webkit-sticky;
-  position: sticky;
-  top: 90px;
-  align-self: start;
-  z-index: 10;
+  width: 100%;
+  position: relative;
 }
 
 .catalog-sidebar-card {
@@ -5567,6 +5564,10 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 14px;
   padding: 1.25rem;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  position: -webkit-sticky;
+  position: sticky;
+  top: 90px;
+  z-index: 10;
 }
 
 .catalog-filter-head {
