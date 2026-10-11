@@ -133,6 +133,17 @@ class BannerController {
         }
       }
 
+      // Proteger contra URLs temporales blob de previsualización
+      if (typeof data.imagen_fondo === 'string' && data.imagen_fondo.startsWith('blob:')) {
+        data.imagen_fondo = existing.imagen_fondo || '';
+      }
+      if (typeof data.tarjeta_imagen === 'string' && data.tarjeta_imagen.startsWith('blob:')) {
+        data.tarjeta_imagen = existing.tarjeta_imagen || '';
+      }
+      if (typeof data.categoria_thumb === 'string' && data.categoria_thumb.startsWith('blob:')) {
+        data.categoria_thumb = existing.categoria_thumb || '';
+      }
+
       // Parsear features si viene como string
       if (typeof data.features === 'string') {
         try {

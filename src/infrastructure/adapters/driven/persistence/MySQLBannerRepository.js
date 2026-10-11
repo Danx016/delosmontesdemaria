@@ -142,7 +142,7 @@ class MySQLBannerRepository extends BannerRepository {
 
       db.query(sql, params, (err, res) => {
         if (err) return reject(err);
-        resolve(res.affectedRows > 0);
+        resolve(true);
       });
     });
   }

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import HeroSlideRenderer from './HeroSlideRenderer'
 
 // Catálogo de plantillas y diseños inspirados en Montes de María
@@ -269,6 +269,76 @@ const ICONOS_BOTON = [
   { val: 'fa-heart', label: 'Apoyo' }
 ]
 
+export function normalizeBannerData(raw) {
+  if (!raw) return { ...BLANK_BANNER }
+  const clone = { ...BLANK_BANNER, ...raw }
+
+  // Extraer si features contenía un objeto JSON
+  let extraFeatures = null
+  if (typeof clone.features === 'string') {
+    try {
+      const parsed = JSON.parse(clone.features)
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        extraFeatures = parsed
+      } else if (Array.isArray(parsed)) {
+        clone.features = parsed
+      }
+    } catch {
+      clone.features = clone.features.split(',').map((f) => f.trim()).filter(Boolean)
+    }
+  } else if (clone.features && typeof clone.features === 'object' && !Array.isArray(clone.features)) {
+    extraFeatures = clone.features
+  }
+
+  if (extraFeatures) {
+    if (Array.isArray(extraFeatures.items)) clone.features = extraFeatures.items
+    if (Array.isArray(extraFeatures.botones) && extraFeatures.botones.length > 0) clone.botones = extraFeatures.botones
+    if (extraFeatures.cita !== undefined) clone.cita = extraFeatures.cita
+    if (extraFeatures.mostrar_cita !== undefined) clone.mostrar_cita = Boolean(extraFeatures.mostrar_cita)
+    if (extraFeatures.mostrar_productor !== undefined) clone.mostrar_productor = Boolean(extraFeatures.mostrar_productor)
+    if (extraFeatures.mostrar_badge !== undefined) clone.mostrar_badge = Boolean(extraFeatures.mostrar_badge)
+    if (extraFeatures.mostrar_tarjeta !== undefined) clone.mostrar_tarjeta = Boolean(extraFeatures.mostrar_tarjeta)
+  }
+
+  if (!Array.isArray(clone.features)) {
+    clone.features = []
+  }
+
+  if (!Array.isArray(clone.botones) || clone.botones.length === 0) {
+    clone.botones = []
+    if (clone.boton_principal_texto) {
+      clone.botones.push({
+        id: 'b1',
+        texto: clone.boton_principal_texto,
+        link: clone.boton_principal_link || '/catalogo',
+        icono: clone.boton_principal_icono || 'fa-shopping-basket',
+        estilo: 'primary'
+      })
+    }
+    if (clone.boton_secundario_texto) {
+      clone.botones.push({
+        id: 'b2',
+        texto: clone.boton_secundario_texto,
+        link: clone.boton_secundario_link || '/vendedor',
+        icono: clone.boton_secundario_icono || 'fa-store',
+        estilo: 'secondary'
+      })
+    }
+    if (clone.botones.length === 0) {
+      clone.botones = [
+        { id: 'b1', texto: 'Ver Catálogo', link: '/catalogo', icono: 'fa-shopping-basket', estilo: 'primary' }
+      ]
+    }
+  }
+
+  if (clone.mostrar_tarjeta === undefined) clone.mostrar_tarjeta = true
+  if (clone.mostrar_cita === undefined) clone.mostrar_cita = Boolean(clone.cita)
+  if (clone.mostrar_productor === undefined) clone.mostrar_productor = Boolean(clone.tarjeta_vendedor_nombre)
+  if (clone.mostrar_badge === undefined) clone.mostrar_badge = true
+
+  return clone
+}
+
 export default function BannerVisualEditorModal({
   isOpen,
   onClose,
@@ -277,42 +347,26 @@ export default function BannerVisualEditorModal({
   isEditing = false,
   existingBanners = []
 }) {
-  // Inicializar estado interno de manera aislada (0ms de retraso al escribir)
-  const [data, setData] = useState(() => {
-    if (!initialData) return { ...BLANK_BANNER }
-    const clone = { ...initialData }
-    if (!Array.isArray(clone.features)) {
-      clone.features = typeof clone.features === 'string'
-        ? clone.features.split(',').map((f) => f.trim()).filter(Boolean)
-        : []
+  // Inicializar estado interno de manera aislada sincronizado con initialData
+  const [data, setData] = useState(() => normalizeBannerData(initialData))
+
+  // Sincronizar estado cada vez que se abra o cambie el banner a editar
+  useEffect(() => {
+    if (isOpen) {
+      setData(normalizeBannerData(initialData))
+      setFiles({
+        imagen_fondo: null,
+        tarjeta_imagen: null,
+        categoria_thumb: null
+      })
+      setFilePreviews({
+        imagen_fondo: null,
+        tarjeta_imagen: null,
+        categoria_thumb: null
+      })
+      setActiveSection('diseno')
     }
-    if (!Array.isArray(clone.botones) || clone.botones.length === 0) {
-      clone.botones = []
-      if (clone.boton_principal_texto) {
-        clone.botones.push({
-          id: 'b1',
-          texto: clone.boton_principal_texto,
-          link: clone.boton_principal_link || '/catalogo',
-          icono: 'fa-shopping-basket',
-          estilo: 'primary'
-        })
-      }
-      if (clone.boton_secundario_texto) {
-        clone.botones.push({
-          id: 'b2',
-          texto: clone.boton_secundario_texto,
-          link: clone.boton_secundario_link || '/vendedor',
-          icono: 'fa-store',
-          estilo: 'secondary'
-        })
-      }
-    }
-    if (clone.mostrar_tarjeta === undefined) clone.mostrar_tarjeta = true
-    if (clone.mostrar_cita === undefined) clone.mostrar_cita = Boolean(clone.cita)
-    if (clone.mostrar_productor === undefined) clone.mostrar_productor = Boolean(clone.tarjeta_vendedor_nombre)
-    if (clone.mostrar_badge === undefined) clone.mostrar_badge = true
-    return clone
-  })
+  }, [isOpen, initialData])
 
   // Vista dispositivo: 'desktop' o 'mobile'
   const [viewDevice, setViewDevice] = useState('desktop')
@@ -362,17 +416,18 @@ export default function BannerVisualEditorModal({
 
   // Cargar una plantilla con 1 clic
   const handleApplyPreset = (preset) => {
-    setData({
+    setData((prev) => ({
       ...preset,
-      activo: data.activo !== undefined ? data.activo : 1,
-      orden: data.orden || 0
-    })
+      id_banner: prev.id_banner,
+      activo: prev.activo !== undefined ? prev.activo : 1,
+      orden: prev.orden || 0
+    }))
     setShowPresetsModal(false)
   }
 
   // Limpiar lienzo totalmente a cero
   const handleResetToBlank = () => {
-    setData({ ...BLANK_BANNER })
+    setData((prev) => ({ ...BLANK_BANNER, id_banner: prev.id_banner }))
     setFilePreviews({ imagen_fondo: null, tarjeta_imagen: null, categoria_thumb: null })
     setFiles({ imagen_fondo: null, tarjeta_imagen: null, categoria_thumb: null })
   }
@@ -446,6 +501,7 @@ export default function BannerVisualEditorModal({
     try {
       const payload = {
         ...data,
+        id_banner: data.id_banner,
         titulo: data.titulo.trim(),
         boton_principal_texto: data.botones[0]?.texto || 'Ver Catálogo',
         boton_principal_link: data.botones[0]?.link || '/catalogo',
@@ -466,7 +522,6 @@ export default function BannerVisualEditorModal({
       onClose()
     } catch (err) {
       console.error('Error al guardar banner:', err)
-      alert('Hubo un error al guardar el banner. Revisa la consola.')
     } finally {
       setSaving(false)
     }

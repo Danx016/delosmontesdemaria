@@ -666,8 +666,9 @@ export default function AdminPage() {
         formData.append('tarjeta_imagen', payload.tarjeta_imagen)
       }
 
-      if (editingBanner?.id_banner) {
-        await actualizarBannerAdmin(editingBanner.id_banner, formData)
+      const targetBannerId = editingBanner?.id_banner || payload?.id_banner
+      if (targetBannerId) {
+        await actualizarBannerAdmin(targetBannerId, formData)
         toast.success('¡Banner actualizado exitosamente en el carrusel!')
       } else {
         await crearBannerAdmin(formData)
@@ -3940,14 +3941,17 @@ export default function AdminPage() {
           )}
 
           {/* Estudio Visual de Banners (Ultra fluido, estado aislado, botones y elementos dinámicos) */}
-          <BannerVisualEditorModal
-            isOpen={showBannerModal}
-            onClose={() => { setShowBannerModal(false); setEditingBanner(null); }}
-            onSave={handleSaveBannerFromStudio}
-            initialData={editingBanner}
-            isEditing={Boolean(editingBanner?.id_banner)}
-            existingBanners={banners}
-          />
+          {showBannerModal && (
+            <BannerVisualEditorModal
+              key={editingBanner?.id_banner ? `edit-${editingBanner.id_banner}` : 'create-new'}
+              isOpen={showBannerModal}
+              onClose={() => { setShowBannerModal(false); setEditingBanner(null); }}
+              onSave={handleSaveBannerFromStudio}
+              initialData={editingBanner}
+              isEditing={Boolean(editingBanner?.id_banner)}
+              existingBanners={banners}
+            />
+          )}
 
           {/* Modal Ajustes Globales del Carrusel Principal */}
           {showCarouselSettingsModal && (
