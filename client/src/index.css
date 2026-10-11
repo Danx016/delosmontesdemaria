@@ -5549,6 +5549,8 @@ h1, h2, h3, h4, h5, h6 {
   }
   .catalog-sidebar-card {
     position: static !important;
+    max-height: none !important;
+    overflow-y: visible !important;
   }
 }
 
@@ -5568,6 +5570,28 @@ h1, h2, h3, h4, h5, h6 {
   position: sticky;
   top: 90px;
   z-index: 10;
+  max-height: calc(100vh - 110px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(46, 125, 50, 0.25) transparent;
+}
+
+.catalog-sidebar-card::-webkit-scrollbar {
+  width: 5px;
+}
+
+.catalog-sidebar-card::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.catalog-sidebar-card::-webkit-scrollbar-thumb {
+  background: rgba(46, 125, 50, 0.25);
+  border-radius: 999px;
+}
+
+.catalog-sidebar-card::-webkit-scrollbar-thumb:hover {
+  background: rgba(46, 125, 50, 0.5);
 }
 
 .catalog-filter-head {
