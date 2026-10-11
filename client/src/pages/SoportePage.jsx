@@ -725,12 +725,19 @@ export default function SoportePage() {
                         value={categoriaConsulta}
                         onChange={(e) => setCategoriaConsulta(e.target.value)}
                         className="form-select"
+                        style={{ fontWeight: 600 }}
                       >
                         <option value="pedidos">📦 Estado de Pedidos & Envíos</option>
-                        <option value="cosechas">🌱 Productos & Cosechas</option>
-                        <option value="pagos">💳 Pagos & Facturación</option>
-                        <option value="vender">🌾 Registro como Vendedor / Campesino</option>
-                        <option value="otro">❓ Otra Consulta</option>
+                        <option value="seguridad">🔐 Cuenta, Contraseña & Seguridad</option>
+                        <option value="cosechas">🌱 Catálogo, Productos & Cosechas Frescas</option>
+                        <option value="pagos">💳 Pagos & Facturación (Contra Entrega)</option>
+                        <option value="garantias">🛡️ Garantías, Devoluciones & Calidad (48h)</option>
+                        <option value="vender">🌾 Registro como Campesino / Vendedor</option>
+                        <option value="agricola">🚜 Asesoría Técnica de Siembra, Abonos & Semillas</option>
+                        <option value="mayorista">🏪 Compras Mayoristas, Hoteles & Restaurantes</option>
+                        <option value="envios">🚚 Cobertura, Fletes & Tiempos de Despacho</option>
+                        <option value="asesor">👨‍💼 Atención con Asesor Humano en Vivo</option>
+                        <option value="otro">❓ Otra Consulta o Sugerencia</option>
                       </select>
                     </div>
 
@@ -739,7 +746,27 @@ export default function SoportePage() {
                       <input
                         type="text"
                         required
-                        placeholder="Ej: Duda sobre entrega en San Jacinto"
+                        placeholder={
+                          categoriaConsulta === 'seguridad'
+                            ? 'Ej: Deseo cambiar mi contraseña o clave de acceso'
+                            : categoriaConsulta === 'cosechas'
+                            ? 'Ej: Disponibilidad de ñame diamante o cacao orgánico'
+                            : categoriaConsulta === 'pagos'
+                            ? 'Ej: Consulta sobre pago en efectivo contra entrega'
+                            : categoriaConsulta === 'garantias'
+                            ? 'Ej: Reporte de producto en mal estado o faltante'
+                            : categoriaConsulta === 'vender'
+                            ? 'Ej: Quiero publicar y vender las cosechas de mi finca'
+                            : categoriaConsulta === 'agricola'
+                            ? 'Ej: Recomendación de fertilizante orgánico para yuca'
+                            : categoriaConsulta === 'mayorista'
+                            ? 'Ej: Cotización de bultos al por mayor para negocio'
+                            : categoriaConsulta === 'envios'
+                            ? 'Ej: Duda de cobertura de transporte hacia Sincelejo'
+                            : categoriaConsulta === 'asesor'
+                            ? 'Ej: Requiero comunicarme con un asesor de soporte'
+                            : 'Ej: Duda sobre entrega en San Jacinto o código de pedido'
+                        }
                         value={asunto}
                         onChange={(e) => setAsunto(e.target.value)}
                         className="form-input"
