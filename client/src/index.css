@@ -5550,37 +5550,14 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* Left Sidebar */
-.catalog-sidebar {
-  position: -webkit-sticky;
-  position: sticky;
-  top: 85px;
-  align-self: start;
-  z-index: 15;
-}
-
 .catalog-sidebar-card {
   background: var(--card-bg, #ffffff);
   border: 1px solid var(--border-color, #e2e8f0);
   border-radius: 14px;
   padding: 1.25rem;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
-  max-height: calc(100vh - 105px);
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 transparent;
-}
-
-.catalog-sidebar-card::-webkit-scrollbar {
-  width: 5px;
-}
-
-.catalog-sidebar-card::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.catalog-sidebar-card::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  position: sticky;
+  top: 90px;
 }
 
 .catalog-filter-head {
@@ -7908,14 +7885,8 @@ h1, h2, h3, h4, h5, h6 {
     gap: 1.25rem !important;
   }
 
-  .catalog-sidebar {
-    position: static !important;
-  }
-
   .catalog-sidebar-card {
     position: static !important;
-    max-height: none !important;
-    overflow-y: visible !important;
   }
 }
 
