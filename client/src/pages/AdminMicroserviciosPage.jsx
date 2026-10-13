@@ -375,8 +375,8 @@ export default function AdminMicroserviciosPage() {
                 db: 'db_orders (fallback: dbmontesdm)',
                 icon: 'fa-shopping-cart',
                 badgeColor: '#8b5cf6',
-                category: 'Compras & Pagos Wompi',
-                desc: 'Procesamiento transaccional de compras, validación de cupones, integración con pasarela Wompi (SHA-256) y emisión del evento ORDER_CREATED a Redis Streams.',
+                category: 'Compras & Pagos',
+                desc: 'Procesamiento transaccional de compras, validación de cupones, verificación OTP y emisión del evento ORDER_CREATED a Redis Streams. Pago exclusivo: Contra Entrega en efectivo.',
                 pingUrl: '/api/cupones',
                 tablas: ['compras', 'compra_detalles', 'cupones'],
                 endpoints: [
@@ -387,8 +387,8 @@ export default function AdminMicroserviciosPage() {
                   { method: 'POST', path: '/api/compras/verificar-otp', desc: 'Validación de código OTP de un solo uso' }
                 ],
                 eventsPub: ['ORDER_CREATED (stream:orders) -> Notifica a inventario, alertas y despacho'],
-                eventsSub: ['PAYMENT_WEBHOOK_RECEIVED -> Actualiza estado transaccional a PAGADO'],
-                externalDeps: ['Pasarela Wompi (Tarjetas, PSE, Nequi)', 'Firma SHA-256', 'Redis Streams']
+                eventsSub: ['ORDER_DISPATCHED -> Actualiza estado de despacho del pedido'],
+                externalDeps: ['OTP por Correo (Nodemailer)', 'Redis Streams']
               },
               {
                 key: 'support',

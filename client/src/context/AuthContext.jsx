@@ -119,9 +119,11 @@ export function AuthProvider({ children }) {
     }
     try {
       const res = await getMe()
-      const userData = res.data?.usuario || res.data
-      localStorage.setItem('user', JSON.stringify(userData))
-      setUser(userData)
+      const userData = normalizeUserData(res.data?.usuario || res.data)
+      if (userData) {
+        localStorage.setItem('user', JSON.stringify(userData))
+        setUser(userData)
+      }
     } catch (error) {
       if (error.response && (error.response.status === 401 || error.response.status === 403)) {
         localStorage.removeItem('jwt')

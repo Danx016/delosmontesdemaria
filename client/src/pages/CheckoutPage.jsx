@@ -378,7 +378,7 @@ export default function CheckoutPage() {
                   className="btn btn-primary btn-block btn-lg"
                   style={{ marginTop: '1.5rem' }}
                 >
-                  {savingDir ? <i className="fa fa-spinner fa-spin" /> : <>Continuar al Método de Pago <i className="fa fa-arrow-right" /></>}
+                  {savingDir ? <i className="fa fa-spinner fa-spin" /> : <>Continuar al Pago <i className="fa fa-arrow-right" /></>}
                 </button>
               </div>
             </div>

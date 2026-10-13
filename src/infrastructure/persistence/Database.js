@@ -155,7 +155,7 @@ function initializeDatabaseTables() {
       fecha DATETIME DEFAULT CURRENT_TIMESTAMP,
       total DECIMAL(10,2) NOT NULL,
       estado VARCHAR(50) DEFAULT 'Pedido recibido',
-      metodo_pago VARCHAR(50) DEFAULT 'Tarjeta de Crédito',
+      metodo_pago VARCHAR(50) DEFAULT 'Contra Entrega (Efectivo)',
       reembolsado TINYINT(1) DEFAULT 0,
       direccion_envio TEXT,
       FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE

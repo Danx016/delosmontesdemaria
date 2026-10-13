@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { GoogleLogin } from '@react-oauth/google'
 import { useAuth } from '../context/AuthContext'
 import { login as loginApi, loginGoogle as loginGoogleApi } from '../api/auth.api'
@@ -8,6 +8,8 @@ import { normalizeEmail, getValidationMessage } from '../utils/validationHelpers
 export default function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const redirectTo = searchParams.get('redirect') || null
 
   const [correo, setCorreo] = useState('')
   const [contrasena, setContrasena] = useState('')
@@ -18,6 +20,10 @@ export default function LoginPage() {
 
   const handleAuthSuccess = (token, userData) => {
     login(token, userData)
+    if (redirectTo) {
+      navigate(redirectTo, { replace: true })
+      return
+    }
     const roleId = Number(userData?.rol ?? userData?.id_rol)
     if (roleId === 1) {
       navigate('/admin')

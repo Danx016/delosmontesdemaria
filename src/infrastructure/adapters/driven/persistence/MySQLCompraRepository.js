@@ -21,7 +21,7 @@ class MySQLCompraRepository extends CompraRepository {
           }
 
           const sqlHeader = 'INSERT INTO compras (id_usuario, total, metodo_pago, direccion_envio, estado) VALUES (?, ?, ?, ?, ?)';
-          conn.query(sqlHeader, [id_usuario, total, metodo_pago || 'Tarjeta de Crédito', direccion_envio || 'No especificada', 'Pedido recibido'], (errHeader, resHeader) => {
+          conn.query(sqlHeader, [id_usuario, total, metodo_pago || 'Contra Entrega (Efectivo)', direccion_envio || 'No especificada', 'Pedido recibido'], (errHeader, resHeader) => {
             if (errHeader) {
               return conn.rollback(() => {
                 conn.release();

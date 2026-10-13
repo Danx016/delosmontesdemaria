@@ -181,18 +181,15 @@ export default function PrivacidadPage() {
             </section>
 
             <section id="terceros" className="legal-section">
-              <h2>5. Transferencia a Terceros y Pasarelas de Pago</h2>
+              <h2>5. Transferencia a Terceros</h2>
               <p>
                 <strong>De los Montes de María no vende, alquila ni comercializa bases de datos personales a terceros.</strong> Únicamente compartimos la información estrictamente necesaria con:
               </p>
               <ul>
                 <li>
-                  <strong>Pasarelas de Pago y Entidades Financieras:</strong> Para procesar cobros de manera segura bajo protocolos PCI-DSS. Nosotros <em>nunca</em> almacenamos los números completos de tarjetas de crédito o códigos CVV en nuestros servidores.
+                  <strong>Empresas de Transporte y Mensajería:</strong> Únicamente los datos necesarios (nombre, teléfono y dirección de entrega) para efectuar la entrega física de los productos. El pago se realiza <em>exclusivamente en efectivo al momento de la entrega</em> (Contra Entrega), por lo que no se transmiten datos financieros del comprador a terceros.
                 </li>
-                <li>
-                  <strong>Empresas de Transporte y Mensajería:</strong> Únicamente los datos necesarios (nombre, teléfono y dirección de entrega) para efectuar la entrega física de los productos.
-                </li>
-                <li>
+                                <li>
                   <strong>Autoridades Competentes:</strong> Cuando sea requerido formalmente mediante orden judicial o requerimiento legal fundado.
                 </li>
               </ul>
