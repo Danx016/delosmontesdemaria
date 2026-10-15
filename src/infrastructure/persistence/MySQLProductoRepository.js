@@ -45,7 +45,7 @@ class MySQLProductoRepository extends ProductoRepository {
                c.nombre_categoria as categoria_nombre, c.slug as categoria_slug, c.icono as categoria_icono, c.color as categoria_color
         FROM productos p
         LEFT JOIN usuarios u ON u.id_usuario = COALESCE(p.id_vendedor, p.id_proveedor)
-        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug) = LOWER(p.categoria) OR LOWER(c.nombre_categoria) = LOWER(p.categoria))
+        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug COLLATE utf8mb4_unicode_ci) = LOWER(p.categoria COLLATE utf8mb4_unicode_ci) OR LOWER(c.nombre_categoria COLLATE utf8mb4_unicode_ci) = LOWER(p.categoria COLLATE utf8mb4_unicode_ci))
         WHERE p.id_producto = ?
       `;
       db.query(sql, [id], (err, rows) => {
@@ -158,7 +158,7 @@ class MySQLProductoRepository extends ProductoRepository {
                c.nombre_categoria as categoria_nombre, c.slug as categoria_slug, c.icono as categoria_icono, c.color as categoria_color
         FROM productos p
         LEFT JOIN usuarios u ON u.id_usuario = COALESCE(p.id_vendedor, p.id_proveedor)
-        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug) = LOWER(p.categoria) OR LOWER(c.nombre_categoria) = LOWER(p.categoria))
+        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug COLLATE utf8mb4_unicode_ci) = LOWER(p.categoria COLLATE utf8mb4_unicode_ci) OR LOWER(c.nombre_categoria COLLATE utf8mb4_unicode_ci) = LOWER(p.categoria COLLATE utf8mb4_unicode_ci))
         ORDER BY p.id_producto DESC
       `;
       db.query(sql, (err, rows) => {
@@ -180,7 +180,7 @@ class MySQLProductoRepository extends ProductoRepository {
                c.nombre_categoria as categoria_nombre, c.slug as categoria_slug, c.icono as categoria_icono, c.color as categoria_color
         FROM productos p
         LEFT JOIN usuarios u ON u.id_usuario = COALESCE(p.id_vendedor, p.id_proveedor)
-        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug) = LOWER(p.categoria) OR LOWER(c.nombre_categoria) = LOWER(p.categoria))
+        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug COLLATE utf8mb4_unicode_ci) = LOWER(p.categoria COLLATE utf8mb4_unicode_ci) OR LOWER(c.nombre_categoria COLLATE utf8mb4_unicode_ci) = LOWER(p.categoria COLLATE utf8mb4_unicode_ci))
         WHERE p.id_vendedor = ? OR p.id_proveedor = ?
         ORDER BY p.id_producto DESC
       `;
@@ -199,7 +199,7 @@ class MySQLProductoRepository extends ProductoRepository {
                c.nombre_categoria as categoria_nombre, c.slug as categoria_slug, c.icono as categoria_icono, c.color as categoria_color
         FROM productos p
         LEFT JOIN usuarios u ON u.id_usuario = COALESCE(p.id_vendedor, p.id_proveedor)
-        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug) = LOWER(p.categoria) OR LOWER(c.nombre_categoria) = LOWER(p.categoria))
+        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug COLLATE utf8mb4_unicode_ci) = LOWER(p.categoria COLLATE utf8mb4_unicode_ci) OR LOWER(c.nombre_categoria COLLATE utf8mb4_unicode_ci) = LOWER(p.categoria COLLATE utf8mb4_unicode_ci))
         WHERE p.categoria = ? OR c.slug = ? OR c.nombre_categoria = ?
         ORDER BY p.id_producto DESC
       `;
@@ -218,7 +218,7 @@ class MySQLProductoRepository extends ProductoRepository {
                c.nombre_categoria as categoria_nombre, c.slug as categoria_slug, c.icono as categoria_icono, c.color as categoria_color
         FROM productos p
         LEFT JOIN usuarios u ON u.id_usuario = COALESCE(p.id_vendedor, p.id_proveedor)
-        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug) = LOWER(p.categoria) OR LOWER(c.nombre_categoria) = LOWER(p.categoria))
+        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug COLLATE utf8mb4_unicode_ci) = LOWER(p.categoria COLLATE utf8mb4_unicode_ci) OR LOWER(c.nombre_categoria COLLATE utf8mb4_unicode_ci) = LOWER(p.categoria COLLATE utf8mb4_unicode_ci))
         WHERE p.id_proveedor = ? OR p.id_vendedor = ?
         ORDER BY p.id_producto DESC
       `;
@@ -238,7 +238,7 @@ class MySQLProductoRepository extends ProductoRepository {
                c.nombre_categoria as categoria_nombre, c.slug as categoria_slug, c.icono as categoria_icono, c.color as categoria_color
         FROM productos p
         LEFT JOIN usuarios u ON u.id_usuario = COALESCE(p.id_vendedor, p.id_proveedor)
-        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug) = LOWER(p.categoria) OR LOWER(c.nombre_categoria) = LOWER(p.categoria))
+        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug COLLATE utf8mb4_unicode_ci) = LOWER(p.categoria COLLATE utf8mb4_unicode_ci) OR LOWER(c.nombre_categoria COLLATE utf8mb4_unicode_ci) = LOWER(p.categoria COLLATE utf8mb4_unicode_ci))
         WHERE p.nombre_producto LIKE ? OR p.descripcion LIKE ? OR p.categoria LIKE ? OR c.nombre_categoria LIKE ?
         ORDER BY p.id_producto DESC
       `;
@@ -258,7 +258,7 @@ class MySQLProductoRepository extends ProductoRepository {
                c.nombre_categoria as categoria_nombre, c.slug as categoria_slug, c.icono as categoria_icono, c.color as categoria_color
         FROM productos p
         LEFT JOIN usuarios u ON u.id_usuario = COALESCE(p.id_vendedor, p.id_proveedor)
-        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug) = LOWER(p.categoria) OR LOWER(c.nombre_categoria) = LOWER(p.categoria))
+        LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug COLLATE utf8mb4_unicode_ci) = LOWER(p.categoria COLLATE utf8mb4_unicode_ci) OR LOWER(c.nombre_categoria COLLATE utf8mb4_unicode_ci) = LOWER(p.categoria COLLATE utf8mb4_unicode_ci))
         WHERE p.nombre_producto LIKE ? OR p.descripcion LIKE ? OR p.categoria LIKE ? OR c.nombre_categoria LIKE ?
         LIMIT ?
       `;

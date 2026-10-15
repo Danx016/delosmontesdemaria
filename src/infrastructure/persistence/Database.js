@@ -28,6 +28,7 @@ const dbConfig = {
   user: dbUser,
   password: dbPass,
   database: dbName,
+  charset: 'utf8mb4',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
@@ -87,7 +88,7 @@ function initializeDatabaseTables() {
       id_rol INT AUTO_INCREMENT PRIMARY KEY,
       nombre_rol VARCHAR(50) NOT NULL UNIQUE,
       descripcion TEXT
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
 
     `CREATE TABLE IF NOT EXISTS categorias (
       id_categoria INT AUTO_INCREMENT PRIMARY KEY,
@@ -97,7 +98,7 @@ function initializeDatabaseTables() {
       imagen VARCHAR(255),
       icono VARCHAR(100) DEFAULT 'fa-box',
       color VARCHAR(50) DEFAULT '#2e7d32'
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
 
     `CREATE TABLE IF NOT EXISTS proveedores (
       id_proveedor INT AUTO_INCREMENT PRIMARY KEY,
@@ -107,7 +108,7 @@ function initializeDatabaseTables() {
       correo VARCHAR(100),
       direccion VARCHAR(200),
       ciudad VARCHAR(100)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
 
     `CREATE TABLE IF NOT EXISTS usuarios (
       id_usuario INT AUTO_INCREMENT PRIMARY KEY,
@@ -128,7 +129,7 @@ function initializeDatabaseTables() {
       foto_portada TEXT,
       descripcion TEXT,
       categoria_productos VARCHAR(255)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
 
     `CREATE TABLE IF NOT EXISTS productos (
       id_producto INT AUTO_INCREMENT PRIMARY KEY,
@@ -147,7 +148,7 @@ function initializeDatabaseTables() {
       presentacion VARCHAR(100),
       cuidado VARCHAR(255),
       disponibilidad VARCHAR(100)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
 
     `CREATE TABLE IF NOT EXISTS compras (
       id_compra INT AUTO_INCREMENT PRIMARY KEY,
@@ -159,7 +160,7 @@ function initializeDatabaseTables() {
       reembolsado TINYINT(1) DEFAULT 0,
       direccion_envio TEXT,
       FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
 
     `CREATE TABLE IF NOT EXISTS compra_detalles (
       id_detalle INT AUTO_INCREMENT PRIMARY KEY,
@@ -169,7 +170,7 @@ function initializeDatabaseTables() {
       precio_unitario DECIMAL(10,2) NOT NULL,
       FOREIGN KEY (id_compra) REFERENCES compras(id_compra) ON DELETE CASCADE,
       FOREIGN KEY (id_producto) REFERENCES productos(id_producto) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
 
     `CREATE TABLE IF NOT EXISTS direcciones (
       id_direccion INT AUTO_INCREMENT PRIMARY KEY,
@@ -182,7 +183,7 @@ function initializeDatabaseTables() {
       codigo_postal VARCHAR(20) DEFAULT '',
       notas TEXT,
       FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
 
     `CREATE TABLE IF NOT EXISTS soporte_tickets (
       id INT AUTO_INCREMENT PRIMARY KEY,
@@ -198,7 +199,7 @@ function initializeDatabaseTables() {
       nombre_agente VARCHAR(100),
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
 
     `CREATE TABLE IF NOT EXISTS soporte_mensajes (
       id INT AUTO_INCREMENT PRIMARY KEY,
@@ -210,7 +211,7 @@ function initializeDatabaseTables() {
       mensaje TEXT NOT NULL,
       leido TINYINT(1) DEFAULT 0,
       fecha DATETIME DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
 
     `CREATE TABLE IF NOT EXISTS soporte_calificaciones (
       id INT AUTO_INCREMENT PRIMARY KEY,
@@ -221,7 +222,7 @@ function initializeDatabaseTables() {
       estrellas INT NOT NULL CHECK(estrellas BETWEEN 1 AND 5),
       comentario TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
 
     `CREATE TABLE IF NOT EXISTS cupones (
       id_cupon INT AUTO_INCREMENT PRIMARY KEY,
@@ -238,7 +239,7 @@ function initializeDatabaseTables() {
       promocionar_en_barra TINYINT(1) DEFAULT 0,
       mensaje_promocional VARCHAR(255) DEFAULT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
 
     `CREATE TABLE IF NOT EXISTS telegram_sesiones (
       chat_id VARCHAR(100) PRIMARY KEY,
@@ -246,7 +247,7 @@ function initializeDatabaseTables() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
 
     `CREATE TABLE IF NOT EXISTS telegram_auth_codigos (
       chat_id VARCHAR(100) PRIMARY KEY,
@@ -256,7 +257,7 @@ function initializeDatabaseTables() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`,
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`,
 
     `CREATE TABLE IF NOT EXISTS banners_hero (
       id_banner INT AUTO_INCREMENT PRIMARY KEY,
@@ -286,7 +287,7 @@ function initializeDatabaseTables() {
       orden INT DEFAULT 0,
       activo TINYINT(1) DEFAULT 1,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;`
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;`
   ];
 
   let pending = schemaQueries.length;

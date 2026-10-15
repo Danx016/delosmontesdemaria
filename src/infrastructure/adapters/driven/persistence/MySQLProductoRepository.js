@@ -49,7 +49,7 @@ class MySQLProductoRepository extends ProductoRepository {
              c.nombre_categoria as categoria_nombre, c.slug as categoria_slug, c.icono as categoria_icono, c.color as categoria_color
       FROM productos p
       LEFT JOIN usuarios u ON u.id_usuario = COALESCE(p.id_vendedor, p.id_proveedor)
-      LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug) = LOWER(p.categoria) OR LOWER(c.nombre_categoria) = LOWER(p.categoria))
+      LEFT JOIN categorias c ON (c.id_categoria = p.id_categoria OR LOWER(c.slug COLLATE utf8mb4_unicode_ci) = LOWER(p.categoria COLLATE utf8mb4_unicode_ci) OR LOWER(c.nombre_categoria COLLATE utf8mb4_unicode_ci) = LOWER(p.categoria COLLATE utf8mb4_unicode_ci))
       LEFT JOIN (
         SELECT id_producto, ROUND(AVG(rating), 1) as promedio_rating, COUNT(id_resena) as total_resenas 
         FROM producto_resenas 
