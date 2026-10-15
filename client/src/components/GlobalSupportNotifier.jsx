@@ -17,6 +17,7 @@ export default function GlobalSupportNotifier() {
   const socketRef = useRef(null)
 
   const isAdminOrSupport = user?.id_rol === 1 || user?.id_rol === 4 || user?.rol === 1 || user?.rol === 4 || user?.username === 'admin'
+  const userId = user?.id_usuario || user?.id || null
   const isCurrentlyInSupport = location.pathname === '/soporte' || location.pathname.startsWith('/admin/soporte')
 
   useEffect(() => {
@@ -37,8 +38,8 @@ export default function GlobalSupportNotifier() {
       } else {
         // 2. Si es Cliente -> Verificar si tiene una sesión de ticket activa en localStorage
         try {
-          const userId = user?.id_usuario || user?.id
-          const ticketKey = userId ? `agro_active_ticket_user_${userId}` : 'agro_active_ticket_guest'
+          const currentUid = userId
+          const ticketKey = currentUid ? `agro_active_ticket_user_${currentUid}` : 'agro_active_ticket_guest'
           const rawTicket = localStorage.getItem(ticketKey) || localStorage.getItem('agro_active_ticket')
           if (rawTicket) {
             const ticket = JSON.parse(rawTicket)
@@ -105,7 +106,7 @@ export default function GlobalSupportNotifier() {
       socket.removeAllListeners()
       socket.disconnect()
     }
-  }, [isAdminOrSupport, user])
+  }, [isAdminOrSupport, userId])
 
   return null
 }

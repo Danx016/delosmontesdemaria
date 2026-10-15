@@ -1,6 +1,7 @@
 class BannerController {
-  constructor(bannerRepository) {
+  constructor(bannerRepository, cache = null) {
     this.bannerRepository = bannerRepository;
+    this.cache = cache;
   }
 
   // GET /api/banners (Público para la HomePage)
@@ -98,6 +99,9 @@ class BannerController {
       }
 
       const nuevo = await this.bannerRepository.crear(data);
+      if (this.cache) {
+        await this.cache.delPattern('banners:*').catch(() => {});
+      }
       res.status(201).json({ success: true, message: 'Banner creado exitosamente', banner: nuevo });
     } catch (err) {
       console.error('Error al crear banner:', err);
@@ -158,6 +162,10 @@ class BannerController {
         return res.status(404).json({ success: false, message: 'Banner no encontrado' });
       }
 
+      if (this.cache) {
+        await this.cache.delPattern('banners:*').catch(() => {});
+      }
+
       res.json({ success: true, message: 'Banner actualizado exitosamente' });
     } catch (err) {
       console.error('Error al actualizar banner:', err);
@@ -173,6 +181,11 @@ class BannerController {
       if (!eliminado) {
         return res.status(404).json({ success: false, message: 'Banner no encontrado' });
       }
+
+      if (this.cache) {
+        await this.cache.delPattern('banners:*').catch(() => {});
+      }
+
       res.json({ success: true, message: 'Banner eliminado exitosamente' });
     } catch (err) {
       console.error('Error al eliminar banner:', err);

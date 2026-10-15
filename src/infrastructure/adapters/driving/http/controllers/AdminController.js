@@ -10,7 +10,7 @@ const Producto = require('../../../../../domain/entities/Producto');
 const Usuario = require('../../../../../domain/entities/Usuario');
 
 class AdminController {
-  constructor({ usuarioRepository, productoRepository, compraRepository, categoriaRepository, bannerRepository, couponRepository, soporteRepository, emailService, iaService }) {
+  constructor({ usuarioRepository, productoRepository, compraRepository, categoriaRepository, bannerRepository, couponRepository, soporteRepository, emailService, iaService, cache }) {
     this.usuarioRepository = usuarioRepository;
     this.productoRepository = productoRepository;
     this.compraRepository = compraRepository;
@@ -20,6 +20,7 @@ class AdminController {
     this.soporteRepository = soporteRepository;
     this.emailService = emailService;
     this.iaService = iaService;
+    this.cache = cache;
     if (compraRepository) {
       this.getAdminStats = new GetAdminStats(compraRepository);
     }
@@ -208,6 +209,10 @@ class AdminController {
       });
 
       const nuevo = await this.productoRepository.crear(prod);
+      if (this.cache) {
+        await this.cache.delPattern('productos:*').catch(() => {});
+        await this.cache.delPattern('catalog:*').catch(() => {});
+      }
       res.status(201).json({ success: true, message: 'Producto registrado en el inventario global con éxito.', producto: nuevo });
     } catch (error) {
       console.error('Error al crear producto admin:', error);
@@ -248,6 +253,10 @@ class AdminController {
       }
 
       const actualizado = await this.productoRepository.actualizar(idProducto, updateData);
+      if (this.cache) {
+        await this.cache.delPattern('productos:*').catch(() => {});
+        await this.cache.delPattern('catalog:*').catch(() => {});
+      }
       res.json({ success: true, message: 'Producto actualizado con éxito.', producto: actualizado });
     } catch (error) {
       console.error('Error al actualizar producto admin:', error);
@@ -259,6 +268,10 @@ class AdminController {
     try {
       const idProducto = req.params.id_producto;
       await this.productoRepository.eliminar(idProducto);
+      if (this.cache) {
+        await this.cache.delPattern('productos:*').catch(() => {});
+        await this.cache.delPattern('catalog:*').catch(() => {});
+      }
       res.json({ success: true, message: 'Producto eliminado del inventario global con éxito.' });
     } catch (error) {
       res.status(500).json({ error: 'Error al eliminar el producto' });
@@ -304,6 +317,11 @@ class AdminController {
         color: color || '#2e7d32'
       });
 
+      if (this.cache) {
+        await this.cache.delPattern('productos:*').catch(() => {});
+        await this.cache.delPattern('catalog:*').catch(() => {});
+      }
+
       res.status(201).json({
         ...nueva,
         message: 'Categoría agregada exitosamente.'
@@ -345,6 +363,10 @@ class AdminController {
       }
 
       await this.categoriaRepository.actualizar(idCategoria, updateData);
+      if (this.cache) {
+        await this.cache.delPattern('productos:*').catch(() => {});
+        await this.cache.delPattern('catalog:*').catch(() => {});
+      }
       res.json({
         success: true,
         message: 'Categoría actualizada exitosamente.'
@@ -359,6 +381,10 @@ class AdminController {
     try {
       const idCategoria = req.params.id_categoria;
       await this.categoriaRepository.eliminar(idCategoria);
+      if (this.cache) {
+        await this.cache.delPattern('productos:*').catch(() => {});
+        await this.cache.delPattern('catalog:*').catch(() => {});
+      }
       res.json({ success: true, message: 'Categoría eliminada con éxito.' });
     } catch (error) {
       console.error('Error al eliminar categoría:', error);

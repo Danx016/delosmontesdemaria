@@ -61,7 +61,7 @@ const productoController = new ProductoController({
   categoriaRepository,
   cache
 });
-const bannerController = new BannerController(bannerRepository);
+const bannerController = new BannerController(bannerRepository, cache);
 
 // Limpieza manual de caché
 app.post('/api/catalog/cache/clear', async (req, res) => {
@@ -72,15 +72,16 @@ app.post('/api/catalog/cache/clear', async (req, res) => {
 const adminController = new AdminController({
   productoRepository,
   categoriaRepository,
-  bannerRepository
+  bannerRepository,
+  cache
 });
 
 // Rutas del servicio con Caché Distribuida Redis (< 2ms)
 app.use(
   '/api/productos',
   cache.middleware((req) => {
-    // No almacenar en caché las reseñas para que los cambios se reflejen de inmediato
-    if (req.path.includes('/resenas')) return null;
+    // No almacenar en caché las rutas administrativas ni las reseñas para que los cambios se reflejen de inmediato
+    if (req.path.includes('/admin') || req.path.includes('/resenas')) return null;
     return `productos:${req.path}:${JSON.stringify(req.query)}`;
   }, 300),
   createProductoRoutes(productoController)
@@ -88,7 +89,11 @@ app.use(
 
 app.use(
   '/api/banners',
-  cache.middleware((req) => `banners:${req.path}`, 300),
+  cache.middleware((req) => {
+    // No almacenar en caché las rutas de administración de banners
+    if (req.path.includes('/admin')) return null;
+    return `banners:${req.path}`;
+  }, 300),
   createBannerRoutes(bannerController)
 );
 

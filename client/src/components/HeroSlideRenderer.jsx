@@ -695,7 +695,7 @@ export default function HeroSlideRenderer({ slide, isPreview = false }) {
                         const raw = slide.vendedor_avatar || slide.farmerAvatar;
                         const isFake = typeof raw === 'string' && (raw.includes('photo-1544717305') || raw.includes('photo-1507003211'));
                         if (raw && !isFake) return getAvatarUrl(raw, vendorName);
-                        return getAvatarUrl(vendorName, vendorName);
+                        return getAvatarUrl(null, vendorName);
                       })()}
                       alt={vendorName}
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
