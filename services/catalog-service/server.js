@@ -63,6 +63,39 @@ const productoController = new ProductoController({
 });
 const bannerController = new BannerController(bannerRepository, cache);
 
+// Sincronización automática de usuarios/campesinos desde db_auth hacia db_catalog
+const syncVendors = async () => {
+  try {
+    const authDb = process.env.AUTH_DB_NAME || 'db_auth';
+    await new Promise((resolve) => {
+      db.query(
+        `INSERT INTO usuarios (id_usuario, nombre, apodo, correo, telefono, direccion, id_rol, avatar, foto_portada, estado)
+         SELECT id_usuario, nombre, apodo, correo, telefono, direccion, id_rol, avatar, foto_portada, estado
+         FROM ${authDb}.usuarios
+         ON DUPLICATE KEY UPDATE 
+           nombre=VALUES(nombre), 
+           apodo=VALUES(apodo), 
+           correo=VALUES(correo),
+           telefono=VALUES(telefono),
+           direccion=VALUES(direccion),
+           avatar=VALUES(avatar), 
+           foto_portada=VALUES(foto_portada),
+           estado=VALUES(estado)`,
+        (err) => {
+          if (!err) {
+            console.log('👤 [Catalog Service] Usuarios/Campesinos sincronizados desde db_auth exitosamente.');
+          }
+          resolve();
+        }
+      );
+    });
+  } catch (e) {
+    // Silencioso si no aplica
+  }
+};
+syncVendors();
+setInterval(syncVendors, 60000);
+
 // Limpieza manual de caché
 app.post('/api/catalog/cache/clear', async (req, res) => {
   await cache.delPattern('*');

@@ -45,7 +45,11 @@ class MySQLProductoRepository extends ProductoRepository {
       SELECT p.*, 
              COALESCE(r.promedio_rating, 0) as promedio_rating,
              COALESCE(r.total_resenas, 0) as total_resenas,
-             u.nombre as vendedor_nombre, u.apodo as vendedor_apodo, u.avatar as vendedor_avatar, u.foto_portada as vendedor_portada,
+             COALESCE(u.nombre, 'Campesino Montemariano') as vendedor_nombre, 
+             u.apodo as vendedor_apodo, 
+             u.avatar as vendedor_avatar, 
+             u.foto_portada as vendedor_portada,
+             u.telefono as vendedor_telefono,
              c.nombre_categoria as categoria_nombre, c.slug as categoria_slug, c.icono as categoria_icono, c.color as categoria_color
       FROM productos p
       LEFT JOIN usuarios u ON u.id_usuario = COALESCE(p.id_vendedor, p.id_proveedor)
