@@ -946,6 +946,60 @@ PAUTAS CRÍTICAS:
   // ==========================================
   // 3. ASISTENTE DE SOPORTE EN VIVO
   // ==========================================
+  /**
+   * Genera de forma segura un código OTP de 6 dígitos, lo persiste en BD y envía el correo real al usuario
+   */
+  async generarYEnviarCodigoSeguridad({ session_id, targetUser, usuarioRepository, accion = 'cambiar_password' }) {
+    if (!targetUser || !targetUser.correo) {
+      this.pendingInput.set(session_id, { action: 'awaiting_email_for_password' });
+      return '🔒 **Recuperación y Cambio de Contraseña**\n\nCon gusto te ayudo a restablecer tu clave de acceso.\n\nPor favor, escribe el **correo electrónico** asociado a tu cuenta para enviarte un código de seguridad de 6 dígitos:';
+    }
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const expires = Date.now() + 10 * 60 * 1000; // 10 minutos
+    const pvData = {
+      code,
+      action: accion,
+      id_usuario: targetUser.id_usuario,
+      expires,
+      correo: targetUser.correo
+    };
+
+    // Guardar en pendingVerifications por sessionId, id_usuario y correo
+    this.pendingVerifications.set(session_id, pvData);
+    if (targetUser.id_usuario) {
+      this.pendingVerifications.set(String(targetUser.id_usuario), pvData);
+    }
+    if (targetUser.correo) {
+      this.pendingVerifications.set(targetUser.correo.toLowerCase().trim(), pvData);
+    }
+
+    // Persistir reset_code en MySQL (db_auth y db principal)
+    if (usuarioRepository && typeof usuarioRepository.guardarResetCode === 'function') {
+      try {
+        await usuarioRepository.guardarResetCode(targetUser.id_usuario, code, new Date(expires));
+      } catch (e) {
+        console.warn('[Soporte IA] Error guardando reset_code en BD:', e.message);
+      }
+    }
+
+    // Envío del correo electrónico real
+    let emailSent = false;
+    if (this.emailService) {
+      try {
+        emailSent = await this.emailService.sendPasswordResetEmail(targetUser.correo, code);
+        console.log(`✉️ [Soporte IA] Código de seguridad ${code} enviado por correo a ${targetUser.correo}: ${emailSent ? 'OK' : 'FALLÓ'}`);
+      } catch (e) {
+        console.error('[Soporte IA] Error enviando correo con EmailService:', e.message);
+      }
+    }
+
+    const [uP, dom] = (targetUser.correo || '').split('@');
+    const masked = uP.length > 2 ? `${uP.slice(0, 2)}***@${dom}` : `${uP.slice(0, 1)}***@${dom}`;
+
+    return `🔒 **Código de Seguridad Enviado**\n\nAcabamos de generar y enviar un código de seguridad de 6 dígitos a tu correo registrado (**${masked}**).\n\n📨 *Por favor, revisa tu bandeja de entrada (y la carpeta de Spam) e ingresa el código de 6 dígitos aquí en el chat para continuar con el cambio de tu contraseña:*`;
+  }
+
   async procesarMensajeSoporte({ session_id, ticket, mensaje, id_usuario, repositories }) {
     const { usuarioRepository, productoRepository, compraRepository, soporteRepository } = repositories || {};
     const correo = ticket?.correo_cliente || '';
@@ -988,32 +1042,12 @@ PAUTAS CRÍTICAS:
             return `⚠️ El correo **${inputEmail}** no se encuentra registrado en nuestra plataforma.\n\nPor favor verifica que esté bien escrito o ingresa el correo exacto con el que creaste tu cuenta:`;
           }
           this.pendingInput.delete(session_id);
-          const code = Math.floor(100000 + Math.random() * 900000).toString();
-          const expires = Date.now() + 10 * 60 * 1000;
-          this.pendingVerifications.set(session_id, {
-            code,
-            action: 'cambiar_password',
-            id_usuario: userFound.id_usuario,
-            expires,
-            correo: userFound.correo
+          return await this.generarYEnviarCodigoSeguridad({
+            session_id,
+            targetUser: userFound,
+            usuarioRepository,
+            accion: 'cambiar_password'
           });
-          if (usuarioRepository.guardarResetCode) {
-            try {
-              await usuarioRepository.guardarResetCode(userFound.id_usuario, code, new Date(expires));
-            } catch (e) {
-              console.warn('[Soporte IA] Error guardando reset_code:', e.message);
-            }
-          }
-          if (this.emailService) {
-            try {
-              await this.emailService.sendPasswordResetEmail(userFound.correo, code);
-            } catch (e) {
-              console.error('[Soporte IA] Error enviando correo de reset:', e.message);
-            }
-          }
-          const [uP, dom] = userFound.correo.split('@');
-          const masked = uP.length > 2 ? `${uP.slice(0, 2)}***@${dom}` : `${uP.slice(0, 1)}***@${dom}`;
-          return `🔒 **Código de Seguridad Enviado**\n\nAcabamos de enviar un código de verificación de 6 dígitos a **${masked}**.\n\n📨 *Por favor, revisa tu bandeja de entrada o spam y escribe aquí en el chat el código de 6 dígitos para continuar:*`;
         } catch (err) {
           console.error('[Soporte IA] Error buscando correo:', err);
           return '❌ Ocurrió un error al verificar el correo. Por favor intenta nuevamente:';
@@ -1026,11 +1060,21 @@ PAUTAS CRÍTICAS:
     // 1.C. Usuario ingresó un código de 6 dígitos
     if (/^\d{6}$/.test(cleanMsg)) {
       let pv = this.pendingVerifications.get(session_id);
+      if (!pv && id_usuario) pv = this.pendingVerifications.get(String(id_usuario));
+      if (!pv && ticket?.id_usuario) pv = this.pendingVerifications.get(String(ticket.id_usuario));
+      if (!pv && ticket?.correo_cliente) pv = this.pendingVerifications.get(ticket.correo_cliente.toLowerCase().trim());
 
       // Si no está en memoria de esta sesión, verificar si coincide con el reset_code del usuario en BD
-      if (!pv && id_usuario && usuarioRepository?.buscarPorId) {
+      if (!pv && usuarioRepository) {
         try {
-          const uDb = await usuarioRepository.buscarPorId(id_usuario);
+          const uid = id_usuario || ticket?.id_usuario;
+          let uDb = null;
+          if (uid && usuarioRepository.buscarPorId) {
+            uDb = await usuarioRepository.buscarPorId(uid);
+          }
+          if (!uDb && ticket?.correo_cliente && usuarioRepository.buscarPorCorreo) {
+            uDb = await usuarioRepository.buscarPorCorreo(ticket.correo_cliente.toLowerCase().trim());
+          }
           if (uDb && uDb.resetCodeValido && uDb.resetCodeValido(cleanMsg)) {
             pv = { code: cleanMsg, action: 'cambiar_password', id_usuario: uDb.id_usuario, expires: Date.now() + 60000 };
           }
@@ -1040,10 +1084,13 @@ PAUTAS CRÍTICAS:
       if (pv) {
         if (Date.now() > pv.expires) {
           this.pendingVerifications.delete(session_id);
-          return '⚠️ El código de verificación ha expirado (validez de 10 minutos). Por favor solicita el cambio de contraseña nuevamente diciendo: *"quiero cambiar mi contraseña"*.';
+          return '⚠️ El código de verificación ha expirado (validez de 10 minutos). Por favor solicita el código nuevamente diciendo: *"enviar código de seguridad"*.';
         }
         if (cleanMsg === pv.code) {
           this.pendingVerifications.delete(session_id);
+          if (pv.correo) this.pendingVerifications.delete(pv.correo.toLowerCase().trim());
+          if (pv.id_usuario) this.pendingVerifications.delete(String(pv.id_usuario));
+
           if (pv.action === 'cambiar_nombre') {
             if (usuarioRepository) await usuarioRepository.actualizar(pv.id_usuario, { nombre: pv.data.nuevo_nombre });
             return `✅ Tu nombre ha sido actualizado a **${pv.data.nuevo_nombre}**.`;
@@ -1065,20 +1112,38 @@ PAUTAS CRÍTICAS:
             return 'Tu cuenta ha sido eliminada permanentemente del sistema.';
           }
         } else {
-          return '❌ Código de verificación incorrecto. Por favor revisa el código de 6 dígitos enviado a tu correo e intenta de nuevo.';
+          return '❌ Código de verificación incorrecto. Por favor revisa el código de 6 dígitos enviado a tu correo e intenta de nuevo o solicita que te lo reenviemos diciendo: *"reenviar código"*.';
         }
       }
     }
 
-    // 1.D. Detección de intención de Cambio / Recuperación de Contraseña
-    const isPasswordResetRequest = /\b(olvid[eé]|cambiar|recuperar|restablecer|modificar)\b[\s\S]{0,35}\b(contrase[nñ]a|clave|password|acceso)\b/i.test(cleanMsg) ||
-      /\b(contrase[nñ]a|clave|password)\b[\s\S]{0,35}\b(olvid[eé]|cambiar|recuperar|restablecer|perd[ií]|modificar)\b/i.test(cleanMsg) ||
+    // 1.D. Detección exhaustiva de intención de Cambio / Recuperación de Contraseña o Código de Seguridad
+    const isSecuritySubject = Boolean(
+      (ticket?.asunto && /seguridad|contrase[nñ]a|clave|password|recuperar/i.test(ticket.asunto)) ||
+      (ticket?.categoria && /seguridad/i.test(ticket.categoria))
+    );
+
+    const isExplicitCodeRequest = 
+      /\b(c[oó]digo)\b/i.test(cleanMsg) &&
+      /\b(seguridad|verificaci[oó]n|recuperaci[oó]n|envi[aá]r?|mand[aá]r?|reenvi[aá]r?|dame|pasa|solicito|necesito|otp|token)\b/i.test(cleanMsg);
+
+    const isPasswordIntent =
+      /\b(perdid[oa]|perd[ií]|olvid[eé]|olvido|olvid[oó]|cambiar|cambio|recuperar|recuperaci[oó]n|restablecer|modificar)\b[\s\S]{0,40}\b(contrase[nñ]a|clave|password|acceso|cuenta)\b/i.test(cleanMsg) ||
+      /\b(contrase[nñ]a|clave|password|acceso|cuenta)\b[\s\S]{0,40}\b(perdid[oa]|perd[ií]|olvid[eé]|olvido|olvid[oó]|cambiar|cambio|recuperar|recuperaci[oó]n|restablecer|modificar)\b/i.test(cleanMsg) ||
       /\b(cambiar clave|cambiar contrase[nñ]a|olvide mi clave|olvide mi contrase[nñ]a|restablecer clave|restablecer contrase[nñ]a)\b/i.test(cleanMsg);
+
+    const isResendOrMissingCode =
+      /\b(no me lleg[oó]|no recib[ií]|no llega|no me ha llegado)\b[\s\S]{0,35}\b(c[oó]digo|correo|mensaje)\b/i.test(cleanMsg) ||
+      /^(envia|mandar?|enviar?|reenviar?|pasar?|generar?)\s+(el\s+)?(c[oó]digo|otp|token)/i.test(cleanMsg) ||
+      /^(c[oó]digo|codigo|otp|reenviar)$/i.test(cleanMsg);
+
+    const isPasswordResetRequest = isPasswordIntent || isExplicitCodeRequest || isResendOrMissingCode || (isSecuritySubject && !/^\d{6}$/.test(cleanMsg));
 
     if (isPasswordResetRequest) {
       let targetUser = null;
-      if (id_usuario && usuarioRepository?.buscarPorId) {
-        try { targetUser = await usuarioRepository.buscarPorId(id_usuario); } catch (e) {}
+      const uid = id_usuario || ticket?.id_usuario;
+      if (uid && usuarioRepository?.buscarPorId) {
+        try { targetUser = await usuarioRepository.buscarPorId(uid); } catch (e) {}
       }
 
       const emailInMsg = cleanMsg.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
@@ -1087,44 +1152,15 @@ PAUTAS CRÍTICAS:
       }
 
       if (!targetUser && ticket?.correo_cliente && ticket.correo_cliente !== 'cliente@montesdemaria.com' && usuarioRepository?.buscarPorCorreo) {
-        try { targetUser = await usuarioRepository.buscarPorCorreo(ticket.correo_cliente.toLowerCase()); } catch (e) {}
+        try { targetUser = await usuarioRepository.buscarPorCorreo(ticket.correo_cliente.toLowerCase().trim()); } catch (e) {}
       }
 
-      if (targetUser && targetUser.correo) {
-        const code = Math.floor(100000 + Math.random() * 900000).toString();
-        const expires = Date.now() + 10 * 60 * 1000;
-        this.pendingVerifications.set(session_id, {
-          code,
-          action: 'cambiar_password',
-          id_usuario: targetUser.id_usuario,
-          expires,
-          correo: targetUser.correo
-        });
-
-        if (usuarioRepository.guardarResetCode) {
-          try {
-            await usuarioRepository.guardarResetCode(targetUser.id_usuario, code, new Date(expires));
-          } catch (e) {
-            console.warn('[Soporte IA] Error guardando reset_code:', e.message);
-          }
-        }
-
-        if (this.emailService) {
-          try {
-            await this.emailService.sendPasswordResetEmail(targetUser.correo, code);
-          } catch (e) {
-            console.error('[Soporte IA] Error enviando correo de reset:', e.message);
-          }
-        }
-
-        const [uP, dom] = targetUser.correo.split('@');
-        const masked = uP.length > 2 ? `${uP.slice(0, 2)}***@${dom}` : `${uP.slice(0, 1)}***@${dom}`;
-
-        return `🔒 **Solicitud de Cambio de Contraseña**\n\nCon gusto te ayudo a actualizar tu clave. He enviado un código de seguridad de 6 dígitos a tu correo registrado (**${masked}**).\n\n📨 *Por favor, revisa tu bandeja de entrada o spam e ingresa el código de 6 dígitos aquí en el chat para continuar:*`;
-      } else {
-        this.pendingInput.set(session_id, { action: 'awaiting_email_for_password' });
-        return `🔒 **Recuperación y Cambio de Contraseña**\n\nCon gusto te ayudo a restablecer tu clave de acceso.\n\nPor favor, escribe el **correo electrónico** asociado a tu cuenta para enviarte un código de seguridad de 6 dígitos:`;
-      }
+      return await this.generarYEnviarCodigoSeguridad({
+        session_id,
+        targetUser,
+        usuarioRepository,
+        accion: 'cambiar_password'
+      });
     }
 
     // 1.E. Detección de Cambio de Nombre
@@ -1245,7 +1281,7 @@ CONOCIMIENTO OPERATIVO Y POLÍTICAS DE LA PLATAFORMA:
 4. 🌱 **Vender / Registro de Campesinos**: Cualquier agricultor o campesino puede unirse en /register seleccionando el rol "Campesino / Productor". Al registrarse, puede publicar cosechas y gestionar sus ventas desde su panel.
 5. 🛡️ **Garantía y Devoluciones**: Garantía de satisfacción de 48 horas tras recibir el paquete. Si un producto llega en mal estado, el cliente puede adjuntar una foto en este chat de soporte para reenvío o reembolso inmediato.
 6. 👨‍💼 **Atención con Asesor Humano**: Si el cliente solicita hablar con una persona o tiene un reclamo complejo, indícale cordialmente que puede usar el botón "Hablar con un asesor" o escribir "asesor" para ser transferido de inmediato.
-7. 🔐 **Cambio y Recuperación de Contraseña**: Esta función es completamente asistida por el sistema. Si el cliente solicita cambiar su contraseña o recuperarla, indícale amablemente que el sistema le enviará un código de seguridad de 6 dígitos a su correo electrónico registrado para proceder con el cambio seguro aquí mismo en el chat.
+7. 🔐 **Cambio y Recuperación de Contraseña**: Esta función es completamente gestionada por el sistema. NUNCA digas que enviaste un código de seguridad si tú estás generando la respuesta de texto. Si el usuario necesita un código, indícale amablemente que proporcione su correo electrónico registrado o que escriba "enviar código" para que el sistema realice el despacho automático de inmediato.
 
 INSTRUCCIONES DE RESPUESTA:
 - Responde siempre en español, de forma muy educada, cálida, empática, concisa y profesional.
