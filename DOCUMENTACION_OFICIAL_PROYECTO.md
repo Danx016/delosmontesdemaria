@@ -14,11 +14,13 @@
 | **Autor / Líder Técnico** | Danilo Rodelo & Equipo de Desarrollo De los Montes de María |
 | **Organización** | De los Montes de María S.A.S. |
 | **Fecha de Creación** | 15 de Febrero de 2026 |
-| **Última Actualización** | 19 de Agosto de 2026 |
-| **Versión del Documento** | 2.5.0 |
-| **Estado del Proyecto** | Producción / Operación en Servidor Propio |
+| **Última Actualización** | 15 de Octubre de 2026 |
+| **Versión del Documento** | 3.0.0 Enterprise |
+| **Estado del Proyecto** | Producción / Operación en Servidor Dedicado Oracle Cloud (OCI) |
 | **Repositorio Oficial** | [GitHub - Danx016/delosmontesdemaria](https://github.com/Danx016/delosmontesdemaria) |
-| **URL Producción** | [delosmontesdemaria.dev](https://delosmontesdemaria.dev) |
+| **URL Producción** | [https://delosmontesdemaria.duckdns.org](https://delosmontesdemaria.duckdns.org) |
+| **Servidor Host (VPS)** | Oracle Cloud Infrastructure (Ubuntu Linux 22.04 LTS — IP: `157.137.233.119`) |
+| **Servidor Base de Datos** | MySQL 8.0 Dedicado OCI (IP: `149.130.189.158` — Patrón Database-per-Service) |
 
 ### Registro de Cambios (Changelog)
 
@@ -26,10 +28,11 @@
 | :--- | :--- | :--- | :--- |
 | **1.0.0** | 15/02/2026 | D. Rodelo | Creación de la arquitectura base monolítica inicial con Express y vistas EJS. |
 | **1.5.0** | 22/03/2026 | D. Rodelo | Migración a SPA con React 18 + Vite, desacoplamiento de API REST y Context API. |
-| **2.0.0** | 10/05/2026 | D. Rodelo | Refactorización a Clean Architecture (DDD), integración de MySQL en Aiven Cloud. |
+| **2.0.0** | 10/05/2026 | D. Rodelo | Refactorización a Clean Architecture (DDD) y módulo de compras con pasarela contra entrega. |
 | **2.2.0** | 18/06/2026 | D. Rodelo | Integración de WebSockets (Socket.IO) para soporte en vivo y pasarela de correo Brevo/SMTP. |
 | **2.4.0** | 25/07/2026 | D. Rodelo | Implementación del bot oficial de Telegram (`@montesdemariabot`) y AgroAsistente con IA (OpenRouter). |
-| **2.5.0** | 19/08/2026 | D. Rodelo | Migración a Servidor Propio (Ubuntu Linux + Nginx Reverse Proxy + PM2) y automatización con `deploy.sh`. |
+| **2.5.0** | 19/08/2026 | D. Rodelo | Migración a Servidor Propio en Oracle Cloud (Ubuntu Linux + Nginx + PM2) con scripts de despliegue. |
+| **3.0.0** | 15/10/2026 | D. Rodelo | **Transición a Arquitectura Empresarial de Microservicios:** Desacoplamiento en 7 servicios independientes + API Gateway, patrón *Database-per-Service* en MySQL (Oracle Cloud), Bus de Eventos Asíncrono con Redis (Pub/Sub y Streams persistentes), trazabilidad distribuida (`X-Correlation-ID`), motor dual de IA con Groq Cloud (`gpt-oss-120b`) + OpenRouter de respaldo, integración oficial de Meta WhatsApp Cloud API, estandarización de collations a `utf8mb4_unicode_ci` y Pipeline CI/CD automatizado en GitHub Actions con cero tiempo de inactividad (Zero Downtime). |
 
 ---
 
@@ -45,16 +48,18 @@ La subregión de los **Montes de María** (comprendida entre los departamentos d
 **De los Montes de María** es un ecosistema digital integral de comercio justo agropecuario que conecta directamente a los campesinos y artesanos con consumidores particulares, restaurantes y mayoristas en todo el territorio colombiano. 
 
 La plataforma combina:
-* Una aplicación web moderna (SPA en React 18) responsive y ligera.
-* Un backend escalable en Node.js estructurado bajo Clean Architecture.
-* Un sistema de verificación de transacciones mediante códigos de un solo uso (OTP) por correo.
-* Facturación electrónica automática con código QR.
-* Soporte híbrido inteligente en tiempo real combinando WebSockets, Asistente con Inteligencia Artificial (LLM) y un **Bot oficial de Telegram** que permite a administradores y productores gestionar ventas y soporte sin necesidad de estar frente a una computadora.
+* Una aplicación web moderna (SPA en React 18 + Vite) responsiva, accesible y de alta velocidad.
+* Una arquitectura backend distribuida en **7 Microservicios independientes + API Gateway** bajo Arquitectura Hexagonal y DDD.
+* **Bus de Eventos Asíncrono con Redis Pub/Sub y Redis Streams** para sincronización desacoplada de inventarios, órdenes y notificaciones.
+* Patrón **Database-per-Service** en MySQL sobre Oracle Cloud Infrastructure, garantizando aislamiento de datos y alta tolerancia a fallos.
+* Un sistema de verificación de transacciones mediante códigos de un solo uso (**OTP**) por correo electrónico antes de la confirmación del pedido.
+* **Facturación electrónica automática** en PDF con código QR y cálculo dinámico de fletes por municipio.
+* **Soporte multicanal híbrido en tiempo real:** WebSockets en vivo, Asistente con Inteligencia Artificial ultrarrápida (Groq Cloud LLM `gpt-oss-120b` + OpenRouter de respaldo), **Bot oficial de Telegram** (`@montesdemariabot`) y notificaciones transaccionales vía **Meta WhatsApp Business Cloud API**.
 
 ### Impacto Esperado
 * **Económico:** Aumento del 35% al 60% en los ingresos netos percibidos por los campesinos al vender a precios justos directos.
 * **Social:** Visibilización y dignificación del campesinado de municipios como El Carmen de Bolívar, San Jacinto, San Juan Nepomuceno, Ovejas, Chalán y María La Baja.
-* **Operativo:** Tiempos de respuesta de soporte inferiores a 3 minutos y formalización de transacciones mediante facturación digital estándar.
+* **Operativo:** Tiempos de respuesta de soporte inferiores a 3 segundos mediante IA, resolución con agentes en menos de 3 minutos vía Telegram/WhatsApp, y formalización de transacciones con facturación digital inmediata.
 
 ---
 
@@ -71,566 +76,353 @@ La plataforma combina:
  ┌──────────────┐               ┌──────────────┐               ┌──────────────┐               ┌──────────────┐
  │  ESPECÍFICO 1│               │  ESPECÍFICO 2│               │  ESPECÍFICO 3│               │  ESPECÍFICO 4│
  │  E-Commerce  │               │ Transaccional│               │ Soporte & IA │               │  Operaciones │
- │  Campesino   │               │  OTP + Fact  │               │ + Telegram   │               │ Admin & KPI  │
+ │ Microservicios│              │  OTP + Fact  │               │ + Telegram/WA│               │  CI/CD & KPI │
  └──────────────┘               └──────────────┘               └──────────────┘               └──────────────┘
 ```
 
 ### Objetivo General
-Desarrollar, desplegar y operar una plataforma tecnológica integral de comercio electrónico y gestión agropecuaria que suprima intermediarios comerciales, digitalice el catálogo de cosechas de los Montes de María y asegure transacciones transparentes y verificables entre el campo y la ciudad.
+Desarrollar, desplegar y operar una plataforma tecnológica integral de comercio electrónico y gestión agropecuaria basada en microservicios que suprima intermediarios comerciales, digitalice el catálogo de cosechas de los Montes de María y asegure transacciones transparentes y verificables entre el campo y la ciudad.
 
 ### Objetivos Específicos (Criterios SMART)
 
 | ID | Objetivo Específico | Indicador / Criterio SMART |
 | :--- | :--- | :--- |
-| **OE-01** | **Digitalización del Catálogo Campesino:** Desarrollar un sistema de catálogo dinámico que permita registrar al menos 50 productos agrícolas diferenciados por origen municipal y campesino productor, con filtros de búsqueda en menos de 200 ms. | *Específico, Medible, Temporal (Trimestre 1).* |
-| **OE-02** | **Seguridad en Checkout y Formalización:** Implementar un flujo de pago contra entrega con validación de seguridad OTP vía email y generación automática de factura electrónica en PDF con QR en menos de 2 segundos por orden. | *Medible (100% de órdenes con OTP y Factura), Alcanzable.* |
-| **OE-03** | **Atención Multicanal en Tiempo Real:** Integrar un sistema de soporte al cliente con WebSockets, AgroAsistente IA (OpenRouter) y Bot de Telegram bidireccional, logrando resolver el 70% de dudas frecuentes automáticamente y escalando a humanos con 1 clic. | *Específico, Medible (>70% automatización, <3 min respuesta humana).* |
-| **OE-04** | **Gestión Administrativa Centralizada:** Diseñar un panel de control con métricas en tiempo real de ventas, control de inventario, gestión de banners promocionales y cupones de descuento. | *Relevante, Medible (Disponibilidad 99.5% de panel).* |
+| **OE-01** | **Digitalización del Catálogo Campesino:** Operar un catálogo dinámico con microservicio dedicado (`catalog-service`), caché en memoria y búsqueda predictiva con tiempos de respuesta menores a 80 ms. | *Específico, Medible, Alcanzable (< 80 ms).* |
+| **OE-02** | **Seguridad en Checkout y Formalización:** Procesar órdenes contra entrega con validación de código de seguridad OTP vía email, cálculo automático de fletes y emisión de factura PDF oficial con QR en menos de 2 segundos. | *Medible (100% órdenes verificadas con OTP), Confiable.* |
+| **OE-03** | **Atención Multicanal Inteligente:** Integrar soporte omnicanal mediante WebSockets, Groq Cloud IA (LPU ultrarrápida), Telegram Bot y WhatsApp Business Cloud API, automatizando más del 75% de inquietudes frecuentes. | *Específico, Medible (>75% resolución IA, <500 ms latencia).* |
+| **OE-04** | **Resiliencia Operativa y CI/CD:** Implementar arquitectura de microservicios con aislamiento de bases de datos, bus de eventos Redis, despliegue continuo en GitHub Actions y disponibilidad superior al 99.8%. | *Temporal, Medible (Zero Downtime, SLA 99.8%).* |
 
 ---
 
 ## 1.4 Alcance del Proyecto
 
-### Qué Incluye (Entregables y Funcionalidades Clave)
-
 ```mermaid
 mindmap
-  root((De los Montes de María))
-    Tienda y Catalogo
-      Filtros por categoría y origen
+  root((De los Montes de María v3.0))
+    Plataforma & Frontend
+      SPA en React 18 + Vite
+      Catálogo con filtros por origen
       Perfiles públicos de productores
-      Buscador predictivo en tiempo real
-      Carrito de compras con cupones
-    Checkout y Pagos
-      Pago contra entrega COD
-      Verificación por código OTP
-      Factura de venta en PDF con QR
-      Calculadora de fletes municipales
-    Canales de Soporte
-      Chat en vivo con WebSockets
-      AgroAsistente con IA LLM
-      Bot de Telegram para agentes
-      Sistema de calificación de atención
-    Panel Administrativo
-      Dashboard de ingresos y pedidos
-      CRUD de productos e inventarios
-      Gestor de Banners y Carruseles
-      Gestor de cupones y roles
+      Carrito reactivo con cupones
+    Ecosistema de Microservicios
+      API Gateway centralizado
+      Auth Service db_auth
+      Catalog Service db_catalog
+      Order Service db_orders
+      Support Service db_support
+      Notification Service db_notifications
+      Logistics Service db_logistics
+    Bus de Eventos & Integraciones
+      Redis Pub/Sub & Streams persistentes
+      Trazabilidad X-Correlation-ID
+      ServiceRegistry con Heartbeat
+    Canales de Atencion & IA
+      Groq Cloud IA gpt-oss-120b
+      OpenRouter IA de respaldo
+      Telegram Bot @montesdemariabot
+      WhatsApp Business Cloud API
+      WebSockets en vivo
+    DevOps & Despliegue
+      GitHub Actions CI/CD Pipeline
+      Oracle Cloud Infrastructure OCI
+      PM2 Cluster Zero Downtime
+      Nginx Reverse Proxy con SSL
 ```
 
-1. **Módulo de Comercio Electrónico (Frontend SPA):**
-   * Catálogo con categorización: *Cosechas Frescas, Lácteos Artesanales, Semillas Nativas, Abonos y Fertilizantes, Herramientas*.
-   * Perfil público de cada campesino con historia de la finca, productos y calificaciones.
-   * Carrito de compras reactivo con persistencia local y soporte para cupones promocionales.
-   * Modos visuales Claro / Oscuro y diseño adaptativo a dispositivos móviles.
+### Qué Incluye (Entregables y Funcionalidades Clave)
 
-2. **Módulo Transaccional y Checkout:**
-   * Modal de checkout con selección dinámica de departamentos y municipios de Colombia.
-   * Generación y validación de token OTP de 6 dígitos enviado por correo electrónico.
-   * Facturación electrónica en PDF con código QR, desglose de impuestos/descuentos y datos legales.
+1. **Frontend SPA React 18 (Client):**
+   * Catálogo con filtros avanzados por municipio de origen, categoría, disponibilidad y rango de precios.
+   * Perfil del productor campesino con historia de la finca, galería fotográfica y reseñas de compradores.
+   * Carrito reactivo con persistencia, cotización de envío en vivo y soporte para cupones promocionales.
+   * Modo visual Claro / Oscuro con variables CSS HSL nativas y diseño 100% adaptable a teléfonos móviles.
 
-3. **Módulo de Soporte y Chat en Vivo Multicanal:**
-   * Chat Web en tiempo real cliente-asesor mediante Socket.IO.
-   * Asistente virtual con Inteligencia Artificial (OpenRouter API) con conocimiento del catálogo.
-   * Integración con Telegram Bot (`@montesdemariabot`) con soporte para respuestas directas vía Webhook.
+2. **Capa de Microservicios Backend (Node.js & Express):**
+   * **API Gateway (`:3000`):** Enrutamiento centralizado, balanceo, validación de cabeceras, límites de tasa (*Rate Limiting*) y propagación del encabezado de correlación (`X-Correlation-ID`).
+   * **Auth & User Service (`:3001`):** Autenticación local con Bcrypt, Google OAuth 2.0, emisión de tokens JWT seguros en cookies `HttpOnly`, recuperación de contraseña y gestión de direcciones del usuario (`db_auth`).
+   * **Catalog Service (`:3002`):** Gestión de cosechas, categorías agrícolas, control de inventario en bodega y cálculo de calificaciones/reseñas (`db_catalog`).
+   * **Order & Payment Service (`:3003`):** Procesamiento de compras contra entrega, validación criptográfica de códigos OTP, facturación en PDF con QR y cálculo de descuentos por cupones (`db_orders`).
+   * **AI Support Service (`:3004`):** Chat en vivo vía Socket.IO, asistente virtual con Groq Cloud y OpenRouter, escalamiento a agentes humanos y registro de tickets (`db_support`).
+   * **Notification Service (`:3005`):** Despacho de correos transaccionales (Brevo API REST + SMTP Gmail), integración bidireccional con Bot de Telegram (`@montesdemariabot`) y mensajes por WhatsApp Business Cloud API (`db_notifications`).
+   * **Logistics Service (`:3006`):** Matriz de tarifas de flete municipal por peso/volumen, geocodificación de entregas y rastreo de despachos (`db_logistics`).
 
-4. **Panel Administrativo (`/admin`):**
-   * Tablero con métricas de ventas en COP, conteo de pedidos y alertas de stock bajo.
-   * Editor visual de carrusel hero de la página principal (imágenes, tinte de color, desenfoque y CTA).
-   * Administración de usuarios, roles (Admin, Vendedor, Cliente, Soporte) y direcciones.
+3. **Bus de Eventos y Mensajería Asíncrona (Redis):**
+   * Publicación/Suscripción volátil (Pub/Sub) para eventos en tiempo real.
+   * **Redis Streams persistentes** (`orders:stream`, `notifications:stream`) con confirmación de entrega y garantía de ejecución ante caídas temporales de red.
 
-### Qué NO Incluye (Límites y Fuera de Alcance)
-
-| Elemento Excluido | Justificación Técnica / Operativa | Alternativa o Fase Futura |
-| :--- | :--- | :--- |
-| **Flota Logística Propia** | El proyecto no contempla la adquisición ni operación directa de vehículos de transporte de carga. | Se utiliza integración con empresas transportadoras y modelo contra entrega con flete calculado. |
-| **Microcréditos Financieros** | No se implementa intermediación bancaria ni captación de ahorros regulados por la Superfinanciera. | Se proporciona enlace y contacto comercial con cooperativas agrícolas locales. |
-| **App Nativa en Play Store / App Store** | No se desarrollaron binarios nativos (Java/Swift) en esta versión para agilizar costos y despliegues. | La plataforma es una aplicación web 100% responsiva optimizada para cualquier navegador móvil y de escritorio. |
-| **Hardware de Telemetría IoT en Fincas** | No se incluyen sensores de humedad, suelo ni estaciones meteorológicas de hardware. | Se prevé como módulo de extensión para la fase v3.0 mediante API REST abierta. |
+4. **DevOps y Automatización:**
+   * **Pipeline CI/CD en GitHub Actions** que compila la SPA, ejecuta validación sintáctica de todos los microservicios y despliega automáticamente vía SSH en Oracle Cloud con recarga en caliente de PM2 (`pm2 reload all --update-env`).
 
 ---
 
-# 2. REQUERIMIENTOS Y DISEÑO
+# 2. ARQUITECTURA Y DISEÑO DEL SISTEMA
 
-## 2.1 Requerimientos Funcionales (RF)
+## 2.1 Topología de Microservicios y Patrón Database-per-Service
 
-```
-[RF-01: Autenticación & Usuarios] ───► [RF-02: Gestión de Catálogo] ───► [RF-03: Carrito & Cupones]
-                                                                                  │
-[RF-06: Panel Administrativo]      ◄─── [RF-05: Soporte & Telegram] ◄─── [RF-04: Checkout & Facturación]
-```
-
-| ID | Nombre del Requerimiento | Descripción Detallada | Criterio de Éxito |
-| :--- | :--- | :--- | :--- |
-| **RF-01** | **Autenticación y Perfiles** | El sistema debe permitir registro e inicio de sesión mediante credenciales locales (correo/contraseña con hash Bcrypt) y Google OAuth 2.0. Debe permitir recuperación de contraseña mediante código OTP. | Login en < 1s, almacenamiento seguro de token JWT en cookie HttpOnly. |
-| **RF-02** | **Gestión de Catálogo e Inventario** | Los vendedores y administradores deben poder crear, editar, pausar y eliminar productos con fotografías, descripción, precio unitario, stock disponible, origen y presentación. | Actualización en tiempo real del stock tras confirmación de compra. |
-| **RF-04** | **Checkout con OTP y Facturación PDF** | Antes de asentar la orden contra entrega, el sistema debe remitir un código OTP al correo del comprador. Al ser validado, se genera la orden, se descuenta inventario y se envía factura en PDF con QR. | Factura generada y enviada al correo del comprador en < 3s. |
-| **RF-05** | **Soporte Híbrido (IA + Socket.IO + Telegram)** | El usuario debe contar con un widget de chat en vivo atendido inicialmente por IA. Si solicita asesor humano, se notifica al canal de Telegram de administradores, permitiendo responder desde Telegram o la web. | Transmisión bidireccional de mensajes en menos de 500 ms. |
-| **RF-06** | **Panel Administrativo y Banners** | El administrador debe poder visualizar métricas de ingresos, gestionar productos, administrar cupones, cambiar roles de usuarios y configurar los banners del carrusel de inicio. | Cambios en carrusel y cupones reflejados de inmediato en la tienda. |
-
----
-
-## 2.2 Requerimientos No Funcionales (RNF)
-
-| Categoría | ID | Requerimiento No Funcional | Métrica / Estándar de Cumplimiento |
-| :--- | :--- | :--- | :--- |
-| **Rendimiento** | **RNF-01** | **Tiempo de Respuesta de API:** Los endpoints de lectura REST deben responder en menos de 300 ms en condiciones de carga estándar (hasta 250 req/s). | Pruebas de estrés y benchmarking con Apache Benchmark / Autocannon. |
-| **Seguridad** | **RNF-02** | **Cifrado y Protección Web:** Uso obligatorio de HTTPS, cabeceras seguras mediante Helmet, protección CSRF, Rate Limiting (máx. 100 req/15 min por IP en rutas públicas, 10 req/min en OTP), y Bcrypt a 12 salt rounds. | Calificación A+ en escaneos de cabeceras HTTP y SSL Labs. |
-| **Disponibilidad** | **RNF-03** | **Uptime del Sistema:** La plataforma en producción en servidor Linux propio (Nginx + PM2 + Aiven Cloud) debe garantizar una disponibilidad mensual mínima del 99.5%. | Monitoreo continuo mediante PM2 status, healthchecks y UptimeRobot. |
-| **Usabilidad** | **RNF-04** | **Accesibilidad y Adaptabilidad:** Interfaz 100% responsiva (Mobile First), soporte de temas claro/oscuro y contrastes visuales conformes con WCAG 2.1 Nivel AA. | Score de Lighthouse en Accesibilidad y Best Practices > 90/100. |
-| **Legal / Normativa** | **RNF-05** | **Habeas Data (Ley 1581 de 2012):** Cumplimiento de la legislación colombiana de protección de datos personales. Derecho de acceso, rectificación y eliminación de cuenta. | Cláusula de consentimiento explícito en checkout y registro. |
-
----
-
-## 2.3 Metodología de Trabajo
-
-El desarrollo se gestionó bajo el marco ágil **Scrum / Agile Híbrido** adaptado a entregas continuas (CI/CD):
-
-```mermaid
-flowchart LR
-    A[Backlog Refinement] --> B[Sprint Planning]
-    B --> C[Sprint Execution 2 semanas]
-    C --> D[Daily Standups]
-    D --> C
-    C --> E[Sprint Review & Demo]
-    E --> F[Sprint Retrospective]
-    F --> G[Despliegue Continuo con deploy.sh en Servidor Propio]
-```
-
-* **Duración de Sprints:** Ciclos de 2 semanas (10 días hábiles).
-* **Ceremonias:**
-  * *Sprint Planning:* Definición de historias de usuario y priorización en Kanban.
-  * *Daily Standups:* Sincronización de 15 minutos enfocada en bloqueos técnicos.
-  * *Sprint Review & Retrospective:* Demostración funcional en entorno staging y lecciones aprendidas.
-* **Herramientas:** GitHub Projects / Issues para seguimiento de tareas, Git Flow para ramas (`main`, `develop`, `feature/*`, `hotfix/*`).
-
----
-
-## 2.4 Arquitectura del Software & Diseño del Proceso
-
-### Arquitectura Limpia (Clean Architecture) & DDD
-
-El backend desacopla totalmente las reglas de negocio de los detalles de infraestructura:
+El sistema adopta una arquitectura orientada a microservicios donde cada dominio posee su propio ciclo de vida, puerto de red y base de datos privada en MySQL, comunicándose entre sí a través de HTTP síncrono (vía Gateway) y eventos asíncronos mediante Redis:
 
 ```mermaid
 graph TD
-    subgraph Framework_Infraestructura ["1. Infraestructura & Framework"]
-        NG[Nginx Reverse Proxy]
-        PM[PM2 Process Manager]
-        EX[Express.js Server]
-        SIO[Socket.IO Engine]
-        DB[(MySQL 8.0 Aiven Cloud)]
-        TG[Telegram Bot API]
-        BR[Brevo API / Nodemailer]
-        OR[OpenRouter IA LLM]
+    Client["🌐 Cliente Web / Móvil (React 18 SPA)"] -->|HTTPS / WSS| Nginx["🛡️ Nginx Reverse Proxy (:80 / :443)"]
+    Nginx -->|Reverse Proxy| Gateway["🚪 API Gateway (:3000)\nTracing: X-Correlation-ID"]
+
+    subgraph Microservicios ["Ecosistema de Microservicios (PM2 Cluster)"]
+        Gateway -->|/api/auth, /api/usuarios| S_AUTH["🔑 Auth Service (:3001)"]
+        Gateway -->|/api/productos, /api/categorias| S_CAT["📦 Catalog Service (:3002)"]
+        Gateway -->|/api/compra, /api/cupones| S_ORD["💳 Order Service (:3003)"]
+        Gateway -->|/api/soporte, /socket.io| S_SUP["🤖 AI Support Service (:3004)"]
+        Gateway -->|/api/notificaciones, /api/telegram| S_NOT["📢 Notification Service (:3005)"]
+        Gateway -->|/api/logistica, /api/envios| S_LOG["🚚 Logistics Service (:3006)"]
     end
 
-    subgraph Aplicacion ["2. Capa de Aplicación"]
-        C_AUTH[AuthController]
-        C_PROD[ProductoController]
-        C_COMP[CompraController]
-        C_SOP[SoporteController]
-        C_ADM[AdminController]
-        MW[Auth JWT & Rate Limiting Middleware]
+    subgraph Bases_de_Datos ["Bases de Datos Aisladas en Oracle Cloud (MySQL 8.0)"]
+        S_AUTH --> DB_AUTH[("db_auth\nutf8mb4_unicode_ci")]
+        S_CAT --> DB_CAT[("db_catalog\nutf8mb4_unicode_ci")]
+        S_ORD --> DB_ORD[("db_orders\nutf8mb4_unicode_ci")]
+        S_SUP --> DB_SUP[("db_support\nutf8mb4_unicode_ci")]
+        S_NOT --> DB_NOT[("db_notifications\nutf8mb4_unicode_ci")]
+        S_LOG --> DB_LOG[("db_logistics\nutf8mb4_unicode_ci")]
     end
 
-    subgraph Dominio ["3. Capa de Dominio (Núcleo)"]
-        UC_LOGIN[LoginUser / RegisterUser]
-        UC_ORDER[CreateOrder & ValidateOTP]
-        UC_AI[ConsultAgroAI]
-        UC_CHAT[BroadcastSupportMessage]
-        E_USR[Entidad Usuario]
-        E_PRD[Entidad Producto]
-        E_ORD[Entidad Compra]
-        E_TCK[Entidad SoporteTicket]
+    subgraph Event_Bus ["Bus de Eventos Asíncrono & Trazabilidad"]
+        REDIS[("⚡ Redis EventBus\nPub/Sub + Streams")]
+        S_ORD -.->|Publica EVENT_ORDER_CREATED| REDIS
+        REDIS -.->|Consume y Despacha Correo / Telegram| S_NOT
+        REDIS -.->|Consume y Prepara Despacho| S_LOG
+        S_CAT -.->|Publica EVENT_STOCK_LOW| REDIS
     end
 
-    NG --> PM --> EX --> MW --> C_AUTH & C_PROD & C_COMP & C_SOP & C_ADM
-    C_AUTH --> UC_LOGIN
-    C_COMP --> UC_ORDER
-    C_SOP --> UC_AI & UC_CHAT
-    UC_LOGIN --> E_USR
-    UC_ORDER --> E_ORD & E_PRD
-    UC_AI --> E_TCK
-    UC_ORDER -.-> DB & BR
-    UC_CHAT -.-> SIO & TG
+    subgraph Proveedores_Externos ["Servicios e Integraciones Externas"]
+        S_SUP --> GROQ["⚡ Groq Cloud API (gpt-oss-120b)"]
+        S_SUP --> OR["🧠 OpenRouter (gpt-4o-mini Backup)"]
+        S_NOT --> BREVO["✉️ Brevo REST API / SMTP"]
+        S_NOT --> TG["📱 Telegram Bot API"]
+        S_NOT --> WA["💬 WhatsApp Cloud API"]
+    end
 ```
 
-### Mapeo de Procesos de Negocio
+---
 
-#### 1. Proceso de Checkout con Pago Contra Entrega y Validación OTP
+## 2.2 Especificación de Microservicios y Responsabilidades
+
+| Microservicio | Puerto | Base de Datos | Responsabilidades Principales | Endpoints Clave |
+| :--- | :---: | :--- | :--- | :--- |
+| **API Gateway** | `3000` | N/A (Proxy) | Proxy inverso centralizado, CORS, validación de origen, Rate Limiting distribuido, inyección de `X-Correlation-ID` para trazabilidad y terminación de peticiones anómalas. | `/api/*`, `/health` |
+| **Auth & User** | `3001` | `db_auth` | Registro, login, hash Bcrypt, verificación JWT en cookies HttpOnly, Google OAuth 2.0, restablecimiento de contraseña, perfiles de usuario y libreta de direcciones. | `/api/auth/login`, `/api/auth/registro`, `/api/auth/google`, `/api/usuarios/me` |
+| **Catalog** | `3002` | `db_catalog` | Catálogo de cosechas agrícolas, control de stock, filtros avanzados por municipio y categoría, sistema de valoración y comentarios de productos. | `/api/productos`, `/api/categorias`, `/api/productos/:id/resenas` |
+| **Order & Payment** | `3003` | `db_orders` | Gestión del ciclo de vida de compras, validación de stock antes del pago, generación y verificación de código OTP por correo, cálculo de descuentos con cupones, emisión de recibos oficiales en PDF y orquestación de pagos contra entrega. | `/api/compra`, `/api/compra/enviar-otp`, `/api/compra/verificar-otp`, `/api/cupones` |
+| **AI Support** | `3004` | `db_support` | Chat en vivo bidireccional cliente-agente mediante WebSockets (Socket.IO), motor de razonamiento con IA agronómica (Groq Cloud + OpenRouter), escalamiento hacia agentes humanos y registro de auditoría de tickets. | `/api/soporte/tickets`, `/api/soporte/calificar`, `/socket.io` |
+| **Notification** | `3005` | `db_notifications` | Motor multicanal de mensajería: despacho de correos HTML mediante Brevo API REST con fallback a Gmail SMTP, Webhooks bidireccionales de Telegram (`@montesdemariabot`) y notificaciones transaccionales mediante WhatsApp Business Cloud API. | `/api/notificaciones/enviar`, `/api/telegram/webhook`, `/api/whatsapp/webhook` |
+| **Logistics** | `3006` | `db_logistics` | Cálculo de costos de envío y flete según origen y destino municipal en Bolívar/Sucre, generación de números de guía de despacho y actualización del estado del pedido (*En preparación, En camino, Entregado*). | `/api/logistica/flete`, `/api/logistica/envios/:id/estado` |
+
+---
+
+## 2.3 Proceso Transaccional Event-Driven (Checkout con OTP y Notificaciones)
+
+El flujo de compras combina sincronización síncrona para la validación del comprador con eventos asíncronos persistentes para notificar a los diferentes canales:
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor Cliente as 🛒 Comprador
     participant React as 🖥️ Frontend (React 18)
-    participant API as ⚙️ Backend (Node.js/Express)
-    participant Email as 📧 Servicio Correo (Brevo)
-    participant DB as 🗄️ Base de Datos (MySQL)
+    participant Gateway as 🚪 API Gateway (:3000)
+    participant OrderSvc as 💳 Order Service (:3003)
+    participant EventBus as ⚡ Redis EventBus (Streams)
+    participant NotifSvc as 📢 Notification Service (:3005)
+    participant DB as 🗄️ MySQL (db_orders)
     participant Telegram as 📱 Bot Telegram
+    participant Email as 📧 Brevo / SMTP
 
-    Cliente->>React: Completa datos de envío y hace clic en "Finalizar Pedido"
-    React->>API: POST /api/compras/solicitar-otp { email, carrito }
-    API->>API: Valida stock disponible de cada producto
-    API->>API: Genera código OTP criptográfico (6 dígitos, expira en 10 min)
-    API->>Email: Envía plantilla HTML con código OTP
-    Email-->>Cliente: Recibe correo con código OTP
-    API-->>React: 200 OK (OTP enviado)
-    
-    Cliente->>React: Ingresa código OTP en el modal
-    React->>API: POST /api/compras/crear { otp, datosEnvio, carrito, cupon }
-    API->>API: Verifica validez del código OTP
-    API->>DB: Inicia Transacción SQL: Descuenta Stock + Guarda Compra + Guarda Detalle
-    DB-->>API: Transacción confirmada (id_compra generado)
-    API->>API: Construye Factura Electrónica en PDF con QR
-    API->>Email: Despacha Factura Oficial en PDF al cliente
-    API->>Telegram: Notifica a Administradores (Nueva Venta en COP)
-    API-->>React: 201 Created { id_compra, factura_url }
-    React-->>Cliente: Muestra Pantalla de Éxito y Permite Descargar Factura
-```
+    Cliente->>React: Hace clic en "Confirmar y Pagar"
+    React->>Gateway: POST /api/compra/enviar-otp { email, total }
+    Gateway->>OrderSvc: Enruta petición con X-Correlation-ID
+    OrderSvc->>OrderSvc: Genera código OTP de 6 dígitos (10 min validez)
+    OrderSvc->>NotifSvc: Solicita envío de código de seguridad
+    NotifSvc->>Email: Despacha correo con plantilla oficial y código OTP
+    Email-->>Cliente: Recibe código en su bandeja de entrada
+    OrderSvc-->>React: 200 OK (Código enviado)
 
-#### 2. Proceso de Soporte Multicanal (IA -> Humano -> Telegram)
+    Cliente->>React: Ingresa código de 6 dígitos en el modal
+    React->>Gateway: POST /api/compra/verificar-otp { email, code }
+    Gateway->>OrderSvc: Valida código en memoria criptográfica
+    OrderSvc-->>React: 200 OK (Código verificado)
 
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Cliente as 👤 Cliente en Tienda
-    participant Widget as 💬 Widget Chat Web
-    participant Socket as 🔌 Servidor WebSockets
-    participant IA as 🤖 AgroAsistente (OpenRouter)
-    actor Asesor as 👨‍💼 Asesor / Admin
-    participant TG as 📱 Bot de Telegram
+    React->>Gateway: POST /api/compra { productos, direccion, envio }
+    Gateway->>OrderSvc: Ejecuta ProcessPurchase Use-Case
+    OrderSvc->>DB: Inicia Transacción SQL (Inserta orden + Descuenta inventario)
+    DB-->>OrderSvc: Transacción completada con éxito
+    OrderSvc->>EventBus: Publica evento persistente en Stream: ORDER_CREATED
+    OrderSvc-->>React: 201 Created { id_compra, factura }
+    React-->>Cliente: Muestra confirmación y enlace a Factura Oficial
 
-    Cliente->>Widget: Escribe: "¿Qué variedad de ñame tienen y a cómo el kilo?"
-    Widget->>Socket: Evento 'chat_message' { ticket_id, mensaje }
-    Socket->>IA: Procesa consulta con catálogo actualizado
-    IA-->>Socket: "Tenemos Ñame Espino cosechado en San Jacinto a $3.500/kg..."
-    Socket-->>Widget: Muestra respuesta instantánea de la IA
-    
-    Cliente->>Widget: Escribe: "Quiero hablar con un asesor humano por favor"
-    Widget->>Socket: Evento 'request_human_agent'
-    Socket->>TG: Mensaje Push al Bot: "⚠️ Cliente solicita agente humano (#TK-482)"
-    TG-->>Asesor: Notificación en el celular con botón [💬 Responder a #TK-482]
-    
-    Asesor->>TG: Responde en Telegram: "¡Hola! Con gusto te colaboro con tu pedido."
-    TG->>Socket: Webhook POST /api/telegram/webhook
-    Socket-->>Widget: Entrega mensaje del asesor en tiempo real en la web del cliente
+    par Procesamiento Asíncrono de Notificaciones
+        EventBus->>NotifSvc: Evento ORDER_CREATED consumido
+        NotifSvc->>Email: Envía Factura Electrónica en PDF con QR
+        NotifSvc->>Telegram: Notifica al canal de administradores (#Orden)
+        Telegram-->>Cliente: Opción de activar rastreo en Telegram mediante enlace
+    end
 ```
 
 ---
 
-## 2.5 Stack Tecnológico Detallado
+## 2.4 Estandarización de Base de Datos y Prevención de Errores de Intercalación
+
+### Unificación de Collations (`utf8mb4_unicode_ci`)
+Para garantizar compatibilidad total entre MySQL 8.0 y comparaciones entre tablas relacionadas (`JOIN`, subconsultas y filtros `LOWER()` o `UPPER()`), toda la infraestructura de base de datos se encuentra estrictamente unificada:
+
+1. **Juego de Caracteres Predeterminado:** `utf8mb4` (soporte completo para caracteres multilingües, tildes y emojis).
+2. **Collation Uniforme:** `utf8mb4_unicode_ci` aplicada a nivel de:
+   * Servidor y bases de datos (`ALTER DATABASE db_name CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`).
+   * Tablas individuales (`ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci`).
+   * Todas las columnas textuales (`VARCHAR`, `TEXT`, `MEDIUMTEXT`).
+   * Configuración de los pools de conexión de Node.js (`mysql2` con `charset: 'utf8mb4'`).
+3. **Blindaje en Repositorios:** Todas las consultas SQL que realizan comparaciones de texto en cláusulas `JOIN` incorporan `COLLATE utf8mb4_unicode_ci` explícito para prevenir cualquier error de *Illegal mix of collations*.
+
+---
+
+# 3. STACK TECNOLÓGICO Y HERRAMIENTAS
 
 | Capa | Tecnología | Versión | Propósito / Justificación Técnica |
 | :--- | :--- | :--- | :--- |
-| **Frontend Framework** | React | `18.3.1` | Renderizado reactivo por componentes, Virtual DOM de alto desempeño. |
-| **Tooling & Bundler** | Vite | `5.4.x` | Compilación ultra rápida mediante ES Modules y Hot Module Replacement (HMR). |
-| **Estilos & Diseño** | Vanilla CSS + Tokens | CSS3 Moderno | Cero sobrecarga de librerías pesadas; variables HSL para modo oscuro nativo. |
-| **Enrutamiento** | React Router DOM | `6.26.x` | Navegación del lado del cliente fluida sin recargas de página. |
-| **Servidor / SO** | Ubuntu Linux (VPS Propio) | `22.04 LTS` | Entorno de servidor dedicado bajo control total y alto desempeño. |
-| **Reverse Proxy** | Nginx | `1.18+` | Balanceo, compresión gzip, terminación SSL y proxy para WebSockets. |
-| **Gestor de Procesos** | PM2 | `5.x` | Monitoreo de procesos en segundo plano, reinicio automático y cluster. |
-| **Backend Runtime** | Node.js | `>= 18.0.0` | Arquitectura asíncrona no bloqueante basada en eventos. |
-| **Framework HTTP** | Express.js | `5.1.0` | Enrutamiento modular, soporte robusto de middlewares y APIs RESTful. |
-| **Base de Datos** | MySQL Server | `8.0 (Aiven)` | Integridad relacional estricta, soporte transaccional ACID y Pool de conexiones SSL. |
-| **WebSockets** | Socket.IO | `4.8.3` | Comunicación bidireccional en tiempo real para mensajería de soporte. |
-| **Seguridad** | Bcrypt / JWT / Helmet | `6.0 / 9.0 / 8.1` | Hash de contraseñas de alta seguridad, tokens de sesión y endurecimiento de cabeceras HTTP. |
-| **Emails Transaccionales** | Brevo REST API / Nodemailer | `v3 / 8.0.7` | Envío confiable de códigos OTP y facturas electrónicas en PDF sin bloqueo por puertos. |
-| **Inteligencia Artificial** | OpenRouter API | REST | Modelos de lenguaje adaptados para contexto agronómico local. |
-| **Mensajería Instantánea** | Telegram Bot API | Webhook HTTPS | Operación móvil 1-click para el equipo de ventas y soporte (`@montesdemariabot`). |
+| **Frontend Framework** | React | `18.3.1` | Renderizado reactivo modular, Virtual DOM de alto desempeño y gestión eficiente de estado con Context API. |
+| **Tooling & Bundler** | Vite | `5.4.x` | Compilación ultrarrápida mediante ES Modules nativos y Hot Module Replacement (HMR). |
+| **Estilos & Diseño** | Vanilla CSS + Tokens | CSS3 Moderno | Cero dependencias pesadas; paleta HSL optimizada con soporte nativo de modo claro y oscuro. |
+| **Enrutamiento Web** | React Router DOM | `6.26.x` | Navegación SPA fluida del lado del cliente sin recargas de página. |
+| **Servidor Host (VPS)** | Oracle Cloud Infrastructure (OCI) | `Ubuntu 22.04 LTS` | Máquina virtual dedicada en la nube (IP: `157.137.233.119`) con alto rendimiento y conectividad global. |
+| **Reverse Proxy** | Nginx | `1.18+` | Balanceo de carga, terminación SSL/TLS, compresión gzip y soporte nativo de WebSockets. |
+| **Gestor de Procesos** | PM2 Enterprise | `5.x` | Orquestación en modo cluster de los 7 microservicios, reinicio automático y monitoreo de memoria/CPU. |
+| **Backend Runtime** | Node.js | `>= 20.0.0` | Entorno asíncrono no bloqueante basado en eventos para microservicios. |
+| **Framework HTTP** | Express.js | `5.1.0` | Enrutamiento modular, middlewares de seguridad y arquitectura de microservicios RESTful. |
+| **Base de Datos** | MySQL Server Dedicado | `8.0` | Servidor MySQL en OCI (`149.130.189.158`) con soporte ACID, claves foráneas y patrón Database-per-Service. |
+| **Bus de Eventos** | Redis (ioredis) | `6.0.0` | Mensajería asíncrona mediante Pub/Sub en memoria y Redis Streams persistentes para eventos críticos. |
+| **Comunicación en Vivo** | Socket.IO | `4.8.3` | Protocolo WebSocket bidireccional de baja latencia para el chat de soporte al cliente. |
+| **Seguridad Web** | Bcrypt / JWT / Helmet | `6.0 / 9.0 / 8.1` | Hash criptográfico de contraseñas, tokens de sesión HttpOnly y endurecimiento de cabeceras HTTP. |
+| **Emails Transaccionales** | Brevo REST API / Nodemailer | `v3 / 8.0.7` | Envío confiable de códigos OTP y facturas electrónicas en PDF con arquitectura de respaldo dual. |
+| **Motor de IA Principal** | Groq Cloud API | LPU Inference | Modelo `openai/gpt-oss-120b` con inferencia ultrarrápida (14.400 solicitudes gratuitas diarias). |
+| **Motor de IA Respaldo** | OpenRouter API | REST | Modelo `openai/gpt-4o-mini` para garantizar continuidad de servicio si la API principal se satura. |
+| **Mensajería Telegram** | Telegram Bot API | Webhook HTTPS | Operación remota para administradores y rastreo de envíos para compradores (`@montesdemariabot`). |
+| **Mensajería WhatsApp** | WhatsApp Business Cloud API | Graph API v19.0 | Canal oficial de notificaciones transaccionales y confirmación de pedidos a través de Meta. |
+| **Integración Continua** | GitHub Actions | `v4` | Pipeline automatizado de validación, compilación de frontend y despliegue continuo vía SSH. |
 
 ---
 
-# 3. PLANIFICACIÓN, RECURSOS Y RIESGOS
+# 4. CICLO DE VIDA, DEVOPS Y DESPLIEGUE
 
-## 3.1 Cronograma e Hitos Principales (WBS / EDT)
+## 4.1 Pipeline de Integración y Despliegue Continuo (CI/CD)
 
-```
-Fase 1: Análisis y Arquitectura ────► [01/Feb - 20/Feb]
-Fase 2: Backend Core & DB       ────► [21/Feb - 20/Mar]
-Fase 3: Frontend SPA & React    ────► [21/Mar - 25/Abr]
-Fase 4: Integraciones & Bots    ────► [26/Abr - 20/May]
-Fase 5: Pruebas, QA & Hardening ────► [21/May - 15/Jun]
-Fase 6: Despliegue en Servidor  ────► [16/Jun - Operación Continua]
-```
-
-### Tabla de Desglose de Trabajo (WBS)
-
-| Fase | Hito / Entregable Principal | Fecha Inicio | Fecha Fin | Estado |
-| :--- | :--- | :--- | :--- | :--- |
-| **Fase 1** | Definición de Requerimientos, Wireframes y Modelo Entidad-Relación | 01/02/2026 | 20/02/2026 | **Completado** |
-| **Fase 2** | Backend API REST, Clean Architecture y Base de Datos MySQL Aiven | 21/02/2026 | 20/03/2026 | **Completado** |
-| **Fase 3** | Frontend React 18, Catálogo, Filtros, Carrito y Panel Admin | 21/03/2026 | 25/04/2026 | **Completado** |
-| **Fase 4** | Checkout OTP, Facturación PDF, AgroAsistente IA y Bot Telegram | 26/04/2026 | 20/05/2026 | **Completado** |
-| **Fase 5** | Pruebas de Carga, Seguridad, Pruebas de Aceptación con Campesinos | 21/05/2026 | 15/06/2026 | **Completado** |
-| **Fase 6** | Puesta en Marcha en Servidor Propio (Ubuntu + Nginx + PM2) | 16/06/2026 | Vigente | **En Operación** |
-
----
-
-## 3.2 Roles y Responsabilidades (Matriz RACI)
-
-* **R (Responsible):** Quien ejecuta la tarea.
-* **A (Accountable):** Quien aprueba y responde por el resultado final.
-* **C (Consulted):** Quien aporta información técnica o de negocio.
-* **I (Informed):** Quien es notificado del avance.
-
-| Actividad / Entregable | Líder de Proyecto | Dev Backend | Dev Frontend | Diseñador UI/UX | Asesor Agrícola / Campesino |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **Diseño de Base de Datos y Clean Architecture** | **A** | **R** | **C** | **I** | **I** |
-| **Diseño de Interfaz de Usuario y Responsive** | **A** | **I** | **R** | **R** | **C** |
-| **Implementación de API REST y Checkout OTP** | **A** | **R** | **C** | **I** | **I** |
-| **Desarrollo de SPA React y Context API** | **A** | **C** | **R** | **C** | **I** |
-| **Integración Telegram Bot & AgroAsistente IA** | **A** | **R** | **C** | **I** | **C** |
-| **Validación de Catálogo y Precios de Cosechas** | **A** | **I** | **I** | **I** | **R** |
-| **Administración Servidor Linux, Nginx y PM2** | **A** | **R** | **C** | **I** | **I** |
-
----
-
-## 3.3 Presupuesto y Recursos
-
-### Recursos de Infraestructura y Servicios Cloud (Cálculo Anual Estimado)
-
-| Recurso / Servicio | Proveedor | Nivel / Plan | Costo Mensual (USD) | Costo Anual (USD) |
-| :--- | :--- | :--- | :--- | :--- |
-| **Servidor Dedicado / VPS Propio (Ubuntu)** | Servidor Propio / VPS | Linux Ubuntu 22.04 LTS (PM2 + Nginx) | $5.00 | $60.00 |
-| **Base de Datos MySQL Gestionada** | Aiven Cloud | Startup / Cloud Free Tier | $0.00 | $0.00 |
-| **Servicio de Correo Transaccional** | Brevo / Google Workspace | Free Tier (300 emails/día) | $0.00 | $0.00 |
-| **Modelos de Inteligencia Artificial** | OpenRouter | Pay-as-you-go / Free tier | $3.00 | $36.00 |
-| **DNS Dinámico / Dominio** | DuckDNS / Cloudflare | Dynamic DNS + Certbot Let's Encrypt | $0.00 | $0.00 |
-| **Bot de Telegram** | Telegram Bot API | Nivel Oficial / Gratuito | $0.00 | $0.00 |
-| **TOTAL INFRAESTRUCTURA** | | | **$8.00 / mes** | **$96.00 / año** |
-
----
-
-## 3.4 Matriz de Riesgos y Mitigación
-
-```
-   Alto  ▲   [R-02: Caída de Brevo]     [R-01: Brecha Conectividad]
-         │
-IMPACTO  │   [R-04: Spam en Chat/OTP]   [R-03: Desabastecimiento]
-         │
-   Bajo  ┼────────────────────────────────────────────────────────►
-             Baja                       Alta
-                         PROBABILIDAD
-```
-
-| ID | Riesgo Identificado | Prob. | Imp. | Nivel | Estrategia de Mitigación / Plan de Contingencia |
-| :--- | :--- | :---: | :---: | :---: | :--- |
-| **R-01** | **Baja conectividad a Internet en zonas rurales de cultivo.** | Alta | Alto | **Crítico** | **Mitigación:** Se habilitó el Bot de Telegram que consume datos mínimos y funciona sobre redes móviles 2G/3G/4G, además de envío de alertas por SMS/WhatsApp. |
-| **R-02** | **Fallo o bloqueo en el servicio de correo transaccional (OTP).** | Media | Alto | **Alto** | **Mitigación:** Arquitectura de fallback dual en `EmailService.js`: si la API HTTPS de Brevo no responde, conmuta automáticamente a Gmail SMTP. |
-| **R-03** | **Quiebre de inventario por compras simultáneas del mismo lote.** | Media | Media | **Medio** | **Mitigación:** Transacciones SQL atómicas con bloqueo de fila (`SELECT ... FOR UPDATE`) en el momento de procesar la compra. |
-| **R-04** | **Ataques de fuerza bruta o spam en el formulario de contacto/OTP.** | Alta | Medio | **Medio** | **Mitigación:** Implementación de `express-rate-limit` estricto en rutas sensibles y bloqueo automático de IPs sospechosas. |
-
----
-
-# 4. VALIDACIÓN, DESPLIEGUE Y CIERRE
-
-## 4.1 Plan de Pruebas y Criterios de Aceptación
+El repositorio cuenta con un pipeline automatizado en **GitHub Actions** (`.github/workflows/deploy.yml`) que se activa automáticamente con cada `git push` hacia la rama `main`:
 
 ```mermaid
-flowchart TD
-    A[Nivel 1: Pruebas Unitarias] --> B[Nivel 2: Pruebas de Integración]
-    B --> C[Nivel 3: Pruebas de Seguridad]
-    C --> D[Nivel 4: Pruebas de Aceptación UAT]
-    D --> E{¿Cumple Criterios?}
-    E -- Sí --> F[Pase a Producción Aprobado]
-    E -- No --> G[Corrección en Hotfix / Sprint]
-    G --> B
+flowchart LR
+    A[👨‍💻 Push a main] --> B[📥 GitHub Actions Checkout]
+    B --> C[⚙️ Setup Node.js 20]
+    C --> D[📦 npm install]
+    D --> E[🔍 Validar Sintaxis Microservicios]
+    E --> F[🎨 Compilar Frontend React Vite]
+    F --> G{¿Build OK?}
+    G -- No --> H[❌ Notificar Error y Cancelar]
+    G -- Sí --> I[🚀 Despliegue SSH a Oracle Cloud]
+    I --> J[📂 cd /home/ubuntu/montesdemaria]
+    J --> K[🔄 git pull origin main]
+    K --> L[🏗️ npm run build]
+    L --> M[♻️ pm2 reload all --update-env]
+    M --> N[💾 pm2 save]
+    N --> O[✅ Despliegue Zero Downtime Completado]
 ```
 
-### Matriz de Casos de Prueba Ejecutados
-
-| ID Prueba | Módulo / Escenario | Entrada / Acción | Resultado Esperado | Estado |
-| :--- | :--- | :--- | :--- | :---: |
-| **TC-001** | **Autenticación con Clave Inválida** | Email existente, contraseña incorrecta. | Retorna HTTP 401, mensaje "Credenciales inválidas" sin revelar si el correo existe. | **PASS** |
-| **TC-002** | **Aplicación de Cupón Válido** | Ingresar código "MONTES10" en carrito de $100.000 COP. | Aplica 10% de descuento ($10.000 COP), recalculando total a $90.000 COP. | **PASS** |
-| **TC-003** | **Checkout con OTP Correcto** | Ingresar el código de 6 dígitos recibido al correo. | Retorna HTTP 201, crea orden, descuenta stock y genera factura en PDF con QR. | **PASS** |
-| **TC-004** | **Checkout con OTP Expirado o Inválido** | Ingresar código erróneo o tras 11 minutos. | Retorna HTTP 400 "Código OTP expirado o inválido", no descuenta inventario. | **PASS** |
-| **TC-005** | **Soporte IA y Transferencia a Humano** | Usuario escribe "necesito un asesor". | La IA reconoce la intención y dispara alerta Webhook a Telegram instantáneamente. | **PASS** |
-| **TC-006** | **Protección de Rutas de Administrador** | Acceso a `/admin` con token de rol Cliente. | Redirecciona a vista pública o retorna HTTP 403 Forbidden. | **PASS** |
-
-### Criterios de Aceptación para Cierre
-1. 100% de los casos de prueba críticos en estado **PASS**.
-2. Cero vulnerabilidades críticas o altas detectadas en el análisis de dependencias (`npm audit`).
-3. Tiempo de generación y descarga de factura en PDF inferior a 3 segundos.
-4. Conexión estable y sincronización en tiempo real del Bot de Telegram en el 100% de los tickets creados.
+### Fases del Pipeline:
+1. **Validación y Compilación (`validate-and-build`):**
+   * Verificación sintáctica con `node -c` sobre los servidores de todos los microservicios:
+     `gateway`, `auth-service`, `catalog-service`, `order-service`, `ai-support-service`, `notification-service`, `logistics-service`.
+   * Compilación de la SPA de React mediante Vite (`npm --prefix client run build`).
+2. **Despliegue Remoto en Oracle Cloud (`deploy`):**
+   * Conexión SSH segura mediante llave privada hacia el servidor de producción (`157.137.233.119`).
+   * Actualización del código fuente con `git pull origin main`.
+   * Recarga en caliente sin interrupción de tráfico con `pm2 reload all --update-env`.
+   * Persistencia del estado con `pm2 save`.
 
 ---
 
-## 4.2 Guías y Manuales Técnicos
+## 4.2 Manual de Ejecución Local y Comandos de Producción
 
-### 1. Manual de Instalación y Ejecución Local
+### 1. Ejecución en Entorno Local (Desarrollo)
 
-#### Prerrequisitos:
-* **Node.js:** Versión 18.0.0 o superior instalada.
-* **NPM:** Versión 9.0.0 o superior.
-* **MySQL:** Servidor MySQL 8.x local o credenciales de Aiven Cloud.
-
-#### Pasos de Instalación:
 ```bash
 # 1. Clonar el repositorio oficial
 git clone https://github.com/Danx016/delosmontesdemaria.git
 cd "De los montesdemaria"
 
-# 2. Instalar dependencias del Backend y Frontend
-npm run install:all
+# 2. Instalar dependencias del Backend y del Cliente
+npm install
+npm --prefix client install
 
 # 3. Configurar variables de entorno
-# Copiar el archivo de plantilla y editar con tus credenciales
 cp .env.example .env
 
-# 4. Compilar el cliente React para producción
-npm run build
-
-# 5. Iniciar la aplicación
-# Modo desarrollo con recarga automática:
-npm run dev
-
-# Modo producción unificado (Servidor + SPA en puerto 3000):
+# 4. Iniciar todos los microservicios mediante el orquestador
 npm start
+# (O alternativamente: npm run dev)
+
+# 5. Iniciar el cliente Frontend en modo desarrollo (en otra terminal)
+npm run dev:client
 ```
 
-### 2. Manual de Despliegue en Servidor Propio (Ubuntu Linux + Nginx + PM2)
+### 2. Comandos Operativos en el Servidor de Producción (Oracle Cloud)
 
-#### Configuración del Servidor:
-1. **Instalación de paquetes base en Ubuntu:**
-   ```bash
-   sudo apt update && sudo apt upgrade -y
-   sudo apt install -y nodejs npm nginx git
-   sudo npm install -g pm2
-   ```
+```bash
+# Conexión SSH al servidor de producción
+ssh -i "ssh-key-2026-08-20.key" ubuntu@157.137.233.119
 
-2. **Clonación y Configuración del Directorio:**
-   ```bash
-   # En el directorio /home/ubuntu/montesdemaria
-   git clone https://github.com/Danx016/delosmontesdemaria.git /home/ubuntu/montesdemaria
-   cd /home/ubuntu/montesdemaria
-   cp .env.example .env
-   # Editar .env con credenciales reales de producción y puerto 3000
-   ```
+# Directorio de la aplicación
+cd /home/ubuntu/montesdemaria
 
-3. **Configuración de Nginx como Reverse Proxy (`/etc/nginx/sites-available/default`):**
-   ```nginx
-   server {
-       listen 80;
-       listen [::]:80;
-       server_name delosmontesdemaria.dev www.delosmontesdemaria.dev;
+# Ver el estado y consumo de todos los microservicios
+pm2 list
 
-       client_max_body_size 50M;
+# Ver registros en tiempo real de un servicio específico
+pm2 logs order-service
+pm2 logs gateway
 
-       location / {
-           proxy_pass http://127.0.0.1:3000;
-           proxy_http_version 1.1;
-           proxy_set_header Upgrade $http_upgrade;
-           proxy_set_header Connection "upgrade";
-           proxy_set_header Host $host;
-           proxy_set_header X-Real-IP $remote_addr;
-           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-           proxy_set_header X-Forwarded-Proto $scheme;
-           proxy_cache_bypass $http_upgrade;
-       }
-   }
-   ```
-   *Probar y reiniciar Nginx:* `sudo nginx -t && sudo systemctl restart nginx`
+# Reiniciar todos los microservicios aplicando cambios de variables de entorno
+pm2 reload all --update-env
 
-4. **Inicio y Persistencia con PM2:**
-   ```bash
-   # Iniciar el backend con PM2
-   pm2 start src/framework/server.js --name montesdemaria
-   pm2 save
-   pm2 startup
-   ```
-
-5. **Automatización de Despliegues con `deploy.sh`:**
-   Para actualizar el servidor con un solo comando tras hacer `git push`:
-   ```bash
-   chmod +x deploy.sh
-   ./deploy.sh
-   ```
-   *El script ejecuta automáticamente:*
-   * `git fetch origin main && git reset --hard origin/main`
-   * `npm install --production=false`
-   * `npm run build` (compilación de la SPA con Vite)
-   * `pm2 restart montesdemaria` (recarga del proceso sin caída)
-
-6. **Registro del Webhook de Telegram:**
-   El webhook oficial se sincroniza apuntando a:
-   `https://delosmontesdemaria.dev/api/telegram/webhook`
-
-### 3. Manual de Usuario por Roles
-
-```mermaid
-classDiagram
-    class Usuario {
-        +verCatalogo()
-        +filtrarCosechas()
-        +verProductores()
-    }
-    class Cliente {
-        +agregarAlCarrito()
-        +aplicarCupon()
-        +verificarOTP()
-        +descargarFacturaPDF()
-        +chatearConIAYSoporte()
-    }
-    class ProductorCampesino {
-        +publicarCosecha()
-        +actualizarStock()
-        +verPerfilFinca()
-        +consultarVentasEnTelegram()
-    }
-    class Administrador {
-        +accederPanelAdmin()
-        +gestionarBannersHero()
-        +crearCupones()
-        +cambiarRoles()
-        +cerrarTicketsSoporte()
-    }
-
-    Usuario <|-- Cliente
-    Usuario <|-- ProductorCampesino
-    Usuario <|-- Administrador
+# Guardar la lista activa de procesos para que inicien automáticamente si el servidor reinicia
+pm2 save
 ```
 
 ---
 
-## 4.3 Métricas y KPIs de Éxito
+# 5. MATRIZ DE RIESGOS Y ESTRATEGIAS DE MITIGACIÓN
 
-| Categoría | KPI / Indicador | Meta / Objetivo | Método de Medición |
-| :--- | :--- | :--- | :--- |
-| **Comercial** | **Valor Bruto de Ventas (GMV)** | Incremento mensual del 20% en pedidos campesinos. | Dashboard administrativo (`/admin/ventas`). |
-| **Comercial** | **Tasa de Conversión en Carrito** | Mayor al 8.5% de visitantes que finalizan compra. | Métricas de carritos creados vs. órdenes con OTP exitoso. |
-| **Servicio** | **Tiempo de Primera Respuesta (FRT)** | Menor a 10 segundos en IA y menor a 3 minutos con asesor humano. | Logs de auditoría en tabla `mensajes_soporte`. |
-| **Satisfacción** | **Calificación de Atención (CSAT)** | Promedio superior a 4.6 / 5.0 estrellas. | Calificaciones registradas en `POST /api/soporte/calificar`. |
-| **Técnico** | **Tiempo Promedio de Carga (FCP)** | Menor a 1.2 segundos en dispositivos móviles. | Google PageSpeed Insights & Web Vitals. |
-| **Técnico** | **Tasa de Entrega de Correos OTP** | 99.8% de éxito en entrega de códigos de verificación. | Métricas de despacho en la API de Brevo. |
+| ID | Riesgo Identificado | Prob. | Imp. | Nivel | Estrategia de Mitigación / Plan de Contingencia |
+| :--- | :--- | :---: | :---: | :---: | :--- |
+| **R-01** | **Interrupción temporal de un microservicio.** | Media | Alto | **Mitigado** | **Aislamiento por Procesos:** La caída de un servicio secundario (ej. logística o soporte) no interrumpe el funcionamiento del catálogo o la autenticación. PM2 reinicia el proceso fallido en menos de 1 segundo de manera automática. |
+| **R-02** | **Saturación o límite de peticiones de IA (LLM).** | Alta | Medio | **Mitigado** | **Arquitectura Dual de IA:** El sistema utiliza Groq Cloud (`gpt-oss-120b`) como motor principal por su alta tasa de cuota gratuita (14.400 req/día); si la API presenta demoras, el sistema conmuta automáticamente a OpenRouter (`gpt-4o-mini`). |
+| **R-03** | **Incompatibilidad de collations en base de datos.** | Baja | Alto | **Mitigado** | **Estandarización Total:** Todas las bases de datos y tablas operan bajo `utf8mb4_unicode_ci` y las consultas complejas de repositorio incorporan cláusulas `COLLATE` explícitas para blindar cualquier comparación. |
+| **R-04** | **Fallo en la entrega de correos con código OTP.** | Media | Alto | **Mitigado** | **Fallback de Transporte:** `EmailService` intenta el despacho mediante la API REST HTTPS de Brevo; si no responde o es bloqueada, conmuta instantáneamente al servidor SMTP de Gmail. |
+| **R-05** | **Baja conectividad en fincas campesinas.** | Alta | Medio | **Mitigado** | **Canales Ligeros:** Operación completa para campesinos a través del Bot de Telegram y notificaciones por WhatsApp, que consumen una fracción mínima de ancho de banda y operan sobre redes 3G/4G rurales. |
 
 ---
 
-## 4.4 Anexos
+# 6. ANEXOS Y DIRECTORIO DE RECURSOS
 
-### Anexo A: Glosario de Términos Técnicos y Agrícolas
+### Anexo A: Glosario de Conceptos de la Plataforma
+* **Database-per-Service:** Patrón de arquitectura donde cada microservicio gestiona exclusivamente su propio almacén de datos relacional, impidiendo el acoplamiento directo entre esquemas de diferentes dominios.
+* **API Gateway:** Punto de entrada único que actúa como fachada inversa, encargado de la seguridad perimetral, agregación de rutas y propagación de trazas de correlación hacia los microservicios internos.
+* **X-Correlation-ID:** Identificador UUID único inyectado en cada solicitud HTTP entrante que se propaga a través de todos los microservicios y logs, permitiendo rastrear el ciclo de vida completo de una transacción distribuida.
+* **Redis Streams:** Estructura de datos de registro en cola (*log append-only*) que permite almacenar eventos de forma persistente y distribuirlos a grupos de consumidores con garantía de entrega.
+* **OTP (One-Time Password):** Código de seguridad de un solo uso generado criptográficamente para validar la autenticidad del comprador y el consentimiento de pago contra entrega.
+* **Montes de María:** Subregión del Caribe colombiano conformada por municipios de Bolívar y Sucre, reconocida por su riqueza agrícola en cultivos de ñame espino, yuca, plátano, aguacate, maíz y miel artesanal.
 
-* **Clean Architecture (Arquitectura Limpia):** Patrón de diseño de software propuesto por Robert C. Martin que promueve la separación de responsabilidades en capas concéntricas, aislando la lógica de negocio de frameworks y bases de datos.
-* **OTP (One-Time Password):** Contraseña de un solo uso de 6 dígitos numéricos generada mediante algoritmos criptográficos para validar compras y evitar suplantaciones de identidad.
-* **WebSockets (Socket.IO):** Protocolo de comunicación bidireccional sobre una única conexión TCP de baja latencia que permite intercambiar mensajes de chat de inmediato entre cliente y servidor.
-* **Nginx Reverse Proxy:** Servidor web de alto rendimiento encargado de recibir el tráfico HTTP/HTTPS en el puerto 80/443 y redirigirlo internamente a Node.js en el puerto 3000 con soporte de WebSockets.
-* **PM2 Process Manager:** Gestor de procesos en producción para Node.js que garantiza disponibilidad 24/7, monitoreo en vivo y reinicio automático ante fallos.
-* **Montes de María:** Subregión geográfica del Caribe colombiano caracterizada por su alta fertilidad agrícola y tradición en el cultivo de ñame espino, yuca criolla, maíz, aguacate y plátano.
-* **Ñame Espino (*Dioscorea rotundata*):** Tubérculo insignia y producto estrella de exportación y consumo tradicional en El Carmen de Bolívar y San Jacinto.
-* **Habeas Data:** Derecho constitucional (Ley Estatutaria 1581 de 2012 en Colombia) que garantiza a los ciudadanos conocer, actualizar y rectificar las informaciones que se hayan recogido sobre ellos en bases de datos.
-
-### Anexo B: Directorio de Enlaces y Recursos
-
-* **Sitio Web Oficial en Producción (Servidor Propio):** [https://delosmontesdemaria.dev](https://delosmontesdemaria.dev)
+### Anexo B: Directorio de Enlaces del Proyecto
+* **Plataforma Web en Producción:** [https://delosmontesdemaria.duckdns.org](https://delosmontesdemaria.duckdns.org)
 * **Repositorio de Código Fuente:** [https://github.com/Danx016/delosmontesdemaria](https://github.com/Danx016/delosmontesdemaria)
-* **Bot Oficial de Telegram:** `@montesdemariabot` en la aplicación móvil/desktop de Telegram.
-* **Documentación Técnica del Código:** [DOCUMENTACION.md](file:///c:/Users/danil/Downloads/De%20los%20montesdemaria/DOCUMENTACION.md)
-* **Script de Despliegue Automatizado:** [deploy.sh](file:///c:/Users/danil/Downloads/De%20los%20montesdemaria/deploy.sh)
-* **Configuración de Nginx:** [nginx_default.conf](file:///c:/Users/danil/Downloads/De%20los%20montesdemaria/nginx_default.conf)
-* **Servidor de Base de Datos:** Instancia MySQL 8.0 alojada en **Aiven Cloud** con cifrado TLS/SSL.
+* **Bot Oficial de Telegram:** `@montesdemariabot` en Telegram
+* **Servidor de Producción (VPS):** Oracle Cloud Infrastructure (Ubuntu Linux 22.04 LTS — IP: `157.137.233.119`)
+* **Servidor MySQL Remoto:** Oracle Cloud Dedicated MySQL Server (IP: `149.130.189.158`)
+* **Canal de Notificaciones WhatsApp:** Meta WhatsApp Business Cloud API (ID de App y Webhook configurados)
 
 ---
 
-🌾 **De los Montes de María S.A.S.** — *Tecnología de punta al servicio del campo colombiano.* 🇨🇴
+🌾 **De los Montes de María S.A.S.** — *Tecnología empresarial de punta al servicio del campo colombiano.* 🇨🇴
