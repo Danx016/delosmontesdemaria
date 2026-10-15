@@ -1,6 +1,6 @@
 # 🌾 DOCUMENTO DE ESPECIFICACIÓN Y GESTIÓN DE PROYECTO
 ## PLATAFORMA AGROPECUARIA & COMERCIO CAMPESINO DIRECTO: DE LOS MONTES DE MARÍA
-### Documentación Técnica, Arquitectura Empresarial, Diccionario de Datos y Manual de Operaciones
+### Documentación Técnica, Arquitectura de Software, Diccionario de Datos y Manual de Operaciones
 
 ---
 
@@ -16,7 +16,7 @@
 | **Organización** | De los Montes de María — Plataforma Digital Agropecuaria |
 | **Fecha de Creación** | 15 de Febrero de 2026 |
 | **Última Actualización** | 15 de Octubre de 2026 |
-| **Versión del Documento** | 3.5.0 Enterprise Master Edition |
+| **Versión del Documento** | 3.5.0 Master Edition |
 | **Estado del Proyecto** | Producción / Operación Continua en Oracle Cloud Infrastructure (OCI) |
 | **Repositorio Oficial** | [GitHub - Danx016/delosmontesdemaria](https://github.com/Danx016/delosmontesdemaria) |
 | **URL Producción Oficial** | [https://delosmontesdemaria.dev](https://delosmontesdemaria.dev) |
@@ -33,7 +33,7 @@
 | **2.2.0** | 18/06/2026 | D. Rodelo | Integración de WebSockets (Socket.IO) para soporte en vivo y pasarela de correo Brevo/SMTP. |
 | **2.4.0** | 25/07/2026 | D. Rodelo | Implementación del bot oficial de Telegram (`@montesdemariabot`) y AgroAsistente con IA (OpenRouter). |
 | **2.5.0** | 19/08/2026 | D. Rodelo | Migración a Servidor Propio en Oracle Cloud (Ubuntu Linux + Nginx Reverse Proxy + PM2) y scripts de despliegue. |
-| **3.0.0** | 15/10/2026 | D. Rodelo | **Evolución a Arquitectura Empresarial de Microservicios:** Desacoplamiento en 7 microservicios independientes + API Gateway centralizado (`:3000` a `:3006`), adopción del patrón *Database-per-Service* en MySQL (Oracle Cloud), Bus de Eventos asíncrono con Redis Pub/Sub y Streams persistentes, trazabilidad distribuida (`X-Correlation-ID`), motor dual de Inteligencia Artificial con Groq Cloud (`gpt-oss-120b` inferencia ultrarrápida) + OpenRouter (`gpt-4o-mini` de respaldo), canal oficial de Meta WhatsApp Business Cloud API, unificación estricta de collations a `utf8mb4_unicode_ci`, y Pipeline CI/CD automatizado en GitHub Actions con cero tiempo de inactividad (*Zero Downtime*). |
+| **3.0.0** | 15/10/2026 | D. Rodelo | **Evolución a Arquitectura Distribuida de Microservicios:** Desacoplamiento en 7 microservicios independientes + API Gateway centralizado (`:3000` a `:3006`), adopción del patrón *Database-per-Service* en MySQL (Oracle Cloud), Bus de Eventos asíncrono con Redis Pub/Sub y Streams persistentes, trazabilidad distribuida (`X-Correlation-ID`), motor dual de Inteligencia Artificial con Groq Cloud (`gpt-oss-120b` inferencia ultrarrápida) + OpenRouter (`gpt-4o-mini` de respaldo), canal oficial de Meta WhatsApp Business Cloud API, unificación estricta de collations a `utf8mb4_unicode_ci`, y Pipeline CI/CD automatizado en GitHub Actions con cero tiempo de inactividad (*Zero Downtime*). |
 | **3.5.0** | 15/10/2026 | D. Rodelo | **Ampliación Integral de la Documentación Oficial:** Inclusión del Diccionario de Datos completo (14 tablas relacionales), Diagrama Entidad-Relación (ER), Contrato de API y especificación de endpoints de todos los microservicios, matriz de seguridad, políticas de Habeas Data y Estatuto del Consumidor (Ley 1480 de 2011), Plan de Recuperación ante Desastres (DRP) y estructura física del árbol del repositorio. |
 
 ---
@@ -162,7 +162,7 @@ mindmap
 
 | Elemento Excluido | Justificación Técnica / Operativa | Alternativa o Fase Futura |
 | :--- | :--- | :--- |
-| **Flota Logística Propia** | El proyecto no contempla la adquisición ni operación directa de vehículos de transporte de carga pesada. | Se utiliza integración con empresas transportadoras aliadas y modelo contra entrega con flete calculado. |
+| **Flota Logística Propia** | El proyecto no contempla la adquisición ni operación directa de vehículos de transporte de carga pesada. | Se utiliza integración con transportadoras aliadas y modelo contra entrega con flete calculado. |
 | **Microcréditos Financieros** | No se implementa intermediación bancaria directa ni captación de ahorros regulados por la Superfinanciera. | Se proporciona enlace y contacto comercial con cooperativas agrícolas y microfinancieras locales. |
 | **App Nativa en Play Store / App Store** | No se desarrollaron binarios nativos (Java/Swift) en esta versión para agilizar costos y despliegues. | La plataforma es una Progressive Web App (PWA) 100% responsiva optimizada para cualquier navegador móvil y de escritorio. |
 | **Hardware de Telemetría IoT en Fincas** | No se incluyen sensores físicos de humedad de suelo ni estaciones meteorológicas de hardware en las parcelas. | Se prevé como módulo de extensión para la fase v4.0 mediante API REST abierta y telemetría MQTT. |
@@ -573,7 +573,7 @@ Para garantizar compatibilidad total entre MySQL 8.0 y comparaciones entre tabla
 | **Enrutamiento Web** | React Router DOM | `6.26.x` | Navegación SPA fluida del lado del cliente sin recargas de página. |
 | **Servidor Host (VPS)** | Oracle Cloud Infrastructure (OCI) | `Ubuntu 22.04 LTS` | Máquina virtual dedicada en la nube (IP: `157.137.233.119`) con alto rendimiento y conectividad global. |
 | **Reverse Proxy** | Nginx | `1.18+` | Balanceo de carga, terminación SSL/TLS Let's Encrypt, compresión gzip y proxy para WebSockets. |
-| **Gestor de Procesos** | PM2 Enterprise | `5.x` | Orquestación en modo cluster de los 7 microservicios, reinicio automático y monitoreo de memoria/CPU. |
+| **Gestor de Procesos** | PM2 Process Manager | `5.x` | Orquestación en modo cluster de los 7 microservicios, reinicio automático y monitoreo de memoria/CPU. |
 | **Backend Runtime** | Node.js | `>= 20.0.0` | Entorno asíncrono no bloqueante basado en eventos para microservicios. |
 | **Framework HTTP** | Express.js | `5.1.0` | Enrutamiento modular, middlewares de seguridad y arquitectura de microservicios RESTful. |
 | **Base de Datos** | MySQL Server Dedicado | `8.0` | Servidor MySQL en OCI (`149.130.189.158`) con soporte ACID, claves foráneas y patrón Database-per-Service. |
@@ -859,7 +859,7 @@ classDiagram
 
 ---
 
-# 5. MODELO DE DATOS Y DICCIONARIO DE BASE DE DATOS EMPRESARIAL
+# 5. MODELO DE DATOS Y DICCIONARIO DE BASE DE DATOS DEL SISTEMA
 
 ## 5.1 Diagrama Entidad-Relación (ER)
 
