@@ -18,7 +18,7 @@
 | **Versión del Documento** | 3.0.0 Enterprise |
 | **Estado del Proyecto** | Producción / Operación en Servidor Dedicado Oracle Cloud (OCI) |
 | **Repositorio Oficial** | [GitHub - Danx016/delosmontesdemaria](https://github.com/Danx016/delosmontesdemaria) |
-| **URL Producción** | [https://delosmontesdemaria.duckdns.org](https://delosmontesdemaria.duckdns.org) |
+| **URL Producción** | [https://delosmontesdemaria.dev](https://delosmontesdemaria.dev) |
 | **Servidor Host (VPS)** | Oracle Cloud Infrastructure (Ubuntu Linux 22.04 LTS — IP: `157.137.233.119`) |
 | **Servidor Base de Datos** | MySQL 8.0 Dedicado OCI (IP: `149.130.189.158` — Patrón Database-per-Service) |
 
@@ -416,7 +416,7 @@ pm2 save
 * **Montes de María:** Subregión del Caribe colombiano conformada por municipios de Bolívar y Sucre, reconocida por su riqueza agrícola en cultivos de ñame espino, yuca, plátano, aguacate, maíz y miel artesanal.
 
 ### Anexo B: Directorio de Enlaces del Proyecto
-* **Plataforma Web en Producción:** [https://delosmontesdemaria.duckdns.org](https://delosmontesdemaria.duckdns.org)
+* **Plataforma Web en Producción:** [https://delosmontesdemaria.dev](https://delosmontesdemaria.dev)
 * **Repositorio de Código Fuente:** [https://github.com/Danx016/delosmontesdemaria](https://github.com/Danx016/delosmontesdemaria)
 * **Bot Oficial de Telegram:** `@montesdemariabot` en Telegram
 * **Servidor de Producción (VPS):** Oracle Cloud Infrastructure (Ubuntu Linux 22.04 LTS — IP: `157.137.233.119`)
