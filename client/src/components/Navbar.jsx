@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
@@ -26,6 +26,23 @@ export default function Navbar() {
   const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'light')
   const [categoriasNav, setCategoriasNav] = useState([])
 
+  const ribbonRef = useRef(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(false)
+
+  const updateScrollButtons = useCallback(() => {
+    const el = ribbonRef.current
+    if (!el) return
+    const { scrollLeft, scrollWidth, clientWidth } = el
+    if (scrollWidth <= clientWidth + 2) {
+      setCanScrollLeft(false)
+      setCanScrollRight(false)
+      return
+    }
+    setCanScrollLeft(scrollLeft > 4)
+    setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 6)
+  }, [])
+
   // Cargar categorías reales de la base de datos
   useEffect(() => {
     listarCategoriasPublicas()
@@ -36,6 +53,21 @@ export default function Navbar() {
       })
       .catch((err) => console.error('Error al cargar categorías en Navbar:', err))
   }, [])
+
+  useEffect(() => {
+    const el = ribbonRef.current
+    if (!el) return
+
+    // Chequeo inicial y en redibujado
+    updateScrollButtons()
+    const timer = setTimeout(updateScrollButtons, 150)
+
+    window.addEventListener('resize', updateScrollButtons)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('resize', updateScrollButtons)
+    }
+  }, [categoriasNav, updateScrollButtons])
 
   // Dark/Light theme toggle
   useEffect(() => {
@@ -88,9 +120,10 @@ export default function Navbar() {
   const isActive = (path) => location.pathname === path
 
   const handleScrollRibbon = (offset) => {
-    const el = document.getElementById('navbar-categories-ribbon')
+    const el = ribbonRef.current
     if (el) {
       el.scrollBy({ left: offset, behavior: 'smooth' })
+      setTimeout(updateScrollButtons, 350)
     }
   }
 
@@ -309,27 +342,33 @@ export default function Navbar() {
 
       {/* Categories Subnav Ribbon (Desplazamiento suave y dinámico) */}
       <nav className="categories-ribbon" aria-label="Categorías principales">
-        <div className="app-container ribbon-wrapper" style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-          <button
-            type="button"
-            onClick={() => handleScrollRibbon(-260)}
-            className="ribbon-arrow-btn left"
-            title="Ver anteriores"
-            aria-label="Categorías anteriores"
-          >
-            <i className="fa fa-chevron-left" />
-          </button>
+        <div className="app-container ribbon-wrapper">
+          {canScrollLeft && (
+            <div className="ribbon-arrow-wrapper left">
+              <button
+                type="button"
+                onClick={() => handleScrollRibbon(-280)}
+                className="ribbon-arrow-btn"
+                title="Ver anteriores"
+                aria-label="Categorías anteriores"
+              >
+                <i className="fa fa-chevron-left" />
+              </button>
+            </div>
+          )}
 
-          <div id="navbar-categories-ribbon" className="ribbon-inner">
+          <div
+            id="navbar-categories-ribbon"
+            ref={ribbonRef}
+            className="ribbon-inner"
+            onScroll={updateScrollButtons}
+          >
             {categoriasNav.length > 0 ? (
               categoriasNav.map((cat) => {
                 const slug = cat.slug || cat.nombre_categoria?.toLowerCase().replace(/\s+/g, '-')
                 const isActiveCat = location.pathname === `/categoria/${slug}`
                 const color = cat.color || '#2e7d32'
                 const icon = cat.icono || 'fa-box'
-                const imgUrl = cat.imagen
-                  ? (cat.imagen.startsWith('http') || cat.imagen.startsWith('/') ? cat.imagen : `/uploads/categories/${cat.imagen}`)
-                  : null
 
                 return (
                   <Link
@@ -369,15 +408,19 @@ export default function Navbar() {
             )}
           </div>
 
-          <button
-            type="button"
-            onClick={() => handleScrollRibbon(260)}
-            className="ribbon-arrow-btn right"
-            title="Ver siguientes"
-            aria-label="Siguientes categorías"
-          >
-            <i className="fa fa-chevron-right" />
-          </button>
+          {canScrollRight && (
+            <div className="ribbon-arrow-wrapper right">
+              <button
+                type="button"
+                onClick={() => handleScrollRibbon(280)}
+                className="ribbon-arrow-btn"
+                title="Ver siguientes"
+                aria-label="Siguientes categorías"
+              >
+                <i className="fa fa-chevron-right" />
+              </button>
+            </div>
+          )}
         </div>
       </nav>
     </header>

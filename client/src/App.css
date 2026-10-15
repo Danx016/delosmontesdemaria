@@ -433,13 +433,6 @@
   border-bottom-color: var(--border-color);
 }
 
-.ribbon-inner {
-  display: flex;
-  align-items: center;
-  gap: 1.75rem;
-  padding: 0.5rem 0;
-}
-
 .ribbon-cat-link {
   display: inline-flex;
   align-items: center;
@@ -1427,10 +1420,6 @@
   }
   .categories-ribbon::-webkit-scrollbar {
     display: none;
-  }
-  .ribbon-inner {
-    gap: 0.5rem;
-    padding: 0.35rem 0;
   }
   .ribbon-cat-chip {
     padding: 0.35rem 0.75rem !important;
