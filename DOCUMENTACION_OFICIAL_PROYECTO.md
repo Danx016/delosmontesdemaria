@@ -13,7 +13,7 @@
 | **Nombre del Proyecto** | De los Montes de María — Plataforma Agropecuaria & Comercio Campesino Directo |
 | **Código del Proyecto** | AGRO-MDM-2026 |
 | **Autor / Líder Técnico** | Danilo Rodelo & Equipo de Desarrollo De los Montes de María |
-| **Organización** | De los Montes de María S.A.S. (NIT: 901.845.210-3) |
+| **Organización** | De los Montes de María — Plataforma Digital Agropecuaria |
 | **Fecha de Creación** | 15 de Febrero de 2026 |
 | **Última Actualización** | 15 de Octubre de 2026 |
 | **Versión del Documento** | 3.5.0 Enterprise Master Edition |
@@ -61,7 +61,7 @@ La plataforma combina:
 ### Impacto Esperado
 * **Económico:** Aumento del 35% al 60% en los ingresos netos percibidos por los campesinos al vender a precios justos directos sin peajes comerciales.
 * **Social:** Visibilización y dignificación del campesinado de municipios emblemáticos: El Carmen de Bolívar, San Jacinto, San Juan Nepomuceno, Ovejas, Chalán, Colosó, Morroa y María La Baja.
-* **Operativo:** Tiempos de respuesta de soporte inferiores a 3 segundos mediante IA, resolución con agentes humanos en menos de 3 minutos vía Telegram/WhatsApp, y formalización de transacciones con facturación digital inmediata con validez jurídica.
+* **Operativo:** Tiempos de respuesta de soporte inferiores a 3 segundos mediante IA, resolución con agentes humanos en menos de 3 minutos vía Telegram/WhatsApp, y formalización de transacciones con facturación digital inmediata con comprobante formal de compra.
 
 ---
 
@@ -278,6 +278,194 @@ Pub/Sub + Streams")]
         S_NOT --> TG["📱 Telegram Bot API (@montesdemariabot)"]
         S_NOT --> WA["💬 WhatsApp Business Cloud API"]
     end
+```
+
+---
+
+### Arquitectura Hexagonal (Puertos y Adaptadores - Ports & Adapters)
+
+El núcleo del backend (`src/`) y cada uno de los microservicios están construidos bajo los principios de la **Arquitectura Hexagonal (Alistair Cockburn)** y **Clean Architecture (Robert C. Martin)**. Esta estructura aísla completamente las reglas de negocio y entidades de los detalles tecnológicos externos (bases de datos, frameworks HTTP, APIs de terceros y colas de mensajes).
+
+```mermaid
+flowchart TD
+    subgraph EXTERIOR_CLIENTES ["Mundo Exterior (Actores & Clientes)"]
+        CLIENT_WEB["🌐 Navegador Web / PWA (React 18)"]
+        CLIENT_MOB["📱 Teléfonos Móviles / WhatsApp"]
+        TG_USER["🤖 Usuarios de Telegram (@montesdemariabot)"]
+        ADMIN_CLI["👨‍💼 Panel de Control Administrativo"]
+    end
+
+    subgraph DRIVING_ADAPTERS ["ADAPTADORES PRIMARIOS / DRIVING (Inbound) - 'src/infrastructure/adapters/driving'"]
+        direction TB
+        CTRL_AUTH["🎮 AuthController.js"]
+        CTRL_PROD["🎮 ProductoController.js"]
+        CTRL_COMP["🎮 CompraController.js"]
+        CTRL_LOGI["🎮 LogisticsController.js"]
+        CTRL_SOPO["🎮 SoporteController.js"]
+        WS_SOCK["⚡ SocketHandler.js (WebSockets)"]
+        MID_AUTH["🛡️ Middlewares (auth.js, validate.js, rateLimiter.js)"]
+    end
+
+    subgraph APPLICATION_LAYER ["CAPA DE APLICACIÓN (Casos de Uso) - 'src/application/use-cases'"]
+        direction TB
+        UC_AUTH["📋 Casos de Uso: LoginUser, RegisterUser, GoogleAuthUser, ResetPassword"]
+        UC_PROD["📋 Casos de Uso: CreateProduct, GetProducts, UpdateProduct, SearchProducts"]
+        UC_COMP["📋 Casos de Uso: ProcessPurchase, GenerateWompiSignature, UpdateOrderStatus"]
+        UC_LOGI["📋 Casos de Uso: CalculateShippingRate, CreateShipment, TrackShipment"]
+        UC_SOPO["📋 Casos de Uso: ProcessSupportAIChat, ProcessAdminAIChat"]
+    end
+
+    subgraph DOMAIN_CORE ["NÚCLEO DE DOMINIO (Domain Core) - 'src/domain'"]
+        direction TB
+        subgraph ENTITIES ["Entidades Puras de Negocio ('src/domain/entities')"]
+            E_USER["👤 Usuario"]
+            E_PROD["🌾 Producto"]
+            E_COMP["🛒 Compra"]
+            E_ITEM["📦 ItemCompra"]
+            E_CUPON["🏷️ Cupon"]
+            E_DIR["📍 Direccion"]
+            E_SHIP["🚚 Shipment"]
+            E_TICK["🎫 SoporteTicket"]
+        end
+        subgraph PORTS_OUT ["Puertos de Salida / Contratos ('src/domain/ports/outbound')"]
+            P_REPO_U["🔌 UsuarioRepositoryPort"]
+            P_REPO_P["🔌 ProductoRepositoryPort"]
+            P_REPO_C["🔌 CompraRepositoryPort"]
+            P_REPO_S["🔌 ShipmentRepositoryPort"]
+            P_SVC_AI["🔌 AIServicePort"]
+            P_SVC_EM["🔌 EmailServicePort"]
+            P_SVC_WA["🔌 WhatsAppServicePort"]
+            P_SVC_TG["🔌 TelegramServicePort"]
+        end
+    end
+
+    subgraph DRIVEN_ADAPTERS ["ADAPTADORES SECUNDARIOS / DRIVEN (Outbound) - 'src/infrastructure/adapters/driven'"]
+        direction TB
+        subgraph ADAPTERS_DB ["Persistencia MySQL ('src/infrastructure/adapters/driven/persistence')"]
+            M_REPO_U["🗄️ MySQLUsuarioRepository.js"]
+            M_REPO_P["🗄️ MySQLProductoRepository.js"]
+            M_REPO_C["🗄️ MySQLCompraRepository.js"]
+            M_REPO_S["🗄️ MySQLShipmentRepository.js"]
+            DB_POOL["🏊 Database.js (Connection Pool utf8mb4_unicode_ci)"]
+        end
+        subgraph ADAPTERS_EXT ["Servicios Externos ('src/infrastructure/adapters/driven/external')"]
+            EXT_AI["🧠 IAService.js (Groq Cloud / OpenRouter)"]
+            EXT_EM["📧 EmailService.js (Brevo / Nodemailer)"]
+            EXT_WA["💬 WhatsAppService.js (Meta Cloud API)"]
+            EXT_TG["📱 TelegramService.js (Telegram Bot API)"]
+            EXT_PAY["💳 PaymentService.js (Wompi)"]
+        end
+    end
+
+    subgraph INFRA_EXTERNA ["Infraestructura Externa"]
+        MYSQL_DB[("🗄️ MySQL 8.0 OCI (149.130.189.158)")]
+        GROQ_API["⚡ Groq API (LLM gpt-oss-120b)"]
+        BREVO_SMTP["✉️ Brevo SMTP / API"]
+        META_API["🌐 Meta Graph API v19.0"]
+        TG_API["📱 Telegram Servers"]
+    end
+
+    %% Relaciones del Mundo Exterior a Adaptadores Primarios
+    CLIENT_WEB -->|HTTP / JSON| CTRL_COMP
+    CLIENT_WEB -->|HTTP / JSON| CTRL_PROD
+    CLIENT_WEB -->|WebSockets| WS_SOCK
+    ADMIN_CLI -->|HTTP / Auth| MID_AUTH
+    MID_AUTH --> CTRL_AUTH
+    TG_USER -->|Webhook| CTRL_SOPO
+    CLIENT_MOB -->|Webhook| CTRL_SOPO
+
+    %% Adaptadores Primarios invocan Casos de Uso (Entrada a la aplicación)
+    CTRL_AUTH --> UC_AUTH
+    CTRL_PROD --> UC_PROD
+    CTRL_COMP --> UC_COMP
+    CTRL_LOGI --> UC_LOGI
+    CTRL_SOPO --> UC_SOPO
+    WS_SOCK --> UC_SOPO
+
+    %% Casos de Uso orquestan Entidades y llaman Puertos de Salida
+    UC_AUTH --> E_USER
+    UC_PROD --> E_PROD
+    UC_COMP --> E_COMP
+    UC_COMP --> E_ITEM
+    UC_LOGI --> E_SHIP
+    UC_SOPO --> E_TICK
+
+    UC_AUTH -.->|Invoca puerto| P_REPO_U
+    UC_PROD -.->|Invoca puerto| P_REPO_P
+    UC_COMP -.->|Invoca puerto| P_REPO_C
+    UC_COMP -.->|Invoca puerto| P_SVC_EM
+    UC_COMP -.->|Invoca puerto| P_SVC_TG
+    UC_LOGI -.->|Invoca puerto| P_REPO_S
+    UC_SOPO -.->|Invoca puerto| P_SVC_AI
+
+    %% Implementación de Puertos por Adaptadores Secundarios (Inversión de Control)
+    P_REPO_U === M_REPO_U
+    P_REPO_P === M_REPO_P
+    P_REPO_C === M_REPO_C
+    P_REPO_S === M_REPO_S
+    P_SVC_AI === EXT_AI
+    P_SVC_EM === EXT_EM
+    P_SVC_WA === EXT_WA
+    P_SVC_TG === EXT_TG
+
+    %% Adaptadores Secundarios conectan con la Infraestructura Externa
+    M_REPO_U --> DB_POOL
+    M_REPO_P --> DB_POOL
+    M_REPO_C --> DB_POOL
+    M_REPO_S --> DB_POOL
+    DB_POOL --> MYSQL_DB
+    EXT_AI --> GROQ_API
+    EXT_EM --> BREVO_SMTP
+    EXT_WA --> META_API
+    EXT_TG --> TG_API
+```
+
+---
+
+### Diagrama de Secuencia e Inversión de Control (DIP) en Arquitectura Hexagonal
+
+El siguiente diagrama detalla cómo fluye una petición típica (`POST /api/compra`) atravesando cada anillo del hexágono sin violar la **Regla de Dependencia** (las dependencias siempre apuntan hacia el centro del hexágono):
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Cliente as 🛒 Comprador (Frontend)
+    participant Ctrl as 🎮 CompraController (Driving Adapter)
+    participant UC as 📋 ProcessPurchase (Use Case / Application)
+    participant Entity as 🛒 Compra & ItemCompra (Domain Entity)
+    participant Port as 🔌 CompraRepositoryPort (Outbound Port)
+    participant Repo as 🗄️ MySQLCompraRepository (Driven Adapter)
+    participant DB as 🏊 Database Pool (Infrastructure)
+    participant NotifPort as 🔌 EmailServicePort (Outbound Port)
+    participant EmailAdp as 📧 EmailService (Driven Adapter)
+
+    Note over Ctrl,DB: 1. ENTRADA (Driving Adapter recibe petición HTTP)
+    Cliente->>Ctrl: POST /api/compra (Body: items, direccion, cupon)
+    Ctrl->>Ctrl: Extrae token JWT, valida payload con validate.js
+    
+    Note over Ctrl,UC: 2. APLICACIÓN (Se delega al Caso de Uso)
+    Ctrl->>UC: execute({ idUsuario, items, direccion, cupon })
+    
+    Note over UC,Entity: 3. DOMINIO (Creación de Entidades y Reglas de Negocio)
+    UC->>Entity: new Compra({ idUsuario, items, direccion })
+    Entity->>Entity: calcularTotales(), validarStockMinimo()
+    
+    Note over UC,Port: 4. INVERSIÓN DE DEPENDENCIAS (El Caso de Uso usa el Puerto)
+    UC->>Port: save(compra)
+    Note over Port,Repo: El contrato abstracto se resuelve en el Adaptador MySQL
+    Port->>Repo: save(compra)
+    Repo->>DB: Iniciar Transacción SQL (INSERT INTO compras, INSERT INTO compra_detalles)
+    DB-->>Repo: Commit Transacción (id_compra generado: #1085)
+    Repo-->>UC: Retorna objeto Compra persistido con ID
+    
+    Note over UC,NotifPort: 5. NOTIFICACIÓN EXTERNA A TRAVÉS DE PUERTO
+    UC->>NotifPort: sendPurchaseConfirmation(compra, pdfBuffer)
+    NotifPort->>EmailAdp: sendMail({ to: cliente.correo, subject: "Factura" })
+    EmailAdp-->>UC: Confirmación de despacho (messageId)
+    
+    Note over UC,Cliente: 6. RESPUESTA AL CLIENTE
+    UC-->>Ctrl: Retorna DTO con id_compra, total y factura_url
+    Ctrl-->>Cliente: 201 Created { success: true, id_compra: 1085, factura_url: "..." }
 ```
 
 ---
@@ -781,7 +969,7 @@ Almacena la identidad, credenciales y estado de los actores del sistema (Adminis
 | Campo | Tipo de Dato | Nulo | Clave | Valor por Defecto | Descripción |
 | :--- | :--- | :---: | :---: | :---: | :--- |
 | `id_usuario` | INT(11) | NO | PK | AUTO_INCREMENT | Identificador único secuencial del usuario. |
-| `nombre` | VARCHAR(100) | NO | | | Nombre completo o razón social del productor/cliente. |
+| `nombre` | VARCHAR(100) | NO | | | Nombre completo del productor campesino o cliente comprador. |
 | `apodo` | VARCHAR(100) | NO | UNI | | Nombre de usuario único (*username*) para menciones y perfiles. |
 | `correo` | VARCHAR(150) | NO | UNI | | Correo electrónico principal normalizado en minúsculas. |
 | `telefono` | VARCHAR(20) | SÍ | | NULL | Número de contacto celular o WhatsApp. |
@@ -969,37 +1157,279 @@ En estricto cumplimiento del marco legal colombiano sobre tratamiento de datos p
 
 # 9. ESTRUCTURA FÍSICA DEL REPOSITORIO Y ARQUITECTURA DE CÓDIGO
 
+La arquitectura de código del proyecto está dividida en dos pilares complementarios:
+1. **Núcleo de Arquitectura Hexagonal (`src/`):** Contiene la lógica pura de dominio, puertos, casos de uso y adaptadores de infraestructura totalmente desacoplados.
+2. **Ecosistema de Microservicios Distribuidos (`services/`):** Contiene los microservicios independientes orquestados por el API Gateway, conectados mediante Redis y bases de datos aisladas.
+
+---
+
+## 9.1 Árbol Exhaustivo de la Arquitectura Hexagonal (`src/`)
+
 ```
-De los montesdemaria/
-├── .github/
-│   └── workflows/
-│       └── deploy.yml            # Pipeline CI/CD automatizado en GitHub Actions
-├── client/                       # Frontend SPA (React 18 + Vite)
-│   ├── src/
-│   │   ├── api/                  # Clientes Axios desacoplados por microservicio
-│   │   ├── components/           # Componentes UI reutilizables (Navbar, Cards, Modals)
-│   │   ├── context/              # Estados globales (AuthContext, CartContext)
-│   │   ├── pages/                # Vistas principales (Catalog, PaymentPage, Admin)
-│   │   └── App.jsx               # Enrutamiento React Router DOM
-│   └── vite.config.js            # Configuración de compilación y optimización
-├── services/                     # Ecosistema de Microservicios Empresariales
-│   ├── runner.js                 # Orquestador y supervisor de microservicios
-│   ├── common/                   # Librerías compartidas (EventBus, Tracing, Registry)
-│   ├── gateway/                  # API Gateway Centralizado (:3000)
-│   ├── auth-service/             # Servicio de Autenticación y Usuarios (:3001)
-│   ├── catalog-service/          # Servicio de Catálogo y Productos (:3002)
-│   ├── order-service/            # Servicio de Compras, Cupones y Facturación (:3003)
-│   ├── ai-support-service/       # Servicio de Chat en Vivo e IA Groq (:3004)
-│   ├── notification-service/     # Servicio de Correo, Telegram y WhatsApp (:3005)
-│   └── logistics-service/        # Servicio de Fletes y Despachos (:3006)
-├── src/                          # Capa de Dominio y Arquitectura Hexagonal
-│   ├── domain/                   # Entidades puras y puertos de repositorio
-│   ├── application/              # Casos de uso y controladores
-│   └── infrastructure/           # Adaptadores de base de datos MySQL y externos
-├── scripts/                      # Utilidades de mantenimiento, migración y estrés
-├── nginx_default.conf            # Plantilla oficial de configuración Nginx Reverse Proxy
-├── package.json                  # Dependencias y scripts de ejecución
-└── .env                          # Variables de entorno y credenciales de producción
+src/
+├── domain/                                     # 🟢 CAPA 1: NÚCLEO DE DOMINIO (Reglas de Negocio Puras)
+│   │                                           # No tiene dependencias de Express, MySQL, librerías externas ni frameworks.
+│   ├── entities/                               # Entidades de Negocio (Modelos ricos con validaciones y métodos propios)
+│   │   ├── Banner.js                           # Entidad para carruseles, promociones visuales y prioridades de visualización
+│   │   ├── Categoria.js                        # Entidad de categoría agropecuaria (nombre, slug, descripción, color)
+│   │   ├── Compra.js                           # Entidad de orden transaccional (cálculo de totales, estados y fletes)
+│   │   ├── Cupon.js                            # Entidad de cupón de descuento (validación de vigencia, límites y porcentajes)
+│   │   ├── Direccion.js                        # Entidad de ubicación de entrega (municipio, departamento, nomenclatura)
+│   │   ├── ItemCompra.js                       # Entidad de línea de producto en pedido (precio congelado, cantidad, subtotal)
+│   │   ├── MensajeChat.js                      # Entidad de mensaje en chat de soporte (emisor, receptor, timestamp, adjunto)
+│   │   ├── Producto.js                         # Entidad de cosecha campesina (stock, unidad de medida, precio, origen)
+│   │   ├── Shipment.js                         # Entidad de envío logístico (guía de rastreo, transportadora, costo)
+│   │   ├── SoporteTicket.js                    # Entidad de ticket de atención (estado: bot/humano/cerrado, prioridad)
+│   │   ├── TokenRecuperacion.js                # Entidad de token OTP o de recuperación de clave (expiración, hash)
+│   │   └── Usuario.js                          # Entidad de usuario (comprador, campesino, rol, créditos, validación de hash)
+│   │
+│   ├── ports/                                  # PUERTOS (Interfaces y Contratos Abstractos del Negocio)
+│   │   ├── index.js                            # Punto de entrada y exportación centralizada de puertos
+│   │   └── outbound/                           # Puertos de Salida (Contratos que la infraestructura DEBE implementar)
+│   │       ├── index.js                        # Exportador unificado de puertos de salida
+│   │       ├── repositories/                   # Contratos de Acceso a Datos (Data Access Ports)
+│   │       │   ├── BannerRepository.js         # Interfaz para persistencia de banners publicitarios
+│   │       │   ├── CategoriaRepository.js      # Interfaz para consultas y filtrado de categorías agrícolas
+│   │       │   ├── ChatRepository.js           # Interfaz para almacenamiento y recuperación del historial de chat
+│   │       │   ├── CompraRepository.js         # Interfaz para creación y consulta de órdenes y transacciones
+│   │       │   ├── CouponRepository.js         # Interfaz para verificación y consumo de cupones
+│   │       │   ├── ProductoRepository.js       # Interfaz para catálogo de cosechas, búsqueda y descuento de stock
+│   │       │   ├── ShipmentRepositoryPort.js   # Interfaz para almacenamiento y actualización de guías de despacho
+│   │       │   ├── SoporteRepository.js        # Interfaz para persistencia y estados de tickets de soporte
+│   │       │   ├── TokenRepository.js          # Interfaz para almacenamiento y validación de tokens temporales/OTP
+│   │       │   └── UsuarioRepository.js        # Interfaz para CRUD de usuarios, autenticación y gestión de roles
+│   │       │
+│   │       └── services/                       # Contratos de Servicios de Terceros (External Service Ports)
+│   │           ├── AIServicePort.js            # Contrato para generación de respuestas inteligentes con IA (LLM)
+│   │           ├── EmailServicePort.js         # Contrato para despacho de correos transaccionales y facturas
+│   │           ├── GoogleAuthServicePort.js    # Contrato para verificación de tokens OAuth 2.0 de Google
+│   │           ├── PaymentServicePort.js       # Contrato para pasarela de pagos electrónicos y generación de firmas
+│   │           ├── TelegramServicePort.js      # Contrato para envío de alertas y recepción de webhooks de Telegram
+│   │           └── WhatsAppServicePort.js      # Contrato para envío de mensajes a través de WhatsApp Business API
+│   │
+│   └── repositories/                           # Alias de conveniencia para compatibilidad con código existente
+│
+├── application/                                # 🟡 CAPA 2: CAPA DE APLICACIÓN (Casos de Uso del Sistema)
+│   │                                           # Orquesta el flujo de datos entre entidades y puertos sin acoplarse a Express.
+│   └── use-cases/                              # Casos de Uso estructurados por módulo funcional
+│       ├── index.js                            # Exportador central de casos de uso
+│       │
+│       ├── admin/                              # Casos de uso exclusivos del panel de administración
+│       │   ├── GetAdminStats.js                # Cálculo de métricas consolidadas (ingresos COP, órdenes, usuarios activos)
+│       │   ├── ManageUsersAdmin.js             # Suspensión, activación y cambio de roles de usuarios
+│       │   └── ProcessAdminAIChat.js           # Consultas gerenciales procesadas mediante IA contextual
+│       │
+│       ├── auth/                               # Casos de uso de autenticación y seguridad
+│       │   ├── GoogleAuthUser.js               # Verificación de credencial Google y creación/login de usuario
+│       │   ├── LoginUser.js                    # Autenticación con email/contraseña, verificación de hash Bcrypt y JWT
+│       │   ├── RegisterUser.js                 # Registro de nuevos campesinos o clientes con validación de unicidad
+│       │   ├── RequestPasswordReset.js         # Generación de código OTP temporal de 6 dígitos y despacho por email
+│       │   └── ResetPassword.js                # Validación del código OTP y actualización segura de contraseña
+│       │
+│       ├── banner/                             # Casos de uso de vitrina y cabeceras
+│       │   └── ObtenerBannersUseCase.js        # Recuperación de banners activos para el slider de la página principal
+│       │
+│       ├── chat/                               # Casos de uso de comunicación en vivo
+│       │   └── ProcessPublicAIChat.js          # Atención inmediata a dudas de visitantes con catálogo contextual
+│       │
+│       ├── coupon/                             # Casos de uso de descuentos y promociones
+│       │   └── ValidarCuponUseCase.js          # Validación de vigencia, límite de usos y cálculo del monto a descontar
+│       │
+│       ├── logistics/                          # Casos de uso de logística y despachos
+│       │   ├── CalculateShippingRate.js        # Cálculo de tarifa de flete según municipio de entrega y peso
+│       │   ├── CreateShipment.js               # Generación de orden de despacho y número de guía
+│       │   ├── TrackShipment.js                # Consulta del estado de envío en tiempo real
+│       │   └── UpdateShipmentStatus.js         # Cambio de estado logístico (En camino, En reparto, Entregado)
+│       │
+│       ├── product/                            # Casos de uso de catálogo de cosechas campesinas
+│       │   ├── CreateProduct.js                # Publicación de nueva cosecha con fotos, stock y precio por kilo
+│       │   ├── DeleteProduct.js                # Eliminación o retiro del catálogo de un producto
+│       │   ├── GetProductById.js               # Consulta de ficha técnica detallada y reseñas de un producto
+│       │   ├── GetProducts.js                  # Listado con paginación, filtros por municipio y categorías
+│       │   ├── SearchProducts.js               # Búsqueda semántica por nombre, descripción y origen
+│       │   └── UpdateProduct.js                # Actualización de existencias, precios y ficha técnica
+│       │
+│       ├── purchase/                           # Casos de uso de compras, pedidos y facturación
+│       │   ├── GenerateWompiSignature.js       # Generación de firma criptográfica SHA-256 para pagos electrónicos
+│       │   ├── GetPurchaseById.js              # Consulta de orden de compra y desglose para factura PDF
+│       │   ├── GetPurchases.js                 # Historial transaccional del comprador o vendedor
+│       │   ├── ProcessPurchase.js              # Transacción de compra: valida stock, guarda orden y genera factura
+│       │   └── UpdateOrderStatus.js            # Actualización del ciclo de vida del pedido (Recibido -> Entregado)
+│       │
+│       ├── support/                            # Casos de uso de atención al cliente
+│       │   └── ProcessSupportAIChat.js         # Enrutamiento de tickets de soporte hacia Groq Cloud o asesor humano
+│       │
+│       └── user/                               # Casos de uso de gestión de perfil de usuario
+│           ├── DeleteAccount.js                # Cancelación de cuenta y anonimización de datos (Habeas Data)
+│           ├── GetUserProfile.js               # Obtención de perfil, historial de compras y agro-créditos
+│           ├── ManageAddresses.js              # Adición, actualización y borrado de direcciones de despacho
+│           └── UpdateProfile.js                # Actualización de teléfono, dirección, foto de perfil y biografía
+│
+├── infrastructure/                             # 🔵 CAPA 3: ADAPTADORES DE INFRAESTRUCTURA (Conexión con el Exterior)
+│   │                                           # Implementa los puertos y conecta con Express, MySQL, Redis y APIs externas.
+│   ├── adapters/
+│   │   ├── index.js                            # Contenedor de Inyección de Dependencias (Dependency Injection Container)
+│   │   │
+│   │   ├── driving/                            # ADAPTADORES PRIMARIOS (Inician acciones dentro del sistema)
+│   │   │   ├── http/
+│   │   │   │   ├── controllers/                # Controladores HTTP que reciben Express req/res y llaman casos de uso
+│   │   │   │   │   ├── AdminController.js      # Controlador de estadísticas, cupones y administración general
+│   │   │   │   │   ├── AuthController.js       # Controlador de endpoints /api/auth (login, registro, OTP, logout)
+│   │   │   │   │   ├── BannerController.js     # Controlador de carruseles de la portada
+│   │   │   │   │   ├── ChatController.js       # Controlador de mensajes y sesiones de chat
+│   │   │   │   │   ├── CompraController.js     # Controlador de checkout, verificación OTP y facturas
+│   │   │   │   │   ├── CouponController.js     # Controlador de validación de códigos promocionales
+│   │   │   │   │   ├── LogisticsController.js  # Controlador de cotización de fletes y despachos
+│   │   │   │   │   ├── ProductoController.js   # Controlador de catálogo, productos y reseñas
+│   │   │   │   │   ├── SoporteController.js    # Controlador de tickets y calificaciones CSAT
+│   │   │   │   │   └── UsuarioController.js    # Controlador de perfil, direcciones y créditos
+│   │   │   │   │
+│   │   │   │   ├── middleware/                 # Interceptores HTTP de seguridad y validación
+│   │   │   │   │   ├── auth.js                 # Middleware de verificación y decodificación de JWT (Cookie/Bearer)
+│   │   │   │   │   ├── csrf.js                 # Protección contra Cross-Site Request Forgery (CSRF)
+│   │   │   │   │   ├── logger.js               # Registro estructurado de peticiones HTTP con X-Correlation-ID
+│   │   │   │   │   ├── rateLimiter.js          # Limitador de tasa contra ataques de fuerza bruta y DoS
+│   │   │   │   │   ├── upload.js               # Procesamiento y almacenamiento seguro de imágenes con Multer
+│   │   │   │   │   └── validate.js             # Validación estricta de esquemas de datos entrantes (Joi / Validator)
+│   │   │   │   │
+│   │   │   │   └── routes/                     # Definición de rutas y mapeo de verbos HTTP con Express Router
+│   │   │   │       ├── index.js                # Router maestro que agrupa todos los sub-routers bajo /api
+│   │   │   │       ├── admin.routes.js         # Rutas de administración protegidas por rol
+│   │   │   │       ├── auth.routes.js          # Rutas de autenticación pública y privada
+│   │   │   │       ├── banner.routes.js        # Rutas de banners públicos y administrativos
+│   │   │   │       ├── chat.routes.js          # Rutas REST de chat asistido
+│   │   │   │       ├── compra.routes.js        # Rutas de compra, OTP y descarga de recibos
+│   │   │   │       ├── coupon.routes.js        # Rutas de cupones y promociones
+│   │   │   │       ├── logistics.routes.js     # Rutas de cálculo de envíos y guías
+│   │   │   │       ├── producto.routes.js      # Rutas del catálogo de cosechas y reseñas
+│   │   │   │       ├── soporte.routes.js       # Rutas de tickets y webhooks de atención
+│   │   │   │       ├── telegram.routes.js      # Endpoint de webhook oficial de Telegram Bot API
+│   │   │   │       └── usuario.routes.js       # Rutas de perfil personal, direcciones y agro-créditos
+│   │   │   │
+│   │   │   └── websocket/
+│   │   │       └── SocketHandler.js            # Manejador de eventos WebSockets en tiempo real con Socket.IO
+│   │   │
+│   │   └── driven/                             # ADAPTADORES SECUNDARIOS (Son invocados por la aplicación)
+│   │       ├── persistence/                    # Implementación de los puertos de repositorio usando MySQL 8.0
+│   │       │   ├── Database.js                 # Pool de conexiones MySQL con charset utf8mb4 y collation unificada
+│   │       │   ├── MySQLBannerRepository.js    # Consultas SQL para banners
+│   │       │   ├── MySQLCategoriaRepository.js # Consultas SQL para categorías de productos
+│   │       │   ├── MySQLChatRepository.js      # Consultas SQL para almacenamiento del historial de soporte
+│   │       │   ├── MySQLCompraRepository.js    # Transacciones SQL ACID para órdenes de compra y detalles
+│   │       │   ├── MySQLCouponRepository.js    # Consultas SQL para verificación y uso de cupones
+│   │       │   ├── MySQLProductoRepository.js  # Consultas SQL con JOIN optimizado y collation uniforme
+│   │       │   ├── MySQLShipmentRepository.js  # Consultas SQL para envíos y números de guía
+│   │       │   ├── MySQLSoporteRepository.js   # Consultas SQL para tickets de soporte y mensajes
+│   │       │   ├── MySQLTokenRepository.js     # Consultas SQL para códigos OTP y recuperación de clave
+│   │       │   └── MySQLUsuarioRepository.js   # Consultas SQL para usuarios, contraseñas hash y roles
+│   │       │
+│   │       └── external/                       # Implementación de puertos de servicios externos
+│   │           ├── EmailService.js             # Despacho de correos HTML mediante Brevo REST API / SMTP Gmail
+│   │           ├── GoogleAuthService.js        # Validación de tokens JWT de Google Identity Services
+│   │           ├── IAService.js                # Cliente de inferencia ultrarrápida con Groq Cloud (gpt-oss-120b)
+│   │           ├── PaymentService.js           # Generación de firmas criptográficas para la pasarela de pagos
+│   │           ├── TelegramService.js          # Envío de notificaciones a grupos de asesores vía Telegram Bot API
+│   │           └── WhatsAppService.js          # Envío de mensajes y confirmaciones vía WhatsApp Cloud API
+│   │
+│   └── config/                                 # Configuraciones globales del sistema
+│       ├── app.config.js                       # Variables de configuración del servidor y entorno
+│       └── database.config.js                  # Parámetros del pool de MySQL (host, user, pass, database, poolLimits)
+│
+└── framework/                                  # 🔴 CAPA 4: FRAMEWORK Y ARRANQUE (Punto de Entrada del Servidor)
+    ├── app.js                                  # Inicialización de la aplicación Express, middlewares globales y rutas
+    └── server.js                               # Levantamiento del servidor HTTP / WebSockets en el puerto configurado
+```
+
+---
+
+## 9.2 Matriz de Responsabilidades y Regla de Dependencia
+
+| Capa Hexagonal | Directorio en el Proyecto | ¿Qué Contiene? | ¿De Quién Puede Depender? | ¿Qué NO Debe Contener? |
+| :--- | :--- | :--- | :--- | :--- |
+| **1. Núcleo de Dominio** | `src/domain/entities` | Entidades de negocio puras, invariantes y reglas de cálculo. | **De nadie.** 100% independiente. | No debe importar Express, MySQL, Axios, librerías de terceros ni frameworks. |
+| **2. Puertos** | `src/domain/ports` | Interfaces abstractas que definen qué operaciones necesita el dominio. | De las entidades de dominio. | No debe contener código de implementación ni consultas SQL directas. |
+| **3. Casos de Uso** | `src/application/use-cases` | Lógica de aplicación específica (crear orden, login, verificar OTP). | De las entidades de dominio y de los puertos abstractos. | No debe interactuar directamente con `req` o `res` de Express ni sentencias SQL. |
+| **4. Adaptadores Driving** | `src/infrastructure/adapters/driving` | Controladores HTTP, middlewares, rutas de Express y WebSockets. | De los casos de uso (invoca métodos `execute()`). | No debe contener lógica de negocio ni cálculos matemáticos de pedidos. |
+| **5. Adaptadores Driven** | `src/infrastructure/adapters/driven` | Repositorios MySQL, clientes de correo (Brevo), IA (Groq), WhatsApp y Telegram. | De los puertos de salida (implementa sus métodos). | No debe cambiar la lógica de negocio; solo traduce datos entre el sistema y la tecnología externa. |
+| **6. Framework y Arranque** | `src/framework` | Archivos `app.js` y `server.js`, cableado de inyección de dependencias. | De todas las capas anteriores para inicializarlas y arrancarlas. | No debe contener reglas de negocio ni lógica de controladores. |
+
+---
+
+## 9.3 Árbol del Ecosistema de Microservicios Distribuidos (`services/`)
+
+Cada microservicio en `services/` representa un *Bounded Context* completamente autónomo, con su propio servidor Node.js y puerto dedicado:
+
+```
+services/
+├── runner.js                           # Orquestador que inicia y supervisa todos los microservicios
+│
+├── gateway/                            # 🚪 API Gateway Centralizado (Puerto: 3000)
+│   └── server.js                       # Proxy reverso, rate limiting distribuido, agregación y X-Correlation-ID
+│
+├── auth-service/                       # 🔑 Microservicio de Autenticación y Usuarios (Puerto: 3001)
+│   └── server.js                       # Registro, login, Bcrypt, JWT, Google OAuth y roles (DB: db_auth)
+│
+├── catalog-service/                    # 📦 Microservicio de Catálogo y Productos (Puerto: 3002)
+│   └── server.js                       # Gestión de cosechas, stock, imágenes y categorías (DB: db_catalog)
+│
+├── order-service/                      # 💳 Microservicio de Compras, Cupones y Facturación (Puerto: 3003)
+│   └── server.js                       # Checkout transaccional, validación OTP, cupones y PDF (DB: db_orders)
+│
+├── ai-support-service/                 # 🤖 Microservicio de Soporte e Inteligencia Artificial (Puerto: 3004)
+│   └── server.js                       # WebSockets Socket.IO, inferencia Groq Cloud y tickets (DB: db_support)
+│
+├── notification-service/               # 📢 Microservicio de Notificaciones y Mensajería (Puerto: 3005)
+│   └── server.js                       # Despacho de emails (Brevo), Bot Telegram y WhatsApp (DB: db_notifications)
+│
+├── logistics-service/                  # 🚚 Microservicio de Logística y Fletes (Puerto: 3006)
+│   └── server.js                       # Matriz de envíos por municipio y seguimiento de guías (DB: db_logistics)
+│
+└── common/                             # 📚 Librerías Compartidas del Ecosistema Distribuido
+    ├── cache/
+    │   └── CacheManager.js             # Gestor de caché Redis con TTL automático para lecturas frecuentes
+    ├── events/
+    │   └── EventBus.js                 # Bus de eventos asíncrono sobre Redis Pub/Sub y Redis Streams
+    ├── registry/
+    │   └── ServiceRegistry.js          # Descubrimiento de microservicios y comprobación periódica de salud (Healthchecks)
+    ├── resilience/
+    │   └── CircuitBreaker.js           # Interruptor de circuito (Circuit Breaker) para evitar fallos en cascada
+    └── tracing/
+        └── correlation.js              # Generación y propagación de UUID X-Correlation-ID entre llamadas HTTP
+```
+
+---
+
+## 9.4 Flujo Paso a Paso de una Petición a Través de las Carpetas
+
+Para comprender cómo colaboran físicamente las carpetas en el día a día, observemos el ciclo de vida de una petición `POST /api/compra`:
+
+```
+1. Cliente HTTP (React) 
+   │
+   ▼
+2. services/gateway/server.js (Asigna X-Correlation-ID, verifica CORS y enruta)
+   │
+   ▼
+3. src/infrastructure/adapters/driving/http/routes/compra.routes.js (Captura ruta)
+   │
+   ▼
+4. src/infrastructure/adapters/driving/http/middleware/auth.js (Valida JWT en cookie/header)
+   │
+   ▼
+5. src/infrastructure/adapters/driving/http/controllers/CompraController.js (Extrae body)
+   │
+   ▼
+6. src/application/use-cases/purchase/ProcessPurchase.js (Ejecuta caso de uso)
+   │
+   ├──► src/domain/entities/Compra.js (Instancia modelo de dominio y calcula subtotales)
+   │
+   ├──► src/domain/ports/outbound/repositories/CompraRepository.js (Llama puerto)
+   │     │
+   │     └──► src/infrastructure/adapters/driven/persistence/MySQLCompraRepository.js (Inserta SQL)
+   │
+   └──► src/domain/ports/outbound/services/EmailServicePort.js (Llama puerto de email)
+         │
+         └──► src/infrastructure/adapters/driven/external/EmailService.js (Envía PDF Brevo)
 ```
 
 ---
@@ -1034,4 +1464,4 @@ De los montesdemaria/
 
 ---
 
-🌾 **De los Montes de María S.A.S.** — *Tecnología de punta al servicio del campo colombiano.* 🇨🇴
+🌾 **De los Montes de María** — *Tecnología de punta al servicio del campo colombiano.* 🇨🇴
