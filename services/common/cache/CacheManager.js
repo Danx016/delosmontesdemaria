@@ -34,6 +34,7 @@ class CacheManager {
   async get(key) {
     try {
       const client = this.getClient();
+      if (!client || client.status !== 'ready') return null;
       const data = await client.get(this.formatKey(key));
       return data ? JSON.parse(data) : null;
     } catch (e) {
@@ -44,16 +45,18 @@ class CacheManager {
   async set(key, value, ttlSeconds = 300) {
     try {
       const client = this.getClient();
+      if (!client || client.status !== 'ready') return;
       const serialized = JSON.stringify(value);
       await client.set(this.formatKey(key), serialized, 'EX', ttlSeconds);
     } catch (e) {
-      console.warn(`⚠️ [CacheManager Set Error]:`, e.message);
+      // Degradar silenciosamente si Redis está offline
     }
   }
 
   async del(key) {
     try {
       const client = this.getClient();
+      if (!client || client.status !== 'ready') return;
       await client.del(this.formatKey(key));
     } catch (e) {}
   }
@@ -61,6 +64,7 @@ class CacheManager {
   async delPattern(pattern) {
     try {
       const client = this.getClient();
+      if (!client || client.status !== 'ready') return;
       const keys = await client.keys(`${this.prefix}${pattern}`);
       if (keys.length > 0) {
         await client.del(keys);

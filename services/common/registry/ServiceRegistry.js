@@ -56,7 +56,7 @@ class ServiceRegistry {
         // Registrar con TTL de 15 segundos
         await client.set(key, payload, 'EX', 15);
       } catch (err) {
-        console.warn(`⚠️ [Heartbeat Error: ${serviceName}]:`, err.message);
+        // Silencioso si Redis no está disponible
       }
     };
 
@@ -69,7 +69,9 @@ class ServiceRegistry {
     const cleanup = async () => {
       if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
       try {
-        await client.del(key);
+        if (client && client.status === 'ready') {
+          await client.del(key);
+        }
       } catch (e) {}
     };
 
@@ -83,6 +85,7 @@ class ServiceRegistry {
    */
   async getAllServices() {
     const client = this.getRedisClient();
+    if (!client || client.status !== 'ready') return [];
     try {
       const keys = await client.keys('registry:instance:*');
       if (!keys.length) return [];
@@ -92,7 +95,6 @@ class ServiceRegistry {
         try { return JSON.parse(v); } catch (e) { return null; }
       }).filter(Boolean);
     } catch (err) {
-      console.error('❌ [ServiceRegistry getAllServices Error]:', err.message);
       return [];
     }
   }

@@ -9,6 +9,8 @@
  * Resiliencia: Heartbeat a ServiceRegistry
  */
 require('dotenv').config();
+process.env.DB_NAME = process.env.NOTIFICATION_DB_NAME || 'db_notifications';
+
 const express = require('express');
 const cors = require('cors');
 

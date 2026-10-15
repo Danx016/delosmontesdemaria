@@ -39,6 +39,11 @@ class EventBus {
     if (!this.subscriber) {
       this.subscriber = new Redis(REDIS_URL, redisOptions);
       this.subscriber.on('error', () => {});
+      this.subscriber.on('ready', () => {
+        for (const channel of this.subscriptions.keys()) {
+          this.subscriber.subscribe(channel).catch(() => {});
+        }
+      });
       this.subscriber.on('message', (channel, message) => {
         try {
           const event = JSON.parse(message);
@@ -116,6 +121,9 @@ class EventBus {
    */
   async publishStream(streamKey, eventData) {
     this.init();
+    if (!this.publisher || this.publisher.status !== 'ready') {
+      return null;
+    }
     const enriched = this._ensureCorrelation(eventData);
     const payload = JSON.stringify(enriched);
 
@@ -131,8 +139,8 @@ class EventBus {
       );
       return messageId;
     } catch (err) {
-      console.error(`❌ Error al publicar evento en stream ${streamKey}:`, err.message);
-      throw err;
+      // Degradar silenciosamente si falla la conexión
+      return null;
     }
   }
 
@@ -142,24 +150,33 @@ class EventBus {
   async consumeStream({ streamKey, groupName, consumerName, handler }) {
     this.init();
 
-    // 1. Asegurar que el grupo de consumidores existe
-    try {
-      await this.streamClient.xgroup('CREATE', streamKey, groupName, '$', 'MKSTREAM');
-    } catch (err) {
-      if (!err.message.includes('BUSYGROUP')) {
-        console.warn(`⚠️ [EventBus xgroup error en ${streamKey}/${groupName}]:`, err.message);
-      }
-    }
-
     let isRunning = true;
+    let groupCreated = false;
     const retryTracker = new Map(); // id -> count
 
     const loop = async () => {
       while (isRunning) {
         if (!this.streamClient || this.streamClient.status !== 'ready') {
+          groupCreated = false;
           await new Promise(r => setTimeout(r, 2000));
           continue;
         }
+
+        // Crear grupo cuando el stream client esté conectado y en estado 'ready'
+        if (!groupCreated) {
+          try {
+            await this.streamClient.xgroup('CREATE', streamKey, groupName, '$', 'MKSTREAM');
+            groupCreated = true;
+          } catch (err) {
+            if (err.message && err.message.includes('BUSYGROUP')) {
+              groupCreated = true;
+            } else {
+              await new Promise(r => setTimeout(r, 2000));
+              continue;
+            }
+          }
+        }
+
         try {
           // Leer nuevos mensajes dirigidos al grupo
           const response = await this.streamClient.xreadgroup(
@@ -199,19 +216,20 @@ class EventBus {
                 if (retries >= 3) {
                   // Mover a Dead Letter Queue (DLQ) para auditoría
                   console.error(`🚨 [DLQ Alert] Evento ${id} excedió 3 reintentos. Moviendo a 'stream:dlq'...`);
-                  await this.streamClient.xadd(
-                    'stream:dlq',
-                    '*',
-                    'originalStream', streamKey,
-                    'group', groupName,
-                    'originalId', id,
-                    'retries', retries.toString(),
-                    'error', handlerErr.message,
-                    'payload', JSON.stringify(eventPayload),
-                    'failedAt', new Date().toISOString()
-                  );
-                  // Hacer ACK al mensaje original para no trabar el stream
-                  await this.streamClient.xack(streamKey, groupName, id);
+                  try {
+                    await this.streamClient.xadd(
+                      'stream:dlq',
+                      '*',
+                      'originalStream', streamKey,
+                      'group', groupName,
+                      'originalId', id,
+                      'retries', retries.toString(),
+                      'error', handlerErr.message,
+                      'payload', JSON.stringify(eventPayload),
+                      'failedAt', new Date().toISOString()
+                    );
+                    await this.streamClient.xack(streamKey, groupName, id);
+                  } catch (dlqErr) {}
                   retryTracker.delete(id);
                 }
               }
@@ -237,6 +255,9 @@ class EventBus {
    */
   async getDLQMessages(count = 10) {
     this.init();
+    if (!this.streamClient || this.streamClient.status !== 'ready') {
+      return [];
+    }
     try {
       const messages = await this.streamClient.xrevrange('stream:dlq', '+', '-', 'COUNT', count);
       return messages.map(([id, fields]) => {
