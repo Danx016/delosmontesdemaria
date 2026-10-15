@@ -1,5 +1,6 @@
 # 🌾 DOCUMENTO DE ESPECIFICACIÓN Y GESTIÓN DE PROYECTO
 ## PLATAFORMA AGROPECUARIA & COMERCIO CAMPESINO DIRECTO: DE LOS MONTES DE MARÍA
+### Documentación Técnica, Arquitectura Empresarial, Diccionario de Datos y Manual de Operaciones
 
 ---
 
@@ -12,11 +13,11 @@
 | **Nombre del Proyecto** | De los Montes de María — Plataforma Agropecuaria & Comercio Campesino Directo |
 | **Código del Proyecto** | AGRO-MDM-2026 |
 | **Autor / Líder Técnico** | Danilo Rodelo & Equipo de Desarrollo De los Montes de María |
-| **Organización** | De los Montes de María S.A.S. |
+| **Organización** | De los Montes de María S.A.S. (NIT: 901.845.210-3) |
 | **Fecha de Creación** | 15 de Febrero de 2026 |
 | **Última Actualización** | 15 de Octubre de 2026 |
-| **Versión del Documento** | 3.0.0 Enterprise |
-| **Estado del Proyecto** | Producción / Operación en Servidor Propio Dedicado en Oracle Cloud (OCI) |
+| **Versión del Documento** | 3.5.0 Enterprise Master Edition |
+| **Estado del Proyecto** | Producción / Operación Continua en Oracle Cloud Infrastructure (OCI) |
 | **Repositorio Oficial** | [GitHub - Danx016/delosmontesdemaria](https://github.com/Danx016/delosmontesdemaria) |
 | **URL Producción Oficial** | [https://delosmontesdemaria.dev](https://delosmontesdemaria.dev) |
 | **Servidor Host (VPS)** | Oracle Cloud Infrastructure (Ubuntu Linux 22.04 LTS — IP: `157.137.233.119`) |
@@ -33,6 +34,7 @@
 | **2.4.0** | 25/07/2026 | D. Rodelo | Implementación del bot oficial de Telegram (`@montesdemariabot`) y AgroAsistente con IA (OpenRouter). |
 | **2.5.0** | 19/08/2026 | D. Rodelo | Migración a Servidor Propio en Oracle Cloud (Ubuntu Linux + Nginx Reverse Proxy + PM2) y scripts de despliegue. |
 | **3.0.0** | 15/10/2026 | D. Rodelo | **Evolución a Arquitectura Empresarial de Microservicios:** Desacoplamiento en 7 microservicios independientes + API Gateway centralizado (`:3000` a `:3006`), adopción del patrón *Database-per-Service* en MySQL (Oracle Cloud), Bus de Eventos asíncrono con Redis Pub/Sub y Streams persistentes, trazabilidad distribuida (`X-Correlation-ID`), motor dual de Inteligencia Artificial con Groq Cloud (`gpt-oss-120b` inferencia ultrarrápida) + OpenRouter (`gpt-4o-mini` de respaldo), canal oficial de Meta WhatsApp Business Cloud API, unificación estricta de collations a `utf8mb4_unicode_ci`, y Pipeline CI/CD automatizado en GitHub Actions con cero tiempo de inactividad (*Zero Downtime*). |
+| **3.5.0** | 15/10/2026 | D. Rodelo | **Ampliación Integral de la Documentación Oficial:** Inclusión del Diccionario de Datos completo (14 tablas relacionales), Diagrama Entidad-Relación (ER), Contrato de API y especificación de endpoints de todos los microservicios, matriz de seguridad, políticas de Habeas Data y Estatuto del Consumidor (Ley 1480 de 2011), Plan de Recuperación ante Desastres (DRP) y estructura física del árbol del repositorio. |
 
 ---
 
@@ -40,16 +42,16 @@
 
 ### El Problema
 La subregión de los **Montes de María** (comprendida entre los departamentos de Bolívar y Sucre en el Caribe colombiano) es una de las despensas agrícolas más ricas y resilientes del país. No obstante, los pequeños y medianos productores campesinos enfrentan barreras estructurales críticas:
-1. **Intermediación Abusiva:** Los intermediarios tradicionales capturan entre el 50% y 70% del valor final de la cosecha, dejando al campesino márgenes mínimos de rentabilidad.
-2. **Pérdida Poscosecha:** Dificultad para encontrar compradores directos antes del deterioro de productos perecederos (ñame, yuca, plátano, aguacate, lácteos).
-3. **Brecha Digital y de Canales:** Falta de herramientas tecnológicas accesibles y adaptadas a las realidades de conectividad rural para exhibir productos, gestionar inventarios y recibir pedidos confiables.
+1. **Intermediación Abusiva:** Los intermediarios tradicionales capturan entre el 50% y 70% del valor final de la cosecha, dejando al campesino márgenes mínimos de rentabilidad que desincentivan la continuidad generacional del agro.
+2. **Pérdida Poscosecha:** Dificultad para encontrar compradores directos antes del deterioro de productos perecederos (ñame espino y diamante, yuca criolla, plátano hartón, aguacate criollo, queso de capa, miel de abejas).
+3. **Brecha Digital y de Canales:** Falta de herramientas tecnológicas accesibles y adaptadas a las realidades de conectividad rural para exhibir productos, gestionar inventarios y recibir pedidos confiables con respaldo legal y trazabilidad.
 
 ### La Solución Propuesta
-**De los Montes de María** es un ecosistema digital integral de comercio justo agropecuario que conecta directamente a los campesinos y artesanos con consumidores particulares, restaurantes y mayoristas en todo el territorio colombiano. 
+**De los Montes de María** es un ecosistema digital integral de comercio justo agropecuario que conecta directamente a los campesinos y artesanos con consumidores particulares, restaurantes, hoteles y mayoristas en todo el territorio colombiano. 
 
 La plataforma combina:
 * Una aplicación web moderna (**SPA en React 18 + Vite**) responsiva, accesible, ultraligera y con soporte de temas claro/oscuro.
-* Una arquitectura backend distribuida en **7 Microservicios independientes + API Gateway** estructurada bajo Arquitectura Hexagonal y DDD.
+* Una arquitectura backend distribuida en **7 Microservicios independientes + API Gateway** estructurada bajo Arquitectura Hexagonal y Domain-Driven Design (DDD).
 * **Bus de Eventos Asíncrono con Redis Pub/Sub y Redis Streams** para sincronización desacoplada de inventarios, órdenes y notificaciones con garantía de entrega.
 * Patrón **Database-per-Service** en servidor MySQL dedicado en Oracle Cloud Infrastructure, asegurando alta tolerancia a fallos y soberanía de datos por dominio.
 * Un sistema de verificación de transacciones mediante códigos de un solo uso (**OTP**) por correo electrónico antes de la confirmación del pedido.
@@ -57,9 +59,9 @@ La plataforma combina:
 * **Soporte multicanal híbrido en tiempo real:** WebSockets en vivo, Asistente con Inteligencia Artificial ultrarrápida (Groq Cloud LLM `gpt-oss-120b` + OpenRouter de respaldo), **Bot oficial de Telegram** (`@montesdemariabot`) y notificaciones transaccionales vía **Meta WhatsApp Business Cloud API**.
 
 ### Impacto Esperado
-* **Económico:** Aumento del 35% al 60% en los ingresos netos percibidos por los campesinos al vender a precios justos directos.
-* **Social:** Visibilización y dignificación del campesinado de municipios como El Carmen de Bolívar, San Jacinto, San Juan Nepomuceno, Ovejas, Chalán y María La Baja.
-* **Operativo:** Tiempos de respuesta de soporte inferiores a 3 segundos mediante IA, resolución con agentes humanos en menos de 3 minutos vía Telegram/WhatsApp, y formalización de transacciones con facturación digital inmediata.
+* **Económico:** Aumento del 35% al 60% en los ingresos netos percibidos por los campesinos al vender a precios justos directos sin peajes comerciales.
+* **Social:** Visibilización y dignificación del campesinado de municipios emblemáticos: El Carmen de Bolívar, San Jacinto, San Juan Nepomuceno, Ovejas, Chalán, Colosó, Morroa y María La Baja.
+* **Operativo:** Tiempos de respuesta de soporte inferiores a 3 segundos mediante IA, resolución con agentes humanos en menos de 3 minutos vía Telegram/WhatsApp, y formalización de transacciones con facturación digital inmediata con validez jurídica.
 
 ---
 
@@ -87,10 +89,10 @@ Desarrollar, desplegar y operar una plataforma tecnológica integral de comercio
 
 | ID | Objetivo Específico | Indicador / Criterio SMART |
 | :--- | :--- | :--- |
-| **OE-01** | **Digitalización del Catálogo Campesino:** Desarrollar y operar un sistema de catálogo dinámico con microservicio dedicado (`catalog-service`), filtros en vivo por municipio de origen, categorización agropecuaria y tiempos de respuesta menores a 100 ms. | *Específico, Medible, Temporal (Trimestre 1).* |
+| **OE-01** | **Digitalización del Catálogo Campesino:** Desarrollar y operar un sistema de catálogo dinámico con microservicio dedicado (`catalog-service`), filtros en vivo por municipio de origen, categorización agropecuaria y tiempos de respuesta menores a 80 ms. | *Específico, Medible, Temporal (Trimestre 1).* |
 | **OE-02** | **Seguridad en Checkout y Formalización:** Implementar un flujo de pago contra entrega con validación de seguridad OTP vía email, cotización dinámica de fletes y generación automática de factura electrónica en PDF con QR en menos de 2 segundos por orden. | *Medible (100% de órdenes con OTP y Factura), Alcanzable.* |
 | **OE-03** | **Atención Multicanal Inteligente:** Integrar un sistema de soporte al cliente con WebSockets, AgroAsistente IA (Groq Cloud + OpenRouter), Bot de Telegram bidireccional y WhatsApp Cloud API, logrando resolver más del 75% de dudas frecuentes automáticamente y escalando a humanos con 1 clic. | *Específico, Medible (>75% automatización, <3 min respuesta humana).* |
-| **OE-04** | **Gestión Administrativa y Resiliencia CI/CD:** Diseñar un panel de control centralizado con métricas en tiempo real de ventas, control de inventarios, gestión de banners y cupones, respaldado por una arquitectura de microservicios en PM2 y despliegue automatizado en GitHub Actions con disponibilidad superior al 99.8%. | *Relevante, Medible (Disponibilidad 99.8%, Zero Downtime).* |
+| **OE-04** | **Resiliencia Operativa y CI/CD:** Diseñar un panel de control centralizado con métricas en tiempo real de ventas, control de inventarios, gestión de banners y cupones, respaldado por una arquitectura de microservicios en PM2 y despliegue automatizado en GitHub Actions con disponibilidad superior al 99.8%. | *Relevante, Medible (Disponibilidad 99.8%, Zero Downtime).* |
 
 ---
 
@@ -100,7 +102,7 @@ Desarrollar, desplegar y operar una plataforma tecnológica integral de comercio
 
 ```mermaid
 mindmap
-  root((De los Montes de María v3.0))
+  root((De los Montes de María v3.5))
     Tienda y Catalogo Frontend
       Filtros por categoría y municipio
       Perfiles públicos de productores
@@ -410,7 +412,7 @@ Fase 3: Frontend SPA & React    ────► [21/Mar - 25/Abr]
 Fase 4: Integraciones & Bots    ────► [26/Abr - 20/May]
 Fase 5: Pruebas, QA & Hardening ────► [21/May - 15/Jun]
 Fase 6: Despliegue en Servidor  ────► [16/Jun - 15/Ago]
-Fase 7: Microservicios & CI/CD  ────► [16/Ago - Operación Continua v3.0]
+Fase 7: Microservicios & CI/CD  ────► [16/Ago - Operación Continua v3.5]
 ```
 
 ### Tabla de Desglose de Trabajo (WBS)
@@ -423,7 +425,7 @@ Fase 7: Microservicios & CI/CD  ────► [16/Ago - Operación Continua v3
 | **Fase 4** | Checkout OTP, Facturación PDF, AgroAsistente IA y Bot Telegram | 26/04/2026 | 20/05/2026 | **Completado** |
 | **Fase 5** | Pruebas de Carga, Seguridad, Pruebas de Aceptación con Campesinos | 21/05/2026 | 15/06/2026 | **Completado** |
 | **Fase 6** | Puesta en Marcha en Servidor Propio (Ubuntu + Nginx + PM2) | 16/06/2026 | 15/08/2026 | **Completado** |
-| **Fase 7** | Desacoplamiento a 7 Microservicios, Redis EventBus, WhatsApp API y GitHub Actions CI/CD | 16/08/2026 | 15/10/2026 | **En Operación v3.0** |
+| **Fase 7** | Desacoplamiento a 7 Microservicios, Redis EventBus, WhatsApp API y GitHub Actions CI/CD | 16/08/2026 | 15/10/2026 | **En Operación v3.5** |
 
 ---
 
@@ -535,7 +537,7 @@ flowchart TD
 git clone https://github.com/Danx016/delosmontesdemaria.git
 cd "De los montesdemaria"
 
-# 2. Instalar dependencias del Backend y Frontend
+# 2. Instalar dependencias del Backend y del Cliente
 npm install
 npm --prefix client install
 
@@ -669,7 +671,340 @@ classDiagram
 
 ---
 
-## 4.4 Anexos
+# 5. MODELO DE DATOS Y DICCIONARIO DE BASE DE DATOS EMPRESARIAL
+
+## 5.1 Diagrama Entidad-Relación (ER)
+
+```mermaid
+erDiagram
+    ROLES ||--o{ USUARIOS : "asigna perfil"
+    USUARIOS ||--o{ PRODUCTOS : "publica como vendedor"
+    USUARIOS ||--o{ COMPRAS : "realiza pedidos"
+    USUARIOS ||--o{ DIRECCIONES : "registra ubicaciones"
+    USUARIOS ||--o{ PRODUCTO_RESENAS : "escribe resenas"
+    USUARIOS ||--o{ SOPORTE_TICKETS : "crea tickets"
+    USUARIOS ||--o| TELEGRAM_SESIONES : "vincula chat_id"
+    CATEGORIAS ||--o{ PRODUCTOS : "clasifica productos"
+    PROVEEDORES ||--o{ PRODUCTOS : "suministra productos"
+    COMPRAS ||--|{ COMPRA_DETALLES : "contiene items"
+    PRODUCTOS ||--o{ COMPRA_DETALLES : "referencia en items"
+    PRODUCTOS ||--o{ PRODUCTO_RESENAS : "recibe calificaciones"
+    CUPONES ||--o{ COMPRAS : "aplica descuento"
+    SOPORTE_TICKETS ||--|{ SOPORTE_MENSAJES : "contiene mensajes"
+    SOPORTE_TICKETS ||--o| SOPORTE_CALIFICACIONES : "recibe calificacion"
+
+    ROLES {
+        int id_rol PK
+        string nombre_rol
+        string descripcion
+    }
+
+    USUARIOS {
+        int id_usuario PK
+        string nombre
+        string apodo UK
+        string correo UK
+        string telefono
+        string direccion
+        string contrasena
+        int id_rol FK
+        decimal creditos
+        string avatar
+        string foto_portada
+        string estado
+        datetime created_at
+    }
+
+    PRODUCTOS {
+        int id_producto PK
+        int id_vendedor FK
+        string nombre_producto
+        text descripcion
+        decimal precio
+        int stock
+        string unidad_medida
+        string imagen
+        int id_categoria FK
+        int id_proveedor FK
+        string origen
+        string presentacion
+        datetime fecha_ingreso
+    }
+
+    COMPRAS {
+        int id_compra PK
+        int id_usuario FK
+        decimal total
+        string estado
+        string metodo_pago
+        string direccion_envio
+        string codigo_cupon
+        tinyint reembolsado
+        datetime fecha
+    }
+
+    COMPRA_DETALLES {
+        int id_detalle PK
+        int id_compra FK
+        int id_producto FK
+        int cantidad
+        decimal precio_unitario
+    }
+
+    CATEGORIAS {
+        int id_categoria PK
+        string nombre_categoria
+        string slug UK
+        string icono
+        string color
+    }
+
+    CUPONES {
+        int id_cupon PK
+        string codigo UK
+        decimal descuento_porcentaje
+        decimal descuento_fijo
+        int uso_limite
+        int uso_actual
+        date fecha_expiracion
+        tinyint activo
+    }
+```
+
+---
+
+## 5.2 Diccionario de Datos Oficial (Tablas Relacionales)
+
+### 1. Tabla: `usuarios` (Microservicio: `auth-service` — DB: `db_auth`)
+Almacena la identidad, credenciales y estado de los actores del sistema (Administradores, Vendedores campesinos, Clientes particulares y Agentes de soporte).
+
+| Campo | Tipo de Dato | Nulo | Clave | Valor por Defecto | Descripción |
+| :--- | :--- | :---: | :---: | :---: | :--- |
+| `id_usuario` | INT(11) | NO | PK | AUTO_INCREMENT | Identificador único secuencial del usuario. |
+| `nombre` | VARCHAR(100) | NO | | | Nombre completo o razón social del productor/cliente. |
+| `apodo` | VARCHAR(100) | NO | UNI | | Nombre de usuario único (*username*) para menciones y perfiles. |
+| `correo` | VARCHAR(150) | NO | UNI | | Correo electrónico principal normalizado en minúsculas. |
+| `telefono` | VARCHAR(20) | SÍ | | NULL | Número de contacto celular o WhatsApp. |
+| `direccion` | VARCHAR(200) | SÍ | | NULL | Dirección física estándar de facturación o despacho. |
+| `contrasena` | VARCHAR(255) | NO | | | Hash criptográfico generado mediante Bcrypt (salt rounds: 12). |
+| `id_rol` | INT(11) | SÍ | FK | 2 | Rol asignado (1: Admin, 2: Cliente, 3: Vendedor Campesino, 4: Soporte). |
+| `creditos` | DECIMAL(10,2) | SÍ | | 0.00 | Saldo en Agro-Créditos disponible para compras directas. |
+| `avatar` | MEDIUMTEXT | SÍ | | NULL | URL o base64 de la fotografía de perfil. |
+| `foto_portada` | TEXT | SÍ | | NULL | URL de la imagen de cabecera de la finca en el perfil público. |
+| `descripcion` | TEXT | SÍ | | NULL | Biografía del productor o reseña de la parcela campesina. |
+| `categoria_productos` | VARCHAR(255) | SÍ | | NULL | Especialidad del vendedor (ej. Cosechas, Lácteos, Semillas). |
+| `google_id` | VARCHAR(255) | SÍ | | NULL | Identificador de federación OAuth 2.0 de Google. |
+| `reset_code` | VARCHAR(10) | SÍ | | NULL | Código temporal de 6 dígitos para recuperación de contraseña. |
+| `reset_expires` | DATETIME | SÍ | | NULL | Fecha y hora límite de validez del código de restablecimiento. |
+| `estado` | VARCHAR(50) | SÍ | | 'activo' | Estado operativo (`activo`, `suspendido`, `inactivo`). |
+| `created_at` | DATETIME | SÍ | | CURRENT_TIMESTAMP | Fecha de registro inicial en la plataforma. |
+
+### 2. Tabla: `productos` (Microservicio: `catalog-service` — DB: `db_catalog`)
+Catálogo de cosechas agrícolas, derivados lácteos, semillas y herramientas con control de existencias.
+
+| Campo | Tipo de Dato | Nulo | Clave | Valor por Defecto | Descripción |
+| :--- | :--- | :---: | :---: | :---: | :--- |
+| `id_producto` | INT(11) | NO | PK | AUTO_INCREMENT | Identificador único del producto agrícola. |
+| `id_vendedor` | INT(11) | SÍ | FK | NULL | ID del usuario productor campesino titular de la cosecha. |
+| `nombre_producto` | VARCHAR(150) | NO | | | Nombre comercial y variedad del producto (ej. Ñame Espino). |
+| `descripcion` | TEXT | SÍ | | NULL | Ficha técnica, características organolépticas y recomendaciones. |
+| `precio` | DECIMAL(10,2) | NO | | | Precio de venta oficial por unidad de medida en pesos colombianos (COP). |
+| `stock` | INT(11) | SÍ | | 0 | Unidades o kilogramos disponibles en inventario en tiempo real. |
+| `unidad_medida` | VARCHAR(50) | SÍ | | 'kg' | Presentación métrica (kg, libra, bulto, atado, litro, unidad). |
+| `imagen` | VARCHAR(255) | SÍ | | NULL | Ruta relativa o CDN de la imagen principal del producto. |
+| `id_categoria` | INT(11) | SÍ | FK | NULL | Vínculo foráneo con la tabla `categorias`. |
+| `id_proveedor` | INT(11) | SÍ | FK | NULL | Vínculo foráneo con la tabla `proveedores`. |
+| `categoria` | VARCHAR(100) | SÍ | | NULL | Texto descriptivo de categoría para indexación rápida. |
+| `origen` | VARCHAR(100) | SÍ | | NULL | Municipio o vereda de cosecha (ej. San Jacinto, Bolívar). |
+| `presentacion` | VARCHAR(100) | SÍ | | NULL | Empaque de despacho (Malla, canastilla, bolsa biodegradable). |
+| `cuidado` | VARCHAR(255) | SÍ | | NULL | Instrucciones de conservación poscosecha (temperatura, sombra). |
+| `disponibilidad` | VARCHAR(100) | SÍ | | 'Inmediata' | Ciclo de cosecha (`Inmediata`, `Preventa`, `Próxima semana`). |
+| `fecha_ingreso` | DATETIME | SÍ | | CURRENT_TIMESTAMP | Fecha de publicación del lote en el catálogo. |
+
+### 3. Tabla: `compras` (Microservicio: `order-service` — DB: `db_orders`)
+Registro maestro de órdenes de compra, totales, medios de pago y estado de despacho.
+
+| Campo | Tipo de Dato | Nulo | Clave | Valor por Defecto | Descripción |
+| :--- | :--- | :---: | :---: | :---: | :--- |
+| `id_compra` | INT(11) | NO | PK | AUTO_INCREMENT | Número de orden oficial de la compra. |
+| `id_usuario` | INT(11) | NO | FK | | ID del comprador registrado que generó la orden. |
+| `fecha` | DATETIME | SÍ | | CURRENT_TIMESTAMP | Marca de tiempo exacta del asiento transaccional. |
+| `total` | DECIMAL(10,2) | NO | | | Valor total final a pagar en COP (incluye flete y descuentos). |
+| `estado` | VARCHAR(50) | SÍ | | 'Pedido recibido' | Estado del pedido (`Pedido recibido`, `En preparación`, `Despachado`, `Entregado`, `Cancelado`). |
+| `metodo_pago` | VARCHAR(50) | SÍ | | 'Contra Entrega' | Medio acordado (`Contra Entrega (Efectivo)`, `Agro-Créditos`, `Wompi`). |
+| `reembolsado` | TINYINT(1) | SÍ | | 0 | Bandera booleana que indica si la orden fue revertida. |
+| `direccion_envio` | TEXT | SÍ | | NULL | Dirección completa formateada con barrio, ciudad y departamento. |
+| `codigo_cupon` | VARCHAR(50) | SÍ | | NULL | Código de cupón promocional aplicado en caso de existir. |
+
+### 4. Tabla: `compra_detalles` (Microservicio: `order-service` — DB: `db_orders`)
+Líneas de detalle asociadas a cada orden de compra.
+
+| Campo | Tipo de Dato | Nulo | Clave | Valor por Defecto | Descripción |
+| :--- | :--- | :---: | :---: | :---: | :--- |
+| `id_detalle` | INT(11) | NO | PK | AUTO_INCREMENT | Identificador del ítem de detalle. |
+| `id_compra` | INT(11) | NO | FK | | ID de la compra cabecera asociada (ON DELETE CASCADE). |
+| `id_producto` | INT(11) | NO | FK | | ID del producto adquirido. |
+| `cantidad` | INT(11) | NO | | 1 | Unidades o kilos comprados. |
+| `precio_unitario` | DECIMAL(10,2) | NO | | | Precio unitario congelado al momento exacto de la compra. |
+
+### 5. Tabla: `cupones` (Microservicio: `order-service` — DB: `db_orders`)
+Códigos de descuento promocionales y campañas de mercadeo campesino.
+
+| Campo | Tipo de Dato | Nulo | Clave | Valor por Defecto | Descripción |
+| :--- | :--- | :---: | :---: | :---: | :--- |
+| `id_cupon` | INT(11) | NO | PK | AUTO_INCREMENT | Identificador secuencial del cupón. |
+| `codigo` | VARCHAR(50) | NO | UNI | | Código alfanumérico en mayúsculas (ej. `CAMPO20`, `MONTES10`). |
+| `descripcion` | VARCHAR(255) | SÍ | | NULL | Justificación de la promoción (ej. Lanzamiento Cosecha Ñame). |
+| `descuento_porcentaje` | DECIMAL(5,2) | SÍ | | 0.00 | Porcentaje de rebaja sobre el subtotal (0 a 100%). |
+| `descuento_fijo` | DECIMAL(10,2) | SÍ | | 0.00 | Monto fijo de descuento en COP. |
+| `color_tema` | VARCHAR(50) | SÍ | | '#059669' | Color visual para la barra de promoción en la tienda. |
+| `monto_minimo` | DECIMAL(10,2) | SÍ | | 0.00 | Subtotal mínimo del carrito para habilitar el cupón. |
+| `uso_limite` | INT(11) | SÍ | | NULL | Número máximo de canjes permitidos en toda la plataforma. |
+| `uso_actual` | INT(11) | SÍ | | 0 | Contador de canjes efectivos realizados. |
+| `fecha_expiracion` | DATE | SÍ | | NULL | Fecha de caducidad del cupón. |
+| `activo` | TINYINT(1) | SÍ | | 1 | 1: Activo, 0: Pausado/Desactivado. |
+| `promocionar_en_barra` | TINYINT(1) | SÍ | | 0 | 1: Muestra el cupón en el cintillo superior del sitio. |
+| `mensaje_promocional` | VARCHAR(255) | SÍ | | NULL | Texto del anuncio publicitario para compradores. |
+
+---
+
+# 6. ESPECIFICACIÓN DETALLADA DE CONTRATOS DE API (ENDPOINTS)
+
+Todos los endpoints son consumidos a través del **API Gateway Centralizado (`:3000`)** bajo el prefijo unificado `/api`.
+
+## 6.1 Módulo de Autenticación & Usuarios (`auth-service` — `:3001`)
+
+| Método | Endpoint | Autenticación | Payload de Entrada | Respuesta Exitosa | Descripción |
+| :--- | :--- | :---: | :--- | :--- | :--- |
+| `POST` | `/api/auth/login` | Pública | `{ correo, contrasena }` | `{ user, token }` + Cookie JWT | Inicio de sesión con correo y contraseña. |
+| `POST` | `/api/auth/registro` | Pública | `{ nombre, apodo, correo, contrasena, telefono }` | `{ id_usuario, correo, token }` | Registro de nuevos clientes o compradores. |
+| `POST` | `/api/auth/google` | Pública | `{ token }` (Google Credential) | `{ user, token }` | Autenticación federada mediante Google Identity Services. |
+| `POST` | `/api/auth/logout` | Pública | N/A | `{ message: "Sesión cerrada" }` | Limpia la cookie segura HttpOnly del navegador. |
+| `POST` | `/api/auth/solicitar-reset` | Pública | `{ correo }` | `{ success: true, message }` | Genera y despacha código OTP de recuperación por correo. |
+| `POST` | `/api/auth/verificar-reset` | Pública | `{ correo, codigo, nuevaContrasena }` | `{ success: true }` | Restablece la contraseña tras verificar código temporal. |
+| `GET` | `/api/usuarios/me` | Bearer / Cookie | Header Authorization | `{ id, nombre, correo, creditos, rol }` | Retorna los datos del perfil del usuario autenticado. |
+| `GET` | `/api/usuarios/:id/direcciones` | Propietario / Admin | Param `:id` | `[ { id_direccion, titulo, ciudad, ... } ]` | Listado de direcciones de entrega guardadas. |
+| `POST` | `/api/usuarios/:id/direcciones` | Propietario | `{ direccion_principal, ciudad, departamento, telefono }` | `{ id_direccion, ... }` | Registra una nueva dirección de envío. |
+
+## 6.2 Módulo de Catálogo & Productos (`catalog-service` — `:3002`)
+
+| Método | Endpoint | Autenticación | Payload de Entrada | Respuesta Exitosa | Descripción |
+| :--- | :--- | :---: | :--- | :--- | :--- |
+| `GET` | `/api/productos` | Pública | Query: `?categoria&origen&search&limit` | `[ { id_producto, nombre, precio, stock, ... } ]` | Lista productos con filtros dinámicos y caché optimizada. |
+| `GET` | `/api/productos/:id` | Pública | Param `:id` | `{ id_producto, nombre, vendedor, resenas: [] }` | Ficha técnica completa de un producto específico. |
+| `POST` | `/api/productos` | Vendedor / Admin | Multipart/form-data: Datos + Imagen | `{ id_producto, ... }` | Crea un nuevo producto en catálogo con foto. |
+| `PUT` | `/api/productos/:id` | Vendedor / Admin | Multipart o JSON con campos a actualizar | `{ message: "Producto actualizado" }` | Modifica precio, descripción o existencias de un lote. |
+| `DELETE` | `/api/productos/:id` | Vendedor / Admin | Param `:id` | `{ message: "Producto eliminado" }` | Elimina lógicamente o retira del catálogo una cosecha. |
+| `GET` | `/api/categorias` | Pública | N/A | `[ { id_categoria, nombre_categoria, slug, color } ]` | Listado oficial de categorías agropecuarias. |
+| `POST` | `/api/productos/:id/resenas` | Cliente Auth | `{ rating, comentario, ciudad }` | `{ id_resena, created_at }` | Registra calificación (1 a 5 estrellas) para un producto. |
+
+## 6.3 Módulo de Compras & Checkout (`order-service` — `:3003`)
+
+| Método | Endpoint | Autenticación | Payload de Entrada | Respuesta Exitosa | Descripción |
+| :--- | :--- | :---: | :--- | :--- | :--- |
+| `POST` | `/api/compra/enviar-otp` | Auth | `{ email, total, nombre }` | `{ success: true, message }` | Genera y despacha código OTP de 6 dígitos para autorizar compra. |
+| `POST` | `/api/compra/verificar-otp` | Auth | `{ email, code }` | `{ success: true }` | Valida código OTP ingresado antes de asentar orden. |
+| `POST` | `/api/compra` | Auth | `{ productos, direccion, shippingInfo, cupon }` | `{ id_compra, total, estado, factura_url }` | Orquesta la creación de orden, descuenta stock y emite eventos. |
+| `GET` | `/api/compra/usuario/:id` | Propietario / Admin | Param `:id` | `[ { id_compra, fecha, total, estado } ]` | Historial de órdenes de compra del usuario. |
+| `GET` | `/api/compra/recibo/:id` | Auth | Param `:id` | `{ id_compra, cliente, detalles: [], total }` | Datos completos para renderizado y descarga de factura PDF. |
+| `GET` | `/api/cupones/promocionales` | Pública | N/A | `[ { codigo, descripcion, color_tema } ]` | Cupones activos para cintillo promocional de cabecera. |
+
+## 6.4 Módulo de Soporte & IA (`ai-support-service` — `:3004`)
+
+| Método | Endpoint | Autenticación | Payload de Entrada | Respuesta Exitosa | Descripción |
+| :--- | :--- | :---: | :--- | :--- | :--- |
+| `POST` | `/api/soporte/chat` | Pública | `{ session_id, mensaje }` | `{ respuesta_ia, intencion, agente_solicitado }` | Motor de respuesta de AgroAsistente IA (Groq Cloud). |
+| `POST` | `/api/soporte/calificar` | Pública | `{ ticket_id, estrellas, comentario }` | `{ success: true }` | Calificación del servicio de atención al cliente (CSAT). |
+| `GET` | `/api/soporte/tickets` | Admin / Soporte | Query: `?estado=bot|humano|cerrado` | `[ { ticket_code, cliente, estado, mensajes } ]` | Bandeja de entrada de tickets para agentes humanos. |
+| `WS` | `/socket.io` | Pública / Auth | Eventos: `chat_message`, `join_ticket` | Transmisión bidireccional en tiempo real | Canal WebSockets para chat de soporte en vivo. |
+
+## 6.5 Módulo de Notificaciones & Telegram (`notification-service` — `:3005`)
+
+| Método | Endpoint | Autenticación | Payload de Entrada | Respuesta Exitosa | Descripción |
+| :--- | :--- | :---: | :--- | :--- | :--- |
+| `POST` | `/api/notificaciones/correo` | Interna / Token | `{ destinatario, asunto, plantilla, datos }` | `{ success: true, messageId }` | Despacho de correos HTML mediante Brevo / SMTP Gmail. |
+| `POST` | `/api/telegram/webhook` | Webhook Telegram | Objeto Update de Telegram API | `{ ok: true }` | Procesa comandos y respuestas de agentes desde Telegram. |
+| `POST` | `/api/whatsapp/webhook` | Webhook Meta | Payload de Meta Graph API v19.0 | `200 OK` | Recepción de respuestas y confirmaciones de entrega de WhatsApp. |
+
+---
+
+# 7. POLÍTICAS DE SEGURIDAD, CUMPLIMIENTO LEGAL Y AUDITORÍA
+
+## 7.1 Protección de Datos Personales (Habeas Data — Ley 1581 de 2012)
+En estricto cumplimiento del marco legal colombiano sobre tratamiento de datos personales:
+1. **Consentimiento Expreso:** Todo usuario al registrarse o realizar checkout acepta la Política de Tratamiento de Información mediante casilla de verificación no premarcada.
+2. **Finalidad del Tratamiento:** Los datos recopilados (correo, teléfono, dirección) se destinan exclusivamente al procesamiento de órdenes de compra, despacho logístico y emisión de factura de venta.
+3. **Derechos ARCO:** El titular puede solicitar en cualquier momento el acceso, rectificación, cancelación u oposición de sus datos personales a través del microservicio de usuarios (`DELETE /api/usuarios/:id`) o del correo `contacto@delosmontesdemaria.dev`.
+
+## 7.2 Estatuto del Consumidor (Ley 1480 de 2011)
+1. **Derecho de Retracto (Art. 47):** Tratándose de productos agrícolas perecederos (cosechas frescas), el derecho de retracto se rige por las excepciones legales de bienes que por su naturaleza se deterioran rápidamente; no obstante, la plataforma garantiza cambio inmediato o reembolso si el producto no coincide con la calidad comercial pactada.
+2. **Reversión del Pago (Art. 51):** En pagos mediante pasarelas electrónicas, se contempla el mecanismo de reversión en casos de fraude o producto no recibido dentro del término legal.
+3. **Información Pública de Precios:** Todos los precios en el catálogo se publican en pesos colombianos (COP), incluyendo la totalidad de impuestos y cargos aplicables.
+
+## 7.3 Seguridad Perimetral y Criptografía
+* **Cifrado en Tránsito:** Tráfico cifrado mediante protocolo TLS 1.3 con certificados X.509 de Let's Encrypt (renovación automatizada cada 90 días con Certbot).
+* **Almacenamiento de Contraseñas:** Algoritmo `Bcrypt` con factor de trabajo (*work factor*) de 12 rondas de sal, garantizando resistencia ante ataques de diccionario y rainbow tables.
+* **Sesiones Seguras:** Tokens JWT firmados con clave secreta de 256 bits, transmitidos mediante cookies con atributos obligatorios:
+  `HttpOnly; Secure; SameSite=Strict; Path=/`.
+* **Protección contra Inyecciones SQL:** Todas las capas de persistencia utilizan sentencias preparadas parametrizadas en MySQL.
+
+---
+
+# 8. PLAN DE RECUPERACIÓN ANTE DESASTRES (DRP), BACKUPS Y ALTA DISPONIBILIDAD
+
+## 8.1 Política de Copias de Seguridad (Backups)
+* **Frecuencia:** Copias de seguridad automáticas diarias a las 02:00 AM (COT) de las 7 bases de datos relacionales en Oracle Cloud.
+* **Comando de Volcado Automatizado:**
+  ```bash
+  mysqldump -h 149.130.189.158 -u admin -p --all-databases --single-transaction --quick > /backup/db_all_$(date +%F).sql
+  ```
+* **Retención:** 30 días de historial rotativo local y réplica semanal en almacenamiento seguro fuera de sitio (*off-site*).
+
+## 8.2 Métricas de Continuidad de Negocio
+* **RPO (Recovery Point Objective):** < 1 hora (pérdida máxima admisible de datos ante fallo catastrófico).
+* **RTO (Recovery Time Objective):** < 15 minutos (tiempo máximo para restaurar el servicio completo en un nodo alterno).
+* **PM2 Auto-Heal:** Reinicio inmediato en menos de 1.000 ms en caso de excepción no controlada en cualquier microservicio.
+
+---
+
+# 9. ESTRUCTURA FÍSICA DEL REPOSITORIO Y ARQUITECTURA DE CÓDIGO
+
+```
+De los montesdemaria/
+├── .github/
+│   └── workflows/
+│       └── deploy.yml            # Pipeline CI/CD automatizado en GitHub Actions
+├── client/                       # Frontend SPA (React 18 + Vite)
+│   ├── src/
+│   │   ├── api/                  # Clientes Axios desacoplados por microservicio
+│   │   ├── components/           # Componentes UI reutilizables (Navbar, Cards, Modals)
+│   │   ├── context/              # Estados globales (AuthContext, CartContext)
+│   │   ├── pages/                # Vistas principales (Catalog, PaymentPage, Admin)
+│   │   └── App.jsx               # Enrutamiento React Router DOM
+│   └── vite.config.js            # Configuración de compilación y optimización
+├── services/                     # Ecosistema de Microservicios Empresariales
+│   ├── runner.js                 # Orquestador y supervisor de microservicios
+│   ├── common/                   # Librerías compartidas (EventBus, Tracing, Registry)
+│   ├── gateway/                  # API Gateway Centralizado (:3000)
+│   ├── auth-service/             # Servicio de Autenticación y Usuarios (:3001)
+│   ├── catalog-service/          # Servicio de Catálogo y Productos (:3002)
+│   ├── order-service/            # Servicio de Compras, Cupones y Facturación (:3003)
+│   ├── ai-support-service/       # Servicio de Chat en Vivo e IA Groq (:3004)
+│   ├── notification-service/     # Servicio de Correo, Telegram y WhatsApp (:3005)
+│   └── logistics-service/        # Servicio de Fletes y Despachos (:3006)
+├── src/                          # Capa de Dominio y Arquitectura Hexagonal
+│   ├── domain/                   # Entidades puras y puertos de repositorio
+│   ├── application/              # Casos de uso y controladores
+│   └── infrastructure/           # Adaptadores de base de datos MySQL y externos
+├── scripts/                      # Utilidades de mantenimiento, migración y estrés
+├── nginx_default.conf            # Plantilla oficial de configuración Nginx Reverse Proxy
+├── package.json                  # Dependencias y scripts de ejecución
+└── .env                          # Variables de entorno y credenciales de producción
+```
+
+---
+
+# 10. ANEXOS Y DIRECTORIO DE RECURSOS
 
 ### Anexo A: Glosario de Términos Técnicos y Agrícolas
 
