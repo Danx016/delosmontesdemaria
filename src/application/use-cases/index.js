@@ -13,9 +13,14 @@ module.exports = {
     CreateProduct: require('./product/CreateProduct'),
     UpdateProduct: require('./product/UpdateProduct'),
     DeleteProduct: require('./product/DeleteProduct'),
-    SearchProducts: require('./product/SearchProducts')
+    SearchProducts: require('./product/SearchProducts'),
+    GetProducts: require('./product/GetProducts'),
+    GetProductById: require('./product/GetProductById')
   },
   purchase: {
+    ProcessPurchase: require('./purchase/ProcessPurchase'),
+    GetPurchases: require('./purchase/GetPurchases'),
+    GetPurchaseById: require('./purchase/GetPurchaseById'),
     GenerateWompiSignature: require('./purchase/GenerateWompiSignature'),
     UpdateOrderStatus: require('./purchase/UpdateOrderStatus')
   },
@@ -33,10 +38,17 @@ module.exports = {
   coupon: {
     ValidarCuponUseCase: require('./coupon/ValidarCuponUseCase')
   },
+  logistics: {
+    CreateShipment: require('./logistics/CreateShipment'),
+    TrackShipment: require('./logistics/TrackShipment'),
+    CalculateShippingRate: require('./logistics/CalculateShippingRate'),
+    UpdateShipmentStatus: require('./logistics/UpdateShipmentStatus')
+  },
   support: {
     ProcessSupportAIChat: require('./support/ProcessSupportAIChat')
   },
   user: {
+    GetUserProfile: require('./user/GetUserProfile'),
     DeleteAccount: require('./user/DeleteAccount'),
     ManageAddresses: require('./user/ManageAddresses'),
     UpdateProfile: require('./user/UpdateProfile')

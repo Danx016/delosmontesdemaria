@@ -32,6 +32,7 @@ services:
       - ORDER_SERVICE_URL=http://order-service:3003
       - AI_SUPPORT_SERVICE_URL=http://ai-support-service:3004
       - NOTIFICATION_SERVICE_URL=http://notification-service:3005
+      - LOGISTICS_SERVICE_URL=http://logistics-service:3006
     env_file:
       - .env
     depends_on:
@@ -46,6 +47,8 @@ services:
       ai-support-service:
         condition: service_started
       notification-service:
+        condition: service_started
+      logistics-service:
         condition: service_started
     networks:
       - agro-network
@@ -131,6 +134,24 @@ services:
       - "3005:3005"
     environment:
       - NOTIFICATION_SERVICE_PORT=3005
+      - REDIS_URL=redis://redis:6379
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - agro-network
+
+  logistics-service:
+    build: .
+    container_name: agro-logistics-service
+    command: node services/logistics-service/server.js
+    restart: unless-stopped
+    ports:
+      - "3006:3006"
+    environment:
+      - LOGISTICS_SERVICE_PORT=3006
       - REDIS_URL=redis://redis:6379
     env_file:
       - .env

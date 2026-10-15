@@ -5,6 +5,7 @@
 const UpdateProfile = require('../../../../../application/use-cases/user/UpdateProfile');
 const DeleteAccount = require('../../../../../application/use-cases/user/DeleteAccount');
 const ManageAddresses = require('../../../../../application/use-cases/user/ManageAddresses');
+const GetUserProfile = require('../../../../../application/use-cases/user/GetUserProfile');
 
 class UsuarioController {
   constructor({ usuarioRepository, emailService, telegramService = null }) {
@@ -14,12 +15,13 @@ class UsuarioController {
     this.updateProfile = new UpdateProfile(usuarioRepository);
     this.deleteAccount = new DeleteAccount(usuarioRepository, emailService);
     this.manageAddresses = new ManageAddresses(usuarioRepository);
+    this.getUserProfile = new GetUserProfile(usuarioRepository);
   }
 
   async obtenerMe(req, res) {
     try {
       const userId = req.user.id || req.user.id_usuario;
-      const user = await this.usuarioRepository.buscarPorId(userId);
+      const user = await this.getUserProfile.execute(userId);
       if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
 
       res.json({

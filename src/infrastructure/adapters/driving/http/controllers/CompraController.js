@@ -4,6 +4,9 @@
  */
 const UpdateOrderStatus = require('../../../../../application/use-cases/purchase/UpdateOrderStatus');
 const GenerateWompiSignature = require('../../../../../application/use-cases/purchase/GenerateWompiSignature');
+const ProcessPurchase = require('../../../../../application/use-cases/purchase/ProcessPurchase');
+const GetPurchases = require('../../../../../application/use-cases/purchase/GetPurchases');
+const GetPurchaseById = require('../../../../../application/use-cases/purchase/GetPurchaseById');
 
 function formatShippingAddress(addr, info) {
   if (typeof addr === 'string' && addr.trim() && !addr.includes('[object Object]')) {
@@ -35,6 +38,14 @@ class CompraController {
     this.telegramService = telegramService;
     this.updateOrderStatus = new UpdateOrderStatus(compraRepository, usuarioRepository, emailService);
     this.generateWompiSignature = new GenerateWompiSignature(paymentService);
+    this.processPurchase = new ProcessPurchase({
+      compraRepository,
+      productoRepository,
+      usuarioRepository,
+      couponRepository
+    });
+    this.getPurchases = new GetPurchases(compraRepository);
+    this.getPurchaseById = new GetPurchaseById(compraRepository);
   }
 
 
@@ -60,99 +71,27 @@ class CompraController {
 
   async crear(req, res) {
     try {
-      let { productos, total, metodoPago, metodo_pago, direccion, direccion_envio, shippingInfo } = req.body;
-
+      const { productos, total, metodoPago, metodo_pago, direccion, direccion_envio, shippingInfo, shippingCost, costo_envio } = req.body;
       const userId = Number(req.user?.id || req.user?.id_usuario);
-      if (!userId || !productos || productos.length === 0) {
-        return res.status(400).json({ error: 'Datos de compra incompletos (usuario o productos requeridos).' });
-      }
-
-      const paymentMethod = metodoPago || metodo_pago || 'Contra Entrega (Efectivo)';
-      const shippingAddress = formatShippingAddress(direccion || direccion_envio, shippingInfo);
-
-      // Verificación de integridad de precios y stock contra la base de datos
-      let calculatedSubtotal = 0;
-      const verifiedProducts = [];
-
-      for (const item of productos) {
-        const prodId = item.idProducto || item.id_producto || item.id;
-        const cantidad = Math.max(1, parseInt(item.cantidad, 10) || 1);
-        if (!prodId) continue;
-
-        const dbProd = await this.productoRepository.buscarPorId(prodId);
-        if (!dbProd) {
-          return res.status(400).json({ error: `El producto ID ${prodId} no está disponible.` });
-        }
-
-        const precioReal = parseFloat(dbProd.precio);
-        calculatedSubtotal += precioReal * cantidad;
-
-        verifiedProducts.push({
-          ...item,
-          id_producto: dbProd.id_producto,
-          idProducto: dbProd.id_producto,
-          id: dbProd.id_producto,
-          nombre: dbProd.nombre_producto,
-          precio: precioReal,
-          precio_unitario: precioReal,
-          cantidad
-        });
-      }
-
-      if (verifiedProducts.length === 0) {
-        return res.status(400).json({ error: 'No se encontraron productos válidos para procesar la orden.' });
-      }
-
-      // Validar cupón en servidor si fue provisto
-      let descuento = 0;
       const cuponCodigo = req.body.codigo_cupon || req.body.cupon || req.body.codigoCupon;
-      if (cuponCodigo && this.couponRepository) {
-        try {
-          const cup = await this.couponRepository.buscarPorCodigo(cuponCodigo);
-          if (cup && cup.activo && (!cup.valido_hasta || new Date(cup.valido_hasta) >= new Date())) {
-            if (cup.tipo_descuento === 'porcentaje') {
-              descuento = Math.round((calculatedSubtotal * parseFloat(cup.valor_descuento)) / 100);
-            } else {
-              descuento = parseFloat(cup.valor_descuento);
-            }
-            if (cup.descuento_maximo && descuento > parseFloat(cup.descuento_maximo)) {
-              descuento = parseFloat(cup.descuento_maximo);
-            }
-          }
-        } catch (cErr) {
-          console.warn('Advertencia al verificar cupón en compra:', cErr.message);
-        }
-      }
 
-      const shippingCost = Math.max(0, parseFloat(req.body.shippingCost || req.body.costo_envio || 0));
-      const calculatedTotal = Math.max(0, calculatedSubtotal - descuento + shippingCost);
-      const finalTotal = calculatedTotal > 0 ? calculatedTotal : (parseFloat(total) || calculatedSubtotal);
-
-      if (paymentMethod === 'Agro-Créditos') {
-        const user = await this.usuarioRepository.buscarPorId(userId);
-        if (!user || user.creditos < finalTotal) {
-          return res.status(400).json({ error: 'Créditos insuficientes en tu cuenta.' });
-        }
-        await this.usuarioRepository.descontarCreditos(userId, finalTotal);
-      }
-
-      const compraCreada = await this.compraRepository.crear({
-        id_usuario: userId,
-        total: finalTotal,
-        metodo_pago: paymentMethod,
-        direccion_envio: shippingAddress,
-        productos: verifiedProducts
+      const {
+        compraCreada,
+        finalTotal,
+        shippingAddress,
+        verifiedProducts,
+        paymentMethod
+      } = await this.processPurchase.execute({
+        userId,
+        productos,
+        metodoPago: metodoPago || metodo_pago,
+        direccion,
+        direccion_envio,
+        shippingInfo,
+        cuponCodigo,
+        shippingCost: shippingCost || costo_envio,
+        totalFallback: total
       });
-
-      // Incrementar uso de cupón si fue aplicado
-      const cuponAplicado = req.body.codigo_cupon || req.body.cupon || req.body.codigoCupon;
-      if (cuponAplicado && this.couponRepository) {
-        try {
-          await this.couponRepository.incrementarUso(cuponAplicado);
-        } catch (couponErr) {
-          console.warn('No se pudo incrementar uso de cupón:', couponErr.message);
-        }
-      }
 
       // Enviar factura por correo y notificar a Telegram en segundo plano
       setImmediate(async () => {
@@ -239,7 +178,7 @@ class CompraController {
         return res.status(403).json({ error: 'No tienes permiso para ver el historial de otro usuario.' });
       }
 
-      const compras = await this.compraRepository.listarPorUsuario(idUsuario);
+      const compras = await this.getPurchases.executeByUser(idUsuario);
       res.json(compras.map(c => c.toJSON()));
     } catch (error) {
       res.status(500).json({ error: 'Error al obtener historial de compras' });
@@ -249,7 +188,7 @@ class CompraController {
   async obtenerRecibo(req, res) {
     try {
       const idCompra = req.params.id_compra;
-      const recibo = await this.compraRepository.obtenerReciboCompleto(idCompra);
+      const recibo = await this.getPurchaseById.execute(idCompra);
       if (!recibo) return res.status(404).json({ error: 'Recibo no encontrado' });
 
       const role = Number(req.user.role || req.user.id_rol);

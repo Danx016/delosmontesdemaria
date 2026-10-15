@@ -6,6 +6,8 @@ const CreateProduct = require('../../../../../application/use-cases/product/Crea
 const UpdateProduct = require('../../../../../application/use-cases/product/UpdateProduct');
 const DeleteProduct = require('../../../../../application/use-cases/product/DeleteProduct');
 const SearchProducts = require('../../../../../application/use-cases/product/SearchProducts');
+const GetProducts = require('../../../../../application/use-cases/product/GetProducts');
+const GetProductById = require('../../../../../application/use-cases/product/GetProductById');
 
 class ProductoController {
   constructor({ productoRepository, categoriaRepository, cache }) {
@@ -16,11 +18,13 @@ class ProductoController {
     this.updateProduct = new UpdateProduct(productoRepository);
     this.deleteProduct = new DeleteProduct(productoRepository);
     this.searchProducts = new SearchProducts(productoRepository);
+    this.getProducts = new GetProducts(productoRepository);
+    this.getProductById = new GetProductById(productoRepository);
   }
 
   async listar(req, res) {
     try {
-      const productos = await this.productoRepository.listarTodos();
+      const productos = await this.getProducts.execute();
       res.json(productos.map(p => p.toJSON()));
     } catch (error) {
       res.status(500).json({ error: 'Error al obtener productos' });
@@ -29,7 +33,7 @@ class ProductoController {
 
   async obtenerPorId(req, res) {
     try {
-      const producto = await this.productoRepository.buscarPorId(req.params.id_producto);
+      const producto = await this.getProductById.execute(req.params.id_producto);
       if (!producto) return res.status(404).json({ error: 'Producto no encontrado' });
       res.json(producto.toJSON());
     } catch (error) {
