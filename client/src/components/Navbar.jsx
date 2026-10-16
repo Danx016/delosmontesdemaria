@@ -253,9 +253,18 @@ export default function Navbar() {
             </li>
 
             <li role="none">
-              <Link to="/manual" className={`nav-link-item ${isActive('/manual') || isActive('/guia') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)} role="menuitem" tabIndex="0" title="Manual de Usuario">
-                <i className="fa fa-book-open" /> <span>Manual</span>
-              </Link>
+              <a
+                href="/manual-de-usuario.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="nav-link-item"
+                onClick={() => setMobileMenuOpen(false)}
+                role="menuitem"
+                tabIndex="0"
+                title="Abrir Manual de Usuario (PDF Oficial)"
+              >
+                <i className="fa fa-file-pdf" style={{ color: '#ef4444' }} /> <span>Manual</span>
+              </a>
             </li>
 
             {/* User Account / Profile */}
@@ -289,9 +298,15 @@ export default function Navbar() {
                     <Link to="/perfil" onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }} role="menuitem">
                       <i className="fa fa-user" /> Mi Perfil y Pedidos
                     </Link>
-                    <Link to="/manual" onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }} role="menuitem">
-                      <i className="fa fa-book-open" /> Manual de Usuario
-                    </Link>
+                    <a
+                      href="/manual-de-usuario.pdf"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }}
+                      role="menuitem"
+                    >
+                      <i className="fa fa-file-pdf" style={{ color: '#ef4444' }} /> Manual de Usuario (PDF)
+                    </a>
                     <Link to="/rastreo" onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }} role="menuitem">
                       <i className="fa fa-truck-fast" /> Rastrear Cosecha
                     </Link>

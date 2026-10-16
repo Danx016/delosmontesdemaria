@@ -86,6 +86,15 @@ export default function ManualUsuarioPage() {
               >
                 <i className="fa fa-shield-alt" /> Administrador
               </button>
+              <a
+                href="/manual-de-usuario.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn btn-light btn-sm"
+                style={{ borderRadius: '20px', padding: '0.45rem 1.25rem', fontSize: '0.9rem', fontWeight: 700, color: '#dc2626', background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.15)', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
+              >
+                <i className="fa fa-file-pdf" style={{ fontSize: '1.1rem' }} /> Abrir Documento PDF Oficial (102 Págs)
+              </a>
             </div>
           </div>
         </section>
@@ -97,14 +106,16 @@ export default function ManualUsuarioPage() {
             <div className="legal-nav-card">
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.8rem' }}>
                 <h3 style={{ margin: 0 }}>Índice del Manual</h3>
-                <button
-                  onClick={handlePrint}
-                  className="btn btn-outline-secondary btn-sm"
-                  title="Imprimir o Guardar como PDF"
-                  style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', borderRadius: '6px' }}
+                <a
+                  href="/manual-de-usuario.pdf"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-danger btn-sm"
+                  title="Abrir o Descargar documento PDF oficial"
+                  style={{ fontSize: '0.75rem', padding: '0.2rem 0.5rem', borderRadius: '6px', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
                 >
-                  <i className="fa fa-print" /> Imprimir
-                </button>
+                  <i className="fa fa-file-pdf" /> PDF
+                </a>
               </div>
 
               {/* Search input in index */}

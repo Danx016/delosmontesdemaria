@@ -537,13 +537,15 @@ export default function SoportePage() {
                   </div>
                 </div>
               </div>
-              <Link
-                to="/manual"
+              <a
+                href="/manual-de-usuario.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="btn btn-sm btn-outline-success"
-                style={{ borderRadius: '20px', padding: '0.35rem 0.95rem', fontWeight: 600, fontSize: '0.82rem' }}
+                style={{ borderRadius: '20px', padding: '0.35rem 0.95rem', fontWeight: 600, fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
               >
-                Abrir Manual de Usuario <i className="fa fa-arrow-right" style={{ marginLeft: '0.25rem' }} />
-              </Link>
+                <i className="fa fa-file-pdf" style={{ color: '#ef4444' }} /> Abrir Manual en PDF <i className="fa fa-external-link-alt" style={{ fontSize: '0.75rem' }} />
+              </a>
             </div>
           )}
 
