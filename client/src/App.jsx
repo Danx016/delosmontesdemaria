@@ -38,6 +38,7 @@ const AdminMicroserviciosPage = lazy(() => import('./pages/AdminMicroserviciosPa
 const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage'))
 const TerminosPage = lazy(() => import('./pages/TerminosPage'))
 const PrivacidadPage = lazy(() => import('./pages/PrivacidadPage'))
+const ManualUsuarioPage = lazy(() => import('./pages/ManualUsuarioPage'))
 const TrackingPage = lazy(() => import('./pages/TrackingPage'))
 const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
 
@@ -68,6 +69,8 @@ function RouteAnalyticsTracker() {
       document.title = 'Productores y Familias - De Los Montes De María'
     } else if (path.startsWith('/soporte')) {
       document.title = 'Centro de Ayuda - De Los Montes De María'
+    } else if (path.startsWith('/manual') || path.startsWith('/guia')) {
+      document.title = 'Manual de Usuario - De Los Montes De María'
     } else if (path.startsWith('/admin')) {
       document.title = 'Panel Administrativo - De Los Montes De María'
     } else if (path.startsWith('/login') || path.startsWith('/iniciar-sesion')) {
@@ -146,6 +149,9 @@ export default function App() {
                     <Route path="/rastreo" element={<TrackingPage />} />
                     <Route path="/rastreo/:trackingNumber" element={<TrackingPage />} />
                     <Route path="/soporte" element={<SoportePage />} />
+                    <Route path="/manual" element={<ManualUsuarioPage />} />
+                    <Route path="/manual-usuario" element={<ManualUsuarioPage />} />
+                    <Route path="/guia" element={<ManualUsuarioPage />} />
                     <Route path="/terminos" element={<TerminosPage />} />
                     <Route path="/terminos-condiciones" element={<TerminosPage />} />
                     <Route path="/privacidad" element={<PrivacidadPage />} />

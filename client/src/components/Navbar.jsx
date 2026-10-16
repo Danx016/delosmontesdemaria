@@ -252,6 +252,12 @@ export default function Navbar() {
               </Link>
             </li>
 
+            <li role="none">
+              <Link to="/manual" className={`nav-link-item ${isActive('/manual') || isActive('/guia') ? 'active' : ''}`} onClick={() => setMobileMenuOpen(false)} role="menuitem" tabIndex="0" title="Manual de Usuario">
+                <i className="fa fa-book-open" /> <span>Manual</span>
+              </Link>
+            </li>
+
             {/* User Account / Profile */}
             {isAuthenticated ? (
               <li className="user-dropdown-container">
@@ -282,6 +288,9 @@ export default function Navbar() {
                     <hr className="user-popup-divider" />
                     <Link to="/perfil" onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }} role="menuitem">
                       <i className="fa fa-user" /> Mi Perfil y Pedidos
+                    </Link>
+                    <Link to="/manual" onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }} role="menuitem">
+                      <i className="fa fa-book-open" /> Manual de Usuario
                     </Link>
                     <Link to="/rastreo" onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }} role="menuitem">
                       <i className="fa fa-truck-fast" /> Rastrear Cosecha

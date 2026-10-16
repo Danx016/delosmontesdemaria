@@ -60,6 +60,7 @@ export default function Footer() {
           <h4>Enlaces Rápidos</h4>
           <ul>
             <li><Link to="/">Inicio</Link></li>
+            <li><Link to="/manual"><i className="fa fa-book-open" style={{ color: '#438E44' }} /> Manual de Usuario</Link></li>
             <li><Link to="/vendedor">Vender en la Plataforma</Link></li>
             <li><Link to="/soporte">Centro de Ayuda</Link></li>
             <li><a href="https://t.me/montesdemariabot" target="_blank" rel="noreferrer"><i className="fab fa-telegram" /> Bot de Telegram</a></li>
@@ -82,6 +83,7 @@ export default function Footer() {
         <div className="app-container bottom-inner">
           <p>&copy; {new Date().getFullYear()} De los Montes de María. Todos los derechos reservados.</p>
           <div className="legal-links">
+            <Link to="/manual">Manual de Usuario</Link>
             <Link to="/terminos">Términos & Condiciones</Link>
             <Link to="/privacidad">Privacidad</Link>
           </div>
