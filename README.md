@@ -51,7 +51,9 @@
 
 ---
 
-> 📖 **Para consultar la guía técnica detallada, esquemas de base de datos y especificación de endpoints REST, revisa la [Documentación Completa (DOCUMENTACION.md)](./DOCUMENTACION.md).**
+> 📖 **Documentación Técnica & Gestión:**
+> - Consulta la guía técnica de endpoints y base de datos en [DOCUMENTACION.md](./DOCUMENTACION.md).
+> - Consulta la gestión integral del proyecto bajo estándar PMBOK® en [GESTION_PROYECTO_PMBOK.md](./GESTION_PROYECTO_PMBOK.md).
 
 ---
 
