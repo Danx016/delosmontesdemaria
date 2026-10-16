@@ -83,20 +83,16 @@ El estándar PMBOK® estructura la dirección de proyectos a través de dos dime
 
 A continuación se desarrolla de forma integral y detallada cómo se gestionó y ejecutó el proyecto en cada uno de los 5 grupos de procesos:
 
-```
-  ┌───────────────┐     ┌─────────────────────┐     ┌───────────────────┐
-  │   1. INICIO   │ ──> │  2. PLANIFICACIÓN   │ ──> │   3. EJECUCIÓN    │
-  └───────────────┘     └─────────────────────┘     └───────────────────┘
-                                   │                          │
-                                   ▼                          ▼
-                        ┌───────────────────────────────────────────────┐
-                        │            4. MONITOREO Y CONTROL             │
-                        └───────────────────────────────────────────────┘
-                                               │
-                                               ▼
-                                    ┌─────────────────────┐
-                                    │      5. CIERRE      │
-                                    └─────────────────────┘
+```mermaid
+flowchart LR
+    A["1. INICIO<br/>• Acta de Constitución<br/>• Registro de Interesados"] --> B["2. PLANIFICACIÓN<br/>• EDT / WBS<br/>• Cronograma y Costos<br/>• Matriz de Riesgos"]
+    B --> C["3. EJECUCIÓN<br/>• Backend Hexagonal<br/>• Frontend React 18<br/>• Bot Telegram & IA"]
+    C --> E["5. CIERRE<br/>• Puesta en Producción<br/>• Lecciones Aprendidas"]
+    
+    B -.-> D["4. MONITOREO Y CONTROL<br/>• Control de Cambios Git<br/>• Monitoreo PM2 & Nginx<br/>• Pruebas de Calidad"]
+    C -.-> D
+    D -.-> C
+    D -.-> E
 ```
 
 ---
@@ -141,31 +137,71 @@ En esta etapa se establece el alcance total del esfuerzo, se definen los objetiv
 #### A. Gestión del Alcance y Estructura de Desglose del Trabajo (EDT / WBS)
 Se construyó una EDT orientada a entregables técnicos y de negocio:
 
-```
-1.0 Plataforma "De los Montes de María"
-├── 1.1 Núcleo Backend & API (Arquitectura Hexagonal)
-│   ├── 1.1.1 Capa de Dominio (Entidades: User, Product, Purchase, Coupon, Banner, Ticket)
-│   ├── 1.1.2 Capa de Aplicación (Casos de Uso de Auth, Compras, Inventario, Soporte)
-│   ├── 1.1.3 Capa de Infraestructura (Adaptadores MySQL, EmailService, IAService)
-│   └── 1.1.4 Puertos HTTP & WebSockets (Controladores REST, Socket.io)
-├── 1.2 Frontend Web SPA (React 18 + Vite)
-│   ├── 1.2.1 Catálogo, Filtros y Perfil de Productores
-│   ├── 1.2.2 Carrito Persistente y Módulo de Cupones
-│   ├── 1.2.3 Checkout con OTP y Generador de Factura PDF con QR
-│   ├── 1.2.4 Widget AgroAsistente con Inteligencia Artificial
-│   └── 1.2.5 Panel de Control Administrativo (/admin) con Carrusel Hero
-├── 1.3 Integración de Canales Externos
-│   ├── 1.3.1 Bot Oficial de Telegram (@montesdemariabot)
-│   ├── 1.3.2 Sistema de Notificaciones por Correo Electrónico (OTP y Factura)
-│   └── 1.3.3 Chat de Soporte en Tiempo Real
-├── 1.4 Infraestructura, DevOps & Seguridad
-│   ├── 1.4.1 Servidor Ubuntu Linux, Nginx (Reverse Proxy) y Certificados SSL Let's Encrypt
-│   ├── 1.4.2 Orquestación PM2 y Base de Datos MySQL 8.0
-│   └── 1.4.3 Seguridad Perimetral (Helmet, CORS, Rate Limiters, Hashing bcrypt)
-└── 1.5 Calidad, Auditoría y Puesta en Producción
-    ├── 1.5.1 Suite de Pruebas Automatizadas (test_runner.js)
-    ├── 1.5.2 Auditoría de Usabilidad y Accesibilidad
-    └── 1.5.3 Despliegue en https://delosmontesdemaria.dev
+```mermaid
+graph TD
+    Root["🌾 1.0 Plataforma De los Montes de María"]
+
+    subgraph Backend["🔷 1.1 Backend & API (Arquitectura Hexagonal)"]
+        B1["1.1.1 Capa de Dominio (Entidades: User, Product, Purchase)"]
+        B2["1.1.2 Capa de Aplicación (Casos de Uso)"]
+        B3["1.1.3 Capa de Infraestructura (MySQL, EmailService, IAService)"]
+        B4["1.1.4 Puertos HTTP & WebSockets (Controladores REST & Socket.io)"]
+    end
+
+    subgraph Frontend["⚛️ 1.2 Frontend Web SPA (React 18 + Vite)"]
+        F1["1.2.1 Catálogo Dinámico, Filtros y Perfil de Campesinos"]
+        F2["1.2.2 Carrito Persistente & Módulo de Cupones"]
+        F3["1.2.3 Checkout con OTP & Facturación PDF con QR"]
+        F4["1.2.4 Widget AgroAsistente con Inteligencia Artificial"]
+        F5["1.2.5 Panel Administrativo /admin & Carrusel Hero"]
+    end
+
+    subgraph Canales["📱 1.3 Canales Externos & Tiempo Real"]
+        C1["1.3.1 Bot Oficial de Telegram (@montesdemariabot)"]
+        C2["1.3.2 Sistema de Notificaciones por Correo (OTP & Factura)"]
+        C3["1.3.3 Chat de Soporte en Tiempo Real (Socket.io)"]
+    end
+
+    subgraph DevOps["⚙️ 1.4 Infraestructura, DevOps & Seguridad"]
+        D1["1.4.1 Servidor Ubuntu Linux, Nginx Proxy & SSL Let's Encrypt"]
+        D2["1.4.2 Orquestación PM2 & Base de Datos MySQL 8.0"]
+        D3["1.4.3 Seguridad Perimetral (Helmet, CORS, Rate Limiters, bcrypt)"]
+    end
+
+    subgraph Calidad["✅ 1.5 Calidad, Auditoría & Producción"]
+        Q1["1.5.1 Suite de Pruebas Automatizadas (test_runner.js)"]
+        Q2["1.5.2 Auditoría de Usabilidad y Microservicios"]
+        Q3["1.5.3 Despliegue en Producción (delosmontesdemaria.dev)"]
+    end
+
+    Root --> Backend
+    Root --> Frontend
+    Root --> Canales
+    Root --> DevOps
+    Root --> Calidad
+
+    Backend --> B1
+    Backend --> B2
+    Backend --> B3
+    Backend --> B4
+
+    Frontend --> F1
+    Frontend --> F2
+    Frontend --> F3
+    Frontend --> F4
+    Frontend --> F5
+
+    Canales --> C1
+    Canales --> C2
+    Canales --> C3
+
+    DevOps --> D1
+    DevOps --> D2
+    DevOps --> D3
+
+    Calidad --> Q1
+    Calidad --> Q2
+    Calidad --> Q3
 ```
 
 #### B. Gestión del Cronograma (Línea Base del Tiempo)
