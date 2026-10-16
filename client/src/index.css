@@ -3198,10 +3198,11 @@ h1, h2, h3, h4, h5, h6 {
    ============================================================ */
 .ai-agro-assistant-root {
   position: fixed;
-  bottom: 12px;
-  right: 12px;
-  z-index: 9999;
+  bottom: 16px;
+  right: 16px;
+  z-index: 9995;
   font-family: inherit;
+  pointer-events: none;
 }
 
 /* Floating Launcher Pill */
@@ -7375,9 +7376,9 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 @media (max-width: 768px) {
-  /* Espaciado inferior para que el contenido no quede tapado por la barra */
-  body, .main-content-wrap {
-    padding-bottom: 75px !important;
+  /* Espaciado inferior para que el contenido no quede tapado por la barra móvil */
+  body, .main-content-wrap, .main-content, main, .support-page {
+    padding-bottom: calc(75px + env(safe-area-inset-bottom, 0px)) !important;
   }
 
   .bottom-mobile-nav {
@@ -7386,20 +7387,25 @@ h1, h2, h3, h4, h5, h6 {
     bottom: 0;
     left: 0;
     right: 0;
-    z-index: 9998;
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    z-index: 10000 !important;
+    background: rgba(255, 255, 255, 0.97);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
     border-top: 1px solid rgba(0, 0, 0, 0.08);
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.08);
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), 6px);
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    pointer-events: auto !important;
   }
 
   [data-theme='dark'] .bottom-mobile-nav,
   .dark-mode .bottom-mobile-nav {
-    background: rgba(15, 23, 42, 0.95);
+    background: rgba(15, 23, 42, 0.97);
     border-top: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 -4px 25px rgba(0, 0, 0, 0.35);
   }
 
   .bottom-mobile-nav-inner {
@@ -7410,6 +7416,8 @@ h1, h2, h3, h4, h5, h6 {
     max-width: 600px;
     margin: 0 auto;
     padding: 0 0.5rem;
+    position: relative;
+    pointer-events: auto !important;
   }
 
   .bottom-nav-item {
@@ -7419,33 +7427,46 @@ h1, h2, h3, h4, h5, h6 {
     justify-content: center;
     text-decoration: none;
     color: var(--text-muted, #64748b);
-    font-size: 0.7rem;
+    font-size: 0.72rem;
     font-weight: 600;
     gap: 3px;
     flex: 1;
     height: 100%;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    min-height: 54px;
+    transition: transform 0.12s ease, color 0.15s ease;
     position: relative;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+    pointer-events: auto !important;
+  }
+
+  .bottom-nav-item:active {
+    transform: scale(0.92);
+    color: var(--primary-color, #16a34a);
   }
 
   .bottom-nav-icon-wrap {
     position: relative;
-    font-size: 1.15rem;
+    font-size: 1.18rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    transition: transform 0.2s ease, background-color 0.2s ease;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+    pointer-events: none;
   }
 
   .bottom-nav-avatar {
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
     object-fit: cover;
     border: 1.5px solid var(--primary-color, #16a34a);
+    pointer-events: none;
   }
 
   .bottom-nav-badge {
@@ -7465,6 +7486,11 @@ h1, h2, h3, h4, h5, h6 {
     padding: 0 4px;
     border: 2px solid #ffffff;
     box-shadow: 0 2px 5px rgba(239, 68, 68, 0.4);
+    pointer-events: none;
+  }
+
+  .bottom-nav-label {
+    pointer-events: none;
   }
 
   .bottom-nav-item.active {
@@ -7734,6 +7760,16 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   /* ── 7. AgroAsistente IA Widget Mobile Bottom Sheet ── */
+  .ai-agro-assistant-root {
+    position: fixed !important;
+    bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important;
+    right: 14px !important;
+    left: auto !important;
+    top: auto !important;
+    z-index: 9995 !important;
+    pointer-events: none !important;
+  }
+
   .ai-agro-chat-dialog {
     position: fixed !important;
     bottom: 0 !important;
@@ -7746,15 +7782,19 @@ h1, h2, h3, h4, h5, h6 {
     max-height: 84vh !important;
     border-radius: 20px 20px 0 0 !important;
     box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.35) !important;
-    z-index: 10000 !important;
+    z-index: 10005 !important;
+    pointer-events: auto !important;
   }
 
   .ai-agro-launcher-btn {
-    bottom: 74px !important;
-    right: 12px !important;
+    position: relative !important;
+    bottom: 0 !important;
+    right: 0 !important;
     padding: 0.55rem 0.85rem !important;
     border-radius: 30px !important;
     z-index: 9990 !important;
+    pointer-events: auto !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25) !important;
   }
 
   /* ── 8. Modals on Mobile ── */
@@ -8361,5 +8401,26 @@ h1, h2, h3, h4, h5, h6 {
 .promo-copy-btn:active {
   transform: translateY(0) scale(0.97);
 }
+
+/* ==========================================================================
+   PRODUCT DETAIL PAGE & GLOBAL MOBILE RESPONSIVE POLISH
+   ========================================================================== */
+@media (max-width: 768px) {
+  .product-page-main-grid {
+    grid-template-columns: 1fr !important;
+    border-radius: 16px !important;
+    margin-bottom: 1.5rem !important;
+  }
+  .product-page-main-grid > div:first-child {
+    border-radius: 16px 16px 0 0 !important;
+  }
+  
+  /* Garantizar que ningún contenedor exceda el ancho del viewport móvil */
+  .app-container, .main-content, .main-content-wrap, main {
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+}
+
 
 

@@ -318,6 +318,7 @@ export default function ProductPage() {
 
           {/* Tarjeta Principal del Producto - 2 Columnas Elegantes y Balanceadas */}
           <div
+            className="product-page-main-grid"
             style={{
               background: '#ffffff',
               borderRadius: '24px',
@@ -326,7 +327,7 @@ export default function ProductPage() {
               overflow: 'hidden',
               marginBottom: '2.5rem',
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
               alignItems: 'stretch',
             }}
           >

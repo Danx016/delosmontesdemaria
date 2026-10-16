@@ -53,6 +53,7 @@
 
 > 📖 **Documentación Técnica & Gestión:**
 > - Consulta la guía técnica de endpoints y base de datos en [DOCUMENTACION.md](./DOCUMENTACION.md).
+> - Consulta todos los diagramas técnicos de arquitectura en [DIAGRAMAS_TECNICOS_SISTEMA.md](./DIAGRAMAS_TECNICOS_SISTEMA.md).
 > - Consulta la gestión integral del proyecto bajo estándar PMBOK® en [GESTION_PROYECTO_PMBOK.md](./GESTION_PROYECTO_PMBOK.md).
 
 ---
