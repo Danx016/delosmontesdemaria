@@ -495,59 +495,7 @@ export default function SoportePage() {
             )}
           </div>
 
-          {/* Banner de Acceso al Manual de Usuario */}
-          {!activeTicket && (
-            <div
-              style={{
-                background: 'linear-gradient(135deg, rgba(67, 142, 68, 0.08) 0%, rgba(34, 158, 217, 0.06) 100%)',
-                border: '1px solid rgba(67, 142, 68, 0.25)',
-                borderRadius: '12px',
-                padding: '0.85rem 1.15rem',
-                marginBottom: '1.25rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '0.75rem',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '8px',
-                    background: 'var(--primary-color, #438E44)',
-                    color: '#fff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '1.1rem',
-                    flexShrink: 0,
-                  }}
-                >
-                  <i className="fa fa-book-open" />
-                </div>
-                <div>
-                  <div style={{ fontWeight: 700, fontSize: '0.92rem', color: 'var(--text-main)' }}>
-                    ¿Tienes dudas sobre cómo comprar o vender?
-                  </div>
-                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                    Consulta el paso a paso detallado en nuestro Manual de Usuario interactivo.
-                  </div>
-                </div>
-              </div>
-              <a
-                href="/manual-de-usuario.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-sm btn-outline-success"
-                style={{ borderRadius: '20px', padding: '0.35rem 0.95rem', fontWeight: 600, fontSize: '0.82rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
-              >
-                <i className="fa fa-file-pdf" style={{ color: '#ef4444' }} /> Abrir Manual en PDF <i className="fa fa-external-link-alt" style={{ fontSize: '0.75rem' }} />
-              </a>
-            </div>
-          )}
+
 
           {/* Main Content Area: Centered and Focused */}
           <div>
