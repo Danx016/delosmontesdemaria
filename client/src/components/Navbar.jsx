@@ -283,15 +283,6 @@ export default function Navbar() {
                     <Link to="/perfil" onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }} role="menuitem">
                       <i className="fa fa-user" /> Mi Perfil y Pedidos
                     </Link>
-                    <a
-                      href="/manual-de-usuario.pdf"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }}
-                      role="menuitem"
-                    >
-                      <i className="fa fa-file-pdf" style={{ color: '#ef4444' }} /> Manual de Usuario (PDF)
-                    </a>
                     <Link to="/rastreo" onClick={() => { setUserDropdown(false); setMobileMenuOpen(false); }} role="menuitem">
                       <i className="fa fa-truck-fast" /> Rastrear Cosecha
                     </Link>
