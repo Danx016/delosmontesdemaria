@@ -350,10 +350,6 @@ export default function ProfilePage() {
               onClick={() => setPreviewImage({ src: coverImg, title: 'Foto de Portada' })}
               title="Haz clic para ver la foto de portada completa"
             >
-              <div
-                className="vendor-profile-cover-backdrop"
-                style={{ backgroundImage: `url(${coverImg})` }}
-              />
               <img
                 src={coverImg}
                 alt={`Portada de ${user?.nombre || 'Mi Perfil'}`}

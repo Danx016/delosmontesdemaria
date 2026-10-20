@@ -4486,6 +4486,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .vendor-profile-hero-card {
+  margin: 1.5rem 0 2rem 0;
   padding: 0;
   overflow: hidden;
   border-radius: 16px;
@@ -4497,50 +4498,34 @@ h1, h2, h3, h4, h5, h6 {
 .vendor-profile-cover-wrap {
   position: relative;
   width: 100%;
-  height: clamp(280px, 32vw, 420px);
-  background: #0f172a;
+  height: 240px;
+  background: var(--bg-alt, #e8f5e9);
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  cursor: pointer;
 }
 
 @media (max-width: 768px) {
+  .vendor-profile-hero-card {
+    margin: 1rem 0 1.5rem 0;
+    border-radius: 12px;
+  }
   .vendor-profile-cover-wrap {
-    height: clamp(180px, 46vw, 240px);
+    height: 160px;
   }
 }
 
-.vendor-profile-cover-backdrop {
-  position: absolute;
-  inset: -20px;
-  background-size: cover;
-  background-position: center center;
-  filter: blur(24px) brightness(0.6);
-  transform: scale(1.15);
-  z-index: 1;
-}
-
 .vendor-profile-cover-img {
-  position: relative;
-  z-index: 2;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center center;
+  object-position: center 35%;
   display: block;
-  transition: transform 0.4s ease;
-}
-
-.vendor-profile-cover-wrap:hover .vendor-profile-cover-img {
-  transform: scale(1.015);
 }
 
 .vendor-profile-cover-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 0%, rgba(0, 0, 0, 0.4) 100%);
-  z-index: 3;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 0%, rgba(0, 0, 0, 0.45) 100%);
   pointer-events: none;
 }
 
@@ -4588,7 +4573,7 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
-  margin-top: -70px;
+  margin-top: -63px;
   margin-bottom: 1.25rem;
   flex-wrap: wrap;
   gap: 1rem;
@@ -4596,17 +4581,15 @@ h1, h2, h3, h4, h5, h6 {
 
 .vendor-profile-avatar-container {
   position: relative;
-  width: 140px;
-  height: 140px;
+  width: 126px;
+  height: 126px;
   border-radius: 50%;
   border: 4px solid var(--card-bg, #ffffff);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
   background: var(--card-bg, #ffffff);
   flex-shrink: 0;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  cursor: pointer;
 }
 
 .vendor-profile-avatar-img {
@@ -4614,23 +4597,18 @@ h1, h2, h3, h4, h5, h6 {
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
-  object-position: center center;
+  object-position: center;
   aspect-ratio: 1 / 1;
   display: block;
-  transition: transform 0.3s ease;
-}
-
-.vendor-profile-avatar-container:hover .vendor-profile-avatar-img {
-  transform: scale(1.04);
 }
 
 @media (max-width: 768px) {
   .vendor-profile-hero-top {
-    margin-top: -52px;
+    margin-top: -48px;
   }
   .vendor-profile-avatar-container {
-    width: 104px;
-    height: 104px;
+    width: 96px;
+    height: 96px;
     border-width: 3px;
   }
 }

@@ -96,10 +96,6 @@ export default function VendedorPerfilPage() {
                   onClick={() => setPreviewImage({ src: coverImg, title: `Portada de ${vendedor.nombre}` })}
                   title="Haz clic para ver la foto de portada completa"
                 >
-                  <div
-                    className="vendor-profile-cover-backdrop"
-                    style={{ backgroundImage: `url(${coverImg})` }}
-                  />
                   <img
                     src={coverImg}
                     alt={`Portada de ${vendedor.nombre}`}
