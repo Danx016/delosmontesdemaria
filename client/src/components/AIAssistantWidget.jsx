@@ -273,6 +273,7 @@ export default function AIAssistantWidget() {
       {/* Botón flotante estilo Asesor del Campo */}
       {!open && (
         <button
+          type="button"
           className="ai-agro-launcher-btn"
           onClick={() => setOpen(true)}
           title="¿Necesitas ayuda? Chatea con un asesor"
