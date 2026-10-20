@@ -50,6 +50,7 @@ export default function ProfilePage() {
   const [savingBio, setSavingBio] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
+  const [previewImage, setPreviewImage] = useState(null)
 
   const EMPTY_DIR = {
     titulo: '',
@@ -344,7 +345,15 @@ export default function ProfilePage() {
         <div className="app-container">
           {/* Panoramic Hero Card */}
           <div className="vendor-profile-hero-card fade-in">
-            <div className="vendor-profile-cover-wrap">
+            <div
+              className="vendor-profile-cover-wrap"
+              onClick={() => setPreviewImage({ src: coverImg, title: 'Foto de Portada' })}
+              title="Haz clic para ver la foto de portada completa"
+            >
+              <div
+                className="vendor-profile-cover-backdrop"
+                style={{ backgroundImage: `url(${coverImg})` }}
+              />
               <img
                 src={coverImg}
                 alt={`Portada de ${user?.nombre || 'Mi Perfil'}`}
@@ -356,7 +365,12 @@ export default function ProfilePage() {
               <div className="vendor-profile-cover-overlay" />
               
               {/* Botón Tipo Lápiz Semitransparente para Subir Portada desde la PC */}
-              <label htmlFor="cover-file-input" className="vendor-cover-edit-btn" title="Cambiar foto de portada">
+              <label
+                htmlFor="cover-file-input"
+                className="vendor-cover-edit-btn"
+                title="Cambiar foto de portada"
+                onClick={(e) => e.stopPropagation()}
+              >
                 <i className={`fa ${uploadingCover ? 'fa-spinner fa-spin' : 'fa-pencil-alt'}`} />
                 <span>{uploadingCover ? 'Subiendo...' : 'Editar Portada'}</span>
                 <input
@@ -372,7 +386,11 @@ export default function ProfilePage() {
 
             <div className="vendor-profile-hero-body">
               <div className="vendor-profile-hero-top">
-                <div className="vendor-profile-avatar-container">
+                <div
+                  className="vendor-profile-avatar-container"
+                  onClick={() => setPreviewImage({ src: avatarImg, title: 'Foto de Perfil' })}
+                  title="Haz clic para ver la foto de perfil completa"
+                >
                   <img
                     src={avatarImg}
                     alt={user?.nombre || 'Mi Perfil'}
@@ -381,7 +399,12 @@ export default function ProfilePage() {
                   />
 
                   {/* Botón Tipo Lápiz Semitransparente para Subir Foto de Perfil */}
-                  <label htmlFor="avatar-file-input" className="vendor-avatar-edit-btn" title="Cambiar foto de perfil">
+                  <label
+                    htmlFor="avatar-file-input"
+                    className="vendor-avatar-edit-btn"
+                    title="Cambiar foto de perfil"
+                    onClick={(e) => e.stopPropagation()}
+                  >
                     <i className={`fa ${uploadingAvatar ? 'fa-spinner fa-spin' : 'fa-pencil-alt'}`} />
                     <input
                       id="avatar-file-input"
@@ -1089,6 +1112,68 @@ export default function ProfilePage() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Visor de Imagen en Tamaño Completo sin Recortes */}
+      {previewImage && (
+        <div
+          className="modal-overlay fade-in"
+          onClick={() => setPreviewImage(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.88)',
+            backdropFilter: 'blur(8px)',
+            WebkitBackdropFilter: 'blur(8px)',
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1.5rem',
+            cursor: 'zoom-out'
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: 'relative',
+              maxWidth: '92vw',
+              maxHeight: '92vh',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              cursor: 'default'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', marginBottom: '0.85rem', color: '#fff' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 700, fontSize: '1.05rem' }}>
+                <i className="fa fa-image text-success" />
+                <span>{previewImage.title} (Tamaño Completo)</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setPreviewImage(null)}
+                className="btn-icon"
+                style={{ color: '#fff', background: 'rgba(255,255,255,0.18)', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                title="Cerrar vista"
+              >
+                <i className="fa fa-times" />
+              </button>
+            </div>
+            <img
+              src={previewImage.src}
+              alt={previewImage.title}
+              style={{
+                maxWidth: '100%',
+                maxHeight: '84vh',
+                objectFit: 'contain',
+                borderRadius: '12px',
+                boxShadow: '0 24px 60px rgba(0,0,0,0.65)',
+                border: '1px solid rgba(255,255,255,0.15)'
+              }}
+            />
           </div>
         </div>
       )}
