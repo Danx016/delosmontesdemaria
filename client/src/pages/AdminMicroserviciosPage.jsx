@@ -284,7 +284,7 @@ export default function AdminMicroserviciosPage() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '20px', marginBottom: '30px', alignItems: 'start' }}>
+          <div className="microservices-cards-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))', gap: '20px', marginBottom: '30px', alignItems: 'start' }}>
             {[
               {
                 key: 'gateway',

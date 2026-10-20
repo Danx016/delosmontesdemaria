@@ -300,13 +300,13 @@ export default function TrackingPage() {
           </div>
 
           {/* Resumen de Ubicación y Trazabilidad */}
-          <div style={{
+          <div className="tracking-summary-grid" style={{
             background: '#f8fafc',
             borderTop: '1px solid #e5e7eb',
             padding: '2rem',
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-            gap: '2rem'
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))',
+            gap: '1.5rem'
           }}>
             {/* Tarjeta de Destino */}
             <div style={{ background: '#fff', padding: '1.5rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>

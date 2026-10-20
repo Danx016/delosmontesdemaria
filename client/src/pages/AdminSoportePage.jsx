@@ -419,7 +419,7 @@ export default function AdminSoportePage() {
       </div>
 
       {/* Main Two-Column Layout */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(320px, 1fr) minmax(0, 2fr)', gap: '1.5rem', height: 'calc(100vh - 160px)' }}>
+      <div className="admin-soporte-layout-grid">
         {/* Left Column: Tickets List with Filters */}
         <div className="card" style={{ padding: '1.25rem', display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', borderRadius: '14px' }}>
           <div style={{ marginBottom: '1rem' }}>

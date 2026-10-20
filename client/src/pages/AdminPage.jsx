@@ -1645,7 +1645,7 @@ export default function AdminPage() {
               </div>
 
               {/* Charts Section */}
-              <div className="charts-grid" style={{ marginTop: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem' }}>
+              <div className="charts-grid" style={{ marginTop: '1.5rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))', gap: '1.5rem' }}>
                 <div className="card">
                   <h3>Ventas por Mes (COP)</h3>
                   <div style={{ width: '100%', height: 300, marginTop: '1rem' }}>

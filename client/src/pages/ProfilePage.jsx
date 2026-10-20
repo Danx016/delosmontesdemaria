@@ -573,7 +573,7 @@ export default function ProfilePage() {
                     <i className="fa fa-user" /> Datos Personales y de Contacto
                   </h4>
 
-                  <div className="form-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
+                  <div className="form-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '1.25rem' }}>
                     <div className="form-group">
                       <label className="form-label" style={{ fontWeight: 600 }}>Nombre Completo *</label>
                       <input
@@ -599,7 +599,7 @@ export default function ProfilePage() {
                     </div>
                   </div>
 
-                  <div className="form-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem', marginTop: '1rem' }}>
+                  <div className="form-row" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))', gap: '1.25rem', marginTop: '1rem' }}>
                     <div className="form-group">
                       <label className="form-label" style={{ fontWeight: 600 }}>Ubicación / Finca / Vereda</label>
                       <input
