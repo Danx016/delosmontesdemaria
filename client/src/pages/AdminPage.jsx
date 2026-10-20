@@ -1739,6 +1739,11 @@ export default function AdminPage() {
                           ? (prod.imagen.startsWith('/') ? prod.imagen : `/uploads/products/${prod.imagen}`)
                           : '/img/Logo.jpg'
 
+                        const vendorUser = usuarios.find((u) => Number(u.id_usuario || u.id) === Number(prod.id_vendedor || prod.id_proveedor))
+                        const rawVendorName = vendorUser?.nombre || vendorUser?.apodo || (prod.vendedor_nombre && prod.vendedor_nombre !== 'Productor Campesino' ? prod.vendedor_nombre : '')
+                        const displayVendorName = rawVendorName || vendorUser?.username || prod.vendedor_apodo || (prod.id_vendedor && prod.id_vendedor !== 1 ? `Campesino #${prod.id_vendedor}` : 'Tienda Oficial / Admin')
+                        const displayVendorAvatar = prod.vendedor_avatar || prod.avatar || vendorUser?.avatar
+
                         return (
                           <tr key={prod.id_producto || prod.id}>
                             <td>
@@ -1755,19 +1760,19 @@ export default function AdminPage() {
                               {prod.descripcion && <p className="table-desc">{prod.descripcion.slice(0, 50)}...</p>}
                             </td>
                             <td>
-                              {prod.id_vendedor && prod.id_vendedor !== 1 && !prod.vendedor_nombre?.toLowerCase().includes('sin asignar') && !prod.vendedor_nombre?.toLowerCase().includes('administrador') ? (
-                                <span className="badge" style={{ background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', fontWeight: 700, padding: '0.3rem 0.6rem', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}>
+                              {prod.id_vendedor && prod.id_vendedor !== 1 && !displayVendorName.toLowerCase().includes('sin asignar') && !displayVendorName.toLowerCase().includes('administrador') && !displayVendorName.toLowerCase().includes('tienda oficial') ? (
+                                <span className="badge" style={{ background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', fontWeight: 700, padding: '0.3rem 0.6rem', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '0.45rem', textTransform: 'none' }}>
                                   <img
-                                    src={getAvatarUrl(prod.vendedor_avatar || prod.avatar, prod.vendedor_nombre)}
+                                    src={getAvatarUrl(displayVendorAvatar, displayVendorName)}
                                     alt=""
                                     style={{ width: '18px', height: '18px', borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
-                                    onError={(e) => handleAvatarError(e, prod.vendedor_nombre)}
+                                    onError={(e) => handleAvatarError(e, displayVendorName)}
                                   />
-                                  <span>{prod.vendedor_nombre || `Campesino #${prod.id_vendedor}`}</span>
+                                  <span>{displayVendorName}</span>
                                 </span>
                               ) : (
-                                <span className="badge" style={{ background: '#f1f5f9', color: '#64748b', border: '1px solid #cbd5e1', fontWeight: 600, padding: '0.3rem 0.6rem', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}>
-                                  <i className="fa fa-user" /> {prod.vendedor_nombre || 'Tienda Oficial / Admin'}
+                                <span className="badge" style={{ background: '#f1f5f9', color: '#64748b', border: '1px solid #cbd5e1', fontWeight: 600, padding: '0.3rem 0.6rem', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '0.45rem', textTransform: 'none' }}>
+                                  <i className="fa fa-user" /> {displayVendorName || 'Tienda Oficial / Admin'}
                                 </span>
                               )}
                             </td>

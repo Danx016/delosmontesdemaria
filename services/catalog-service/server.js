@@ -20,6 +20,7 @@ const {
   MySQLProductoRepository,
   MySQLCategoriaRepository,
   MySQLBannerRepository,
+  MySQLUsuarioRepository,
   db
 } = require('../../src/infrastructure/adapters/driven/persistence');
 
@@ -102,10 +103,12 @@ app.post('/api/catalog/cache/clear', async (req, res) => {
   res.json({ success: true, message: 'Caché de catálogo purgada exitosamente' });
 });
 
+const usuarioRepository = new MySQLUsuarioRepository();
 const adminController = new AdminController({
   productoRepository,
   categoriaRepository,
   bannerRepository,
+  usuarioRepository,
   cache
 });
 

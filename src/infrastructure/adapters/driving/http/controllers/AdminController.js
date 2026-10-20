@@ -166,7 +166,10 @@ class AdminController {
 
       const enriched = productos.map(p => {
         const json = typeof p.toJSON === 'function' ? p.toJSON() : p;
-        json.vendedor_nombre = userMap[json.id_vendedor] || userMap[json.id_proveedor] || 'Productor Campesino';
+        const nombreVendedor = userMap[json.id_vendedor] || userMap[json.id_proveedor] || json.vendedor_nombre || json.vendedor_apodo;
+        json.vendedor_nombre = (nombreVendedor && nombreVendedor !== 'Productor Campesino' && nombreVendedor !== 'Campesino Montemariano')
+          ? nombreVendedor
+          : (json.id_vendedor && json.id_vendedor !== 1 ? `Campesino #${json.id_vendedor}` : 'Administrador');
         return json;
       });
 
