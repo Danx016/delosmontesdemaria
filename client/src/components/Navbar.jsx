@@ -252,21 +252,6 @@ export default function Navbar() {
               </Link>
             </li>
 
-            <li role="none">
-              <a
-                href="/manual-de-usuario.pdf"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="nav-link-item"
-                onClick={() => setMobileMenuOpen(false)}
-                role="menuitem"
-                tabIndex="0"
-                title="Abrir Manual de Usuario (PDF Oficial)"
-              >
-                <i className="fa fa-file-pdf" style={{ color: '#ef4444' }} /> <span>Manual</span>
-              </a>
-            </li>
-
             {/* User Account / Profile */}
             {isAuthenticated ? (
               <li className="user-dropdown-container">
