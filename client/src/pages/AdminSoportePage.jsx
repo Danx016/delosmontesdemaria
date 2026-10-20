@@ -5,6 +5,7 @@ import { useSocket } from '../hooks/useSocket'
 import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { useConfirm } from '../context/ConfirmContext'
+import MarkdownRenderer from '../components/MarkdownRenderer'
 
 const DEFAULT_QUICK_REPLIES = [
   {
@@ -617,7 +618,9 @@ export default function AdminSoportePage() {
                             : `👤 ${m.nombre_remitente || selectedTicket.nombre_cliente || 'Cliente'}`}{' '}
                           • {m.fecha ? new Date(m.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Ahora'}
                         </div>
-                        <p style={{ margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.5 }}>{m.mensaje}</p>
+                        <div style={{ margin: 0, lineHeight: 1.5, fontSize: '0.92rem' }}>
+                          <MarkdownRenderer content={m.mensaje} />
+                        </div>
                       </div>
                     )
                   })

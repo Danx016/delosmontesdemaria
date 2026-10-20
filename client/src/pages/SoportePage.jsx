@@ -6,51 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import { useToast } from '../context/ToastContext'
 import { crearTicket, enviarMensaje, calificar, buscarTicket, solicitarAgente } from '../api/soporte.api'
 import { useSocket } from '../hooks/useSocket'
-
-function formatMessageContent(text) {
-  if (!text) return ''
-  const lines = text.split('\n')
-  return lines.map((line, lIdx) => {
-    const trimmed = line.trim()
-    if (!trimmed) {
-      return <div key={lIdx} style={{ height: '0.4rem' }} />
-    }
-
-    const isBullet = trimmed.startsWith('- ') || trimmed.startsWith('* ') || trimmed.startsWith('• ')
-    const content = isBullet ? trimmed.replace(/^[-*•]\s+/, '') : line
-
-    // Parsear negritas **text** y código `code`
-    const parts = content.split(/(\*\*[^*]+\*\*|`[^`]+`)/g)
-    const formattedParts = parts.map((part, pIdx) => {
-      if (part.startsWith('**') && part.endsWith('**')) {
-        return <strong key={pIdx} style={{ fontWeight: 800, color: 'inherit' }}>{part.slice(2, -2)}</strong>
-      }
-      if (part.startsWith('`') && part.endsWith('`')) {
-        return (
-          <code key={pIdx} style={{ background: 'rgba(0,0,0,0.06)', padding: '0.15rem 0.35rem', borderRadius: '4px', fontSize: '0.85em', fontFamily: 'monospace', fontWeight: 600 }}>
-            {part.slice(1, -1)}
-          </code>
-        )
-      }
-      return part
-    })
-
-    if (isBullet) {
-      return (
-        <div key={lIdx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.4rem', margin: '0.2rem 0' }}>
-          <span style={{ color: 'var(--color-primary, #15803d)', fontSize: '0.85rem', lineHeight: '1.4' }}>•</span>
-          <span style={{ flex: 1 }}>{formattedParts}</span>
-        </div>
-      )
-    }
-
-    return (
-      <div key={lIdx} style={{ margin: '0.2rem 0', lineHeight: '1.5' }}>
-        {formattedParts}
-      </div>
-    )
-  })
-}
+import MarkdownRenderer from '../components/MarkdownRenderer'
 
 function getTicketStorageKey(u) {
   const userId = u?.id_usuario || u?.id || u?.idUser
@@ -582,8 +538,8 @@ export default function SoportePage() {
                           <i className={`fa ${isMe ? 'fa-user' : isBot ? 'fa-robot' : 'fa-headset'}`} />
                           {author} • {m.fecha ? new Date(m.fecha).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Ahora'}
                         </div>
-                        <div style={{ margin: 0, lineHeight: 1.45, fontSize: '0.92rem' }}>
-                          {formatMessageContent(m.mensaje)}
+                        <div style={{ margin: 0, lineHeight: 1.5, fontSize: '0.92rem' }}>
+                          <MarkdownRenderer content={m.mensaje} />
                         </div>
                       </div>
                     )

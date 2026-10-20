@@ -51,7 +51,7 @@ function renderInline(text, keyPrefix = 'inline') {
     if ((part.startsWith('**') && part.endsWith('**') && part.length > 4) ||
         (part.startsWith('__') && part.endsWith('__') && part.length > 4)) {
       return (
-        <strong key={k} style={{ fontWeight: 700, color: 'var(--text-main, #0f172a)' }}>
+        <strong key={k} style={{ fontWeight: 700, color: 'inherit' }}>
           {renderInline(part.slice(2, -2), `${k}-b`)}
         </strong>
       )
@@ -61,7 +61,7 @@ function renderInline(text, keyPrefix = 'inline') {
     if ((part.startsWith('*') && part.endsWith('*') && part.length > 2) ||
         (part.startsWith('_') && part.endsWith('_') && part.length > 2)) {
       return (
-        <em key={k} style={{ fontStyle: 'italic' }}>
+        <em key={k} style={{ fontStyle: 'italic', color: 'inherit' }}>
           {renderInline(part.slice(1, -1), `${k}-i`)}
         </em>
       )
@@ -90,7 +90,7 @@ function renderInline(text, keyPrefix = 'inline') {
 // Verifica si una línea es separador de tabla: |---|---| o |:---|:---:|
 function isTableSeparator(line) {
   const trimmed = line.trim()
-  return /^\|?(\s*:?-{2,}:?\s*\|)+\s*:?-{2,}:?\s*\|?$/.test(trimmed)
+  return /^\|?(\s*:?-{2,}:?\s*\|?)+$/.test(trimmed) && trimmed.includes('-')
 }
 
 // Extrae celdas de una fila de tabla Markdown
@@ -113,12 +113,12 @@ export default function MarkdownRenderer({ content, className = '' }) {
     const trimmed = line.trim()
 
     // 1. Detectar inicio de tabla Markdown
-    if (trimmed.startsWith('|') && trimmed.endsWith('|') && i + 1 < rawLines.length && isTableSeparator(rawLines[i + 1])) {
+    if (trimmed.startsWith('|') && i + 1 < rawLines.length && isTableSeparator(rawLines[i + 1])) {
       const headers = parseTableRow(line)
       i += 2 // Saltar fila de encabezado y separador
       const rows = []
 
-      while (i < rawLines.length && rawLines[i].trim().startsWith('|')) {
+      while (i < rawLines.length && (rawLines[i].trim().startsWith('|') || (rawLines[i].trim().includes('|') && rawLines[i].trim().endsWith('|')))) {
         const rowCells = parseTableRow(rawLines[i])
         if (rowCells.some((c) => c.length > 0)) {
           rows.push(rowCells)
@@ -266,10 +266,10 @@ export default function MarkdownRenderer({ content, className = '' }) {
 
           case 'heading': {
             const headingStyles = {
-              1: { fontSize: '1.25rem', fontWeight: 800, margin: '1rem 0 0.4rem', color: 'var(--text-main, #0f172a)' },
-              2: { fontSize: '1.1rem', fontWeight: 800, margin: '0.9rem 0 0.35rem', color: 'var(--primary-color, #15803d)', borderBottom: '1px solid var(--border-color, #e2e8f0)', paddingBottom: '0.3rem' },
-              3: { fontSize: '0.98rem', fontWeight: 700, margin: '0.75rem 0 0.3rem', color: 'var(--text-main, #1e293b)' },
-              4: { fontSize: '0.92rem', fontWeight: 700, margin: '0.65rem 0 0.25rem', color: 'var(--text-main, #334155)' },
+              1: { fontSize: '1.2rem', fontWeight: 800, margin: '0.85rem 0 0.35rem', color: 'inherit' },
+              2: { fontSize: '1.05rem', fontWeight: 800, margin: '0.75rem 0 0.3rem', color: 'inherit', borderBottom: '1px solid var(--border-color, #e2e8f0)', paddingBottom: '0.25rem' },
+              3: { fontSize: '0.98rem', fontWeight: 700, margin: '0.65rem 0 0.25rem', color: 'inherit' },
+              4: { fontSize: '0.92rem', fontWeight: 700, margin: '0.55rem 0 0.2rem', color: 'inherit' },
             }
             const Tag = block.level <= 2 ? 'h4' : 'h5'
             const s = headingStyles[block.level] || headingStyles[3]
