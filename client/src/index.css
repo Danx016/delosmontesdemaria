@@ -8424,5 +8424,10 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+/* Evitar que mapas Leaflet se superpongan sobre el header sticky */
+.leaflet-container {
+  z-index: 1 !important;
+}
+
 
 

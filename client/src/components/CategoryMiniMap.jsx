@@ -191,6 +191,9 @@ export default function CategoryMiniMap({
   return (
     <div
       style={{
+        position: 'relative',
+        zIndex: 1,
+        isolation: 'isolate',
         marginTop: '1.75rem',
         marginBottom: '1.75rem',
         borderRadius: '16px',
@@ -308,7 +311,7 @@ export default function CategoryMiniMap({
               fontSize: '0.72rem',
               color: '#374151',
               boxShadow: '0 2px 5px rgba(0,0,0,0.15)',
-              zIndex: 1000,
+              zIndex: 400,
               pointerEvents: 'none',
               fontWeight: '600'
             }}
