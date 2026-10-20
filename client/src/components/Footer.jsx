@@ -60,11 +60,6 @@ export default function Footer() {
           <h4>Enlaces Rápidos</h4>
           <ul>
             <li><Link to="/">Inicio</Link></li>
-            <li>
-              <a href="/manual-de-usuario.pdf" target="_blank" rel="noopener noreferrer">
-                <i className="fa fa-file-pdf" style={{ color: '#ef4444' }} /> Manual de Usuario (PDF)
-              </a>
-            </li>
             <li><Link to="/vendedor">Vender en la Plataforma</Link></li>
             <li><Link to="/soporte">Centro de Ayuda</Link></li>
             <li><a href="https://t.me/montesdemariabot" target="_blank" rel="noreferrer"><i className="fab fa-telegram" /> Bot de Telegram</a></li>
