@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { chatPublico } from '../api/chat.api'
 import { useCart } from '../context/CartContext'
 import { useToast } from '../context/ToastContext'
+import MarkdownRenderer from './MarkdownRenderer'
 
 const QUICK_PROMPTS = [
   { label: '🌾 Cosechas y tubérculos', query: '¿Qué cosechas frescas y tubérculos tienen disponibles hoy?' },
@@ -200,32 +201,9 @@ export default function AIAssistantWidget() {
             )
           }
 
-          // Formateo de texto en párrafos y negritas
-          const lines = p.content.split('\n')
           return (
             <div key={pIdx} className="ai-text-block">
-              {lines.map((line, lIdx) => {
-                if (!line.trim()) return <div key={lIdx} style={{ height: '0.4rem' }} />
-                
-                // Formatear negritas **texto**
-                const formattedLine = line.split(/(\*\*[^*]+\*\*)/g).map((chunk, cIdx) => {
-                  if (chunk.startsWith('**') && chunk.endsWith('**')) {
-                    return <strong key={cIdx}>{chunk.slice(2, -2)}</strong>
-                  }
-                  return chunk
-                })
-
-                if (line.trim().startsWith('- ') || line.trim().startsWith('• ') || line.trim().startsWith('* ')) {
-                  return (
-                    <div key={lIdx} className="ai-list-item">
-                      <span className="ai-list-bullet">🌾</span>
-                      <span>{formattedLine}</span>
-                    </div>
-                  )
-                }
-
-                return <p key={lIdx} className="ai-text-paragraph">{formattedLine}</p>
-              })}
+              <MarkdownRenderer content={p.content} />
             </div>
           )
         })}

@@ -7,6 +7,7 @@ import Footer from '../components/Footer'
 import MediaRenderer from '../components/MediaRenderer'
 import HeroSlideRenderer from '../components/HeroSlideRenderer'
 import BannerVisualEditorModal from '../components/BannerVisualEditorModal'
+import MarkdownRenderer from '../components/MarkdownRenderer'
 import { getAvatarUrl, handleAvatarError } from '../utils/avatar'
 import { getProductImageUrl, handleProductImageError } from '../utils/productImage'
 import { exportarVentasExcel, generarReportePDF } from '../utils/reportExporter'
@@ -3263,9 +3264,13 @@ export default function AdminPage() {
                         <div style={{ fontSize: '0.78rem', fontWeight: 700, opacity: 0.85, marginBottom: '0.35rem' }}>
                           {msg.role === 'user' ? '👤 Consulta Gerencial' : '🤖 Asistente IA Gerencial'}
                         </div>
-                        <div style={{ whiteSpace: 'pre-wrap', fontSize: '0.9rem' }}>
-                          {msg.text}
-                        </div>
+                        {msg.role === 'user' ? (
+                          <div style={{ whiteSpace: 'pre-wrap', fontSize: '0.9rem' }}>
+                            {msg.text}
+                          </div>
+                        ) : (
+                          <MarkdownRenderer content={msg.text} />
+                        )}
                       </div>
                     </div>
                   ))
