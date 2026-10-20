@@ -19,16 +19,16 @@ function createAdminRoutes(adminController) {
   router.delete('/compras/:id_compra', (req, res) => adminController.eliminarCompra(req, res));
   
   // Productos Globales (CRUD Admin con fotos)
-  const { uploadProductImage, uploadCategoryImage } = require('../middleware/upload');
+  const { uploadProductImage, uploadCategoryImage, handleMulterUpload } = require('../middleware/upload');
   router.get('/productos', (req, res) => adminController.listarProductosGlobal(req, res));
-  router.post('/productos', uploadProductImage.single('imagen'), (req, res) => adminController.crearProducto(req, res));
-  router.put('/productos/:id_producto', uploadProductImage.single('imagen'), (req, res) => adminController.actualizarProducto(req, res));
+  router.post('/productos', handleMulterUpload(uploadProductImage.single('imagen')), (req, res) => adminController.crearProducto(req, res));
+  router.put('/productos/:id_producto', handleMulterUpload(uploadProductImage.single('imagen')), (req, res) => adminController.actualizarProducto(req, res));
   router.delete('/productos/:id_producto', (req, res) => adminController.eliminarProducto(req, res));
 
   // Categorías (CRUD Real con imágenes)
   router.get('/categorias', (req, res) => adminController.listarCategorias(req, res));
-  router.post('/categorias', uploadCategoryImage.single('imagen'), (req, res) => adminController.crearCategoria(req, res));
-  router.put('/categorias/:id_categoria', uploadCategoryImage.single('imagen'), (req, res) => adminController.actualizarCategoria(req, res));
+  router.post('/categorias', handleMulterUpload(uploadCategoryImage.single('imagen')), (req, res) => adminController.crearCategoria(req, res));
+  router.put('/categorias/:id_categoria', handleMulterUpload(uploadCategoryImage.single('imagen')), (req, res) => adminController.actualizarCategoria(req, res));
   router.delete('/categorias/:id_categoria', (req, res) => adminController.eliminarCategoria(req, res));
 
   router.post('/ia-chat', (req, res) => adminController.chatIA(req, res));

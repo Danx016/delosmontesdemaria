@@ -32,7 +32,7 @@ if (!fs.existsSync(bannersUploadDir)) {
   fs.mkdirSync(bannersUploadDir, { recursive: true });
 }
 
-const SAFE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.avif', '.heic', '.heif', '.jfif']);
+const SAFE_EXTENSIONS = new Set(['.jpg', '.jpeg', '.jpe', '.jif', '.jfif', '.jfi', '.png', '.webp', '.gif', '.avif', '.heic', '.heif', '.bmp', '.tiff', '.tif']);
 const DANGEROUS_EXTS = /\.(php|phtml|phar|cgi|pl|py|jsp|asp|aspx|sh|bash|exe|bat|cmd|dll|bin|js|ts|jsx|tsx|html|htm|xhtml|svg|xml)$/i;
 
 const imageFilter = (req, file, cb) => {
@@ -40,13 +40,13 @@ const imageFilter = (req, file, cb) => {
   const ext = path.extname(original).toLowerCase();
 
   if (DANGEROUS_EXTS.test(original) || DANGEROUS_EXTS.test(ext)) {
-    return cb(new Error('Tipo de archivo peligroso o no permitido.'));
+    return cb(new Error('Tipo de archivo peligroso o no permitido por seguridad.'));
   }
 
   const isAllowedExt = SAFE_EXTENSIONS.has(ext);
   const isImageMime = file.mimetype && (file.mimetype.startsWith('image/') || file.mimetype === 'application/octet-stream');
 
-  if (isAllowedExt || (isImageMime && !ext)) {
+  if (isAllowedExt || isImageMime) {
     cb(null, true);
   } else {
     cb(new Error('Formato no soportado. Solo se permiten imágenes (JPG, PNG, WEBP, GIF, AVIF, HEIC).'));
@@ -55,9 +55,13 @@ const imageFilter = (req, file, cb) => {
 
 const getCleanExtension = (originalname, mimetype) => {
   let ext = path.extname(originalname || '').toLowerCase();
+  if (['.jpg', '.jpeg', '.jpe', '.jfif', '.jif', '.jfi'].includes(ext)) {
+    return '.jpg';
+  }
   if (SAFE_EXTENSIONS.has(ext)) {
     return ext;
   }
+  if (mimetype === 'image/jpeg' || mimetype === 'image/pjpeg') return '.jpg';
   if (mimetype === 'image/png') return '.png';
   if (mimetype === 'image/webp') return '.webp';
   if (mimetype === 'image/gif') return '.gif';
@@ -158,11 +162,11 @@ const handleMulterUpload = (uploadMiddleware) => {
     uploadMiddleware(req, res, (err) => {
       if (err instanceof multer.MulterError) {
         if (err.code === 'LIMIT_FILE_SIZE') {
-          return res.status(400).json({ error: 'La foto es demasiado pesada. El tamaño máximo permitido es 35MB.' });
+          return res.status(400).json({ success: false, message: 'La imagen es demasiado pesada. El tamaño máximo permitido es 35MB.', error: 'LIMIT_FILE_SIZE' });
         }
-        return res.status(400).json({ error: `Error al subir imagen: ${err.message}` });
+        return res.status(400).json({ success: false, message: `Error al subir imagen: ${err.message}`, error: err.message });
       } else if (err) {
-        return res.status(400).json({ error: err.message || 'Error al procesar la imagen subida.' });
+        return res.status(400).json({ success: false, message: err.message || 'Error al procesar la imagen subida.', error: err.message || 'Error al procesar la imagen subida.' });
       }
       next();
     });

@@ -1220,7 +1220,7 @@ export default function AdminPage() {
       const res = await listarCategoriasAdmin()
       setCategorias(res.data || [])
     } catch (err) {
-      setCatError(err.response?.data?.error || 'Error al crear categoría.')
+      setCatError(err.response?.data?.message || err.response?.data?.error || 'Error al crear categoría.')
     } finally {
       setCatSaving(false)
     }
@@ -1269,7 +1269,7 @@ export default function AdminPage() {
       const res = await listarCategoriasAdmin()
       setCategorias(res.data || [])
     } catch (err) {
-      setEditCatError(err.response?.data?.error || 'Error al actualizar categoría.')
+      setEditCatError(err.response?.data?.message || err.response?.data?.error || 'Error al actualizar categoría.')
     } finally {
       setEditCatSaving(false)
     }

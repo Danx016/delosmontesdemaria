@@ -1,11 +1,11 @@
 const express = require('express');
-const { uploadSupportImage } = require('../middleware/upload');
+const { uploadSupportImage, handleMulterUpload } = require('../middleware/upload');
 const { verifyToken, verifyAdmin, verifyAdminOrSupport, optionalAuth } = require('../middleware/auth');
 
 function createSoporteRoutes(soporteController) {
   const router = express.Router();
 
-  router.post('/upload-imagen', uploadSupportImage.single('imagen'), (req, res) => soporteController.subirImagen(req, res));
+  router.post('/upload-imagen', handleMulterUpload(uploadSupportImage.single('imagen')), (req, res) => soporteController.subirImagen(req, res));
   router.post('/crear-ticket', optionalAuth, (req, res) => soporteController.crearTicket(req, res));
   router.post('/mensaje', optionalAuth, (req, res) => soporteController.enviarMensaje(req, res));
   router.post('/solicitar-agente', optionalAuth, (req, res) => soporteController.solicitarAgente(req, res));

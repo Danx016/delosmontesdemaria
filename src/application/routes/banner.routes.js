@@ -1,6 +1,6 @@
 const express = require('express');
 const { verifyToken, verifyAdmin } = require('../middleware/auth');
-const { uploadBannerImages } = require('../middleware/upload');
+const { uploadBannerImages, handleMulterUpload } = require('../middleware/upload');
 
 function createBannerRoutes(bannerController) {
   const router = express.Router();
@@ -10,8 +10,8 @@ function createBannerRoutes(bannerController) {
 
   // Rutas administrativas
   router.get('/admin/all', verifyToken, verifyAdmin, bannerController.obtenerTodosBanners);
-  router.post('/admin', verifyToken, verifyAdmin, uploadBannerImages, bannerController.crearBanner);
-  router.put('/admin/:id', verifyToken, verifyAdmin, uploadBannerImages, bannerController.actualizarBanner);
+  router.post('/admin', verifyToken, verifyAdmin, handleMulterUpload(uploadBannerImages), bannerController.crearBanner);
+  router.put('/admin/:id', verifyToken, verifyAdmin, handleMulterUpload(uploadBannerImages), bannerController.actualizarBanner);
   router.delete('/admin/:id', verifyToken, verifyAdmin, bannerController.eliminarBanner);
 
   return router;
