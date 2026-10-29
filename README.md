@@ -62,6 +62,11 @@
 
 El proyecto está estructurado bajo **Arquitectura Hexagonal (Ports & Adapters)** y principios de **Diseño Guiado por el Dominio (DDD)**:
 
+<p align="center">
+  <img src="docs/arquitectura/arquitectura_hexagonal.png" alt="Arquitectura Hexagonal - De los Montes de María" width="100%" />
+</p>
+<p align="center"><em>Diagrama oficial de Arquitectura Hexagonal de tres capas concéntricas con adaptadores de entrada/salida y conexiones externas.</em></p>
+
 ```
 ├── client/                     # Aplicación Frontend en React 18 + Vite
 │   ├── src/

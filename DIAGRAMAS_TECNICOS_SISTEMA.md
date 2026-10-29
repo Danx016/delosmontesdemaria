@@ -401,6 +401,11 @@ flowchart TB
 ---
 
 ## 5. Arquitectura Hexagonal (Ports & Adapters)
+ 
+<p align="center">
+  <img src="docs/arquitectura/arquitectura_hexagonal.png" alt="Arquitectura Hexagonal (Ports &amp; Adapters) - De los Montes de María" width="100%" />
+</p>
+<p align="center"><em>Topología hexagonal concéntrica: Núcleo de Dominio (Amarillo), Capa de Aplicación / Casos de Uso (Salmón), e Infraestructura de Adaptadores (Azul) con protocolos externos (HTTP, SQL, SMTP, Rest API, Message Broker).</em></p>
 
 ```mermaid
 flowchart TD
