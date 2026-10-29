@@ -36,7 +36,7 @@ El corazón del sistema. Es **100% agnóstico e independiente** de frameworks, b
   - `OrderCreated`: Disparado al confirmarse un nuevo pedido.
   - `StockLowAlert`: Notifica cuando el inventario de una cosecha baja de 5 unidades.
   - `TicketEscalated`: Escala un chat del bot de IA a un agente humano en Telegram.
-  - `PaymentVerified`: Confirma el webhook transaccional de la pasarela Wompi.
+  - `PaymentVerified`: Confirma el cobro y entrega satisfactoria en efectivo de la orden.
 
 - **Puertos de Repositorios (Interfaces de Persistencia):**
   - `UsuarioRepositoryPort`, `ProductoRepositoryPort`, `CompraRepositoryPort`, `ShipmentRepositoryPort`, `SoporteRepositoryPort`, `CouponRepositoryPort`, `BannerRepositoryPort`, etc.
@@ -56,7 +56,7 @@ Contiene los **Casos de Uso (Use Cases)**. Orquesta el flujo de datos entre las 
 - **Catálogo & Cosechas:**
   - `CreateProduct`, `GetProducts`, `GetProductById`, `SearchProducts`, `UpdateProduct`, `DeleteProduct`.
 - **Compras & Checkout:**
-  - `ProcessPurchase`, `GenerateWompiSignature`, `ValidarCuponUseCase`, `UpdateOrderStatus`, `GetPurchases`.
+  - `ProcessPurchase`, `ValidarCuponUseCase`, `UpdateOrderStatus`, `GetPurchases`, `ConfirmDeliveryPayment`.
 - **Logística Rural & Envíos:**
   - `CalculateShippingRate`, `CreateShipment`, `TrackShipment`, `UpdateShipmentStatus`.
 - **Soporte & Asistente IA:**
@@ -81,11 +81,11 @@ Implementa todos los adaptadores técnicos y conectores que comunican la aplicac
 - **Persistencia (EntityManager):**
   `Database.js` (Connection Pool SSL con `mysql2/promise`), `MySQLUsuarioRepository`, `MySQLProductoRepository`, `MySQLCompraRepository` (Transacciones ACID), `MySQLShipmentRepository`, `MySQLChatRepository`, `MySQLSoporteRepository`, etc.
 - **Notificaciones & Mensajería (MailAdapter):**
-  - `EmailService.js`: Integración con Brevo API y SMTP para envío de facturas PDF con código QR y validación OTP.
+  - `EmailService.js`: Integración con Gmail SMTP (Nodemailer 465 SSL) para envío de facturas PDF con código QR y validación OTP.
   - `TelegramService.js`: Bot oficial (`@montesdemariabot`) con notificaciones 1-click y atención al cliente.
   - `WhatsAppService.js`: Integración con Meta Cloud API.
 - **Pasarelas & Servicios Externos (RestClient):**
-  - `PaymentService.js`: Pasarela Wompi (Bancolombia) y lógica de Pago Contra Entrega (COD).
+  - `PaymentService.js`: Orquestación y registro de Pago Contra Entrega (Cash on Delivery - COD) en efectivo.
   - `IAService.js`: Modelos de Inteligencia Artificial (Groq LLaMA 3.3 70B & OpenRouter).
   - `GoogleAuthService.js`: Cliente OAuth 2.0 de Google.
 - **Message Broker & Event Bus (RabbitMQAdapter):**
@@ -97,6 +97,6 @@ Implementa todos los adaptadores técnicos y conectores que comunican la aplicac
 
 1. **⬆️ HTTP / HTTPS:** Navegadores Web (React 18 SPA + Vite + PWA), Clientes Móviles y Panel Administrativo `/admin`.
 2. **↗️ SQL:** Base de datos relacional MySQL 8.0 en clúster con transacciones seguras ACID y codificación `utf8mb4_unicode_ci`.
-3. **↘️ SMTP & Notificaciones:** Servidores de correo Brevo/SMTP, Telegram Bot API y WhatsApp Business.
-4. **↙️ Rest API:** Proveedores externos de pagos (Wompi), modelos de lenguaje de gran escala (Groq/OpenRouter) y Google Identity.
+3. **↘️ SMTP & Notificaciones:** Servidores de correo Gmail SMTP (Nodemailer), Telegram Bot API y WhatsApp Business.
+4. **↙️ Rest API:** Modelos de lenguaje en la nube (Groq Cloud LLaMA 3.3, OpenRouter) y Google Identity OAuth 2.0.
 5. **↖️ Message Broker:** Redis Enterprise Bus para eventos asíncronos en segundo plano y Socket.io para salas de comunicación bidireccional.

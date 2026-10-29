@@ -89,7 +89,7 @@ El proyecto está estructurado bajo **Arquitectura Hexagonal (Ports & Adapters)*
 │   ├── infrastructure/         # ⚙️ Capa de Infraestructura (Adaptadores)
 │   │   ├── adapters/
 │   │   │   ├── driving/        # Adaptadores Primarios / Entrada (HTTP Controllers, Routes, Middleware, WebSockets)
-│   │   │   └── driven/         # Adaptadores Secundarios / Salida (MySQL Repositories, Brevo/Gmail, Telegram, IA)
+│   │   │   └── driven/         # Adaptadores Secundarios / Salida (MySQL Repositories, Gmail SMTP, Telegram, IA)
 │   │   └── config/             # Configuración del entorno y variables del sistema
 │   └── framework/              # 🚀 Composition Root (app.js inyección de dependencias, server.js HTTP/S)
 │
